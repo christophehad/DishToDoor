@@ -1,0 +1,25 @@
+{
+  "name": "dishtodoor",
+  "version": "1.0.0",
+  "description": "Backend server for DishToDoor",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon main.js -e js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christophehad/DishToDoor.git"
+  },
+  "author": "DishToDoor Team",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/christophehad/DishToDoor/issues"
+  },
+  "homepage": "https://github.com/christophehad/DishToDoor#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql": "^2.18.1",
+    "nodemon": "^2.0.7"
+  }
+}
