@@ -20,7 +20,7 @@ module.exports.tryConnection = function tryConnection() {
    Another way of writing it is to write function name(args) {...} 
     and add module.exports.name = name in the end of the file
 */
-module.exports.cookLogin = function cookLogin(id) {
+module.exports.cookLogin = async function cookLogin(id) {
     let ret = 0;
     con.query('SELECT * FROM cooks Where id = ?',[id], (err,result) => {
         if (err)

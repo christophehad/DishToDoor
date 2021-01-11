@@ -1,8 +1,8 @@
 const express = require('express');
 const app = express();
 
-const cookComponents = require('./api/cook/cook_main');
-const eaterComponents = require('./api/eater/eater_main');
+const cookComponents = require('./api/v1/cook/cook_main');
+const eaterComponents = require('./api/v1/eater/eater_main');
 const database = require('./database/database');
 
 // port used by the server
