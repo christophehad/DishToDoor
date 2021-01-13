@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 12, 2021 at 02:34 PM
+-- Generation Time: Jan 13, 2021 at 03:06 PM
 -- Server version: 10.4.6-MariaDB
 -- PHP Version: 7.3.9
 
@@ -56,9 +56,9 @@ CREATE TABLE `eater` (
 
 CREATE TABLE `user_account` (
   `id` int(11) NOT NULL,
+  `email` varchar(320) COLLATE utf8_unicode_ci DEFAULT 'NULL',
+  `phone` varchar(16) COLLATE utf8_unicode_ci DEFAULT 'NULL',
   `type` enum('COOK','EATER','ADMIN') COLLATE utf8_unicode_ci NOT NULL,
-  `email` varchar(320) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `phone` varchar(16) COLLATE utf8_unicode_ci DEFAULT NULL,
   `password` binary(60) NOT NULL COMMENT 'length for bcrypt hash',
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -99,7 +99,9 @@ ALTER TABLE `eater`
 -- Indexes for table `user_account`
 --
 ALTER TABLE `user_account`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `phone` (`phone`);
 
 --
 -- Indexes for table `user_profile`
