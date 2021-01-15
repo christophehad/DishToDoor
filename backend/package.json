@@ -19,6 +19,7 @@
   "homepage": "https://github.com/christophehad/DishToDoor#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "https": "^1.0.0",
     "mysql": "^2.18.1",
     "nodemon": "^2.0.7"
   }
