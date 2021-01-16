@@ -103,8 +103,8 @@ ALTER TABLE `eater`
 --
 ALTER TABLE `user_account`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`),
-  ADD UNIQUE KEY `phone` (`phone`);
+  ADD KEY `email` (`email`),
+  ADD KEY `phone` (`phone`);
 
 --
 -- Indexes for table `user_profile`
