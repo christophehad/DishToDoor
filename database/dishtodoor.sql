@@ -1,14 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.0.1
+-- version 5.0.4
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 13, 2021 at 03:06 PM
--- Server version: 10.4.6-MariaDB
--- PHP Version: 7.3.9
+-- Generation Time: Jan 16, 2021 at 12:24 PM
+-- Server version: 10.4.17-MariaDB
+-- PHP Version: 8.0.0
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -35,7 +34,8 @@ CREATE TABLE `cook` (
   `closing_time` time DEFAULT NULL,
   `cook_logo` varchar(2083) COLLATE utf8_unicode_ci DEFAULT NULL,
   `exp_delivery_time` time DEFAULT NULL,
-  `cook_discount` varchar(16) COLLATE utf8_unicode_ci DEFAULT NULL
+  `cook_discount` varchar(16) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `delivery_radius` int(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -45,7 +45,8 @@ CREATE TABLE `cook` (
 --
 
 CREATE TABLE `eater` (
-  `eater_id` int(11) NOT NULL
+  `eater_id` int(11) NOT NULL,
+  `pickup_radius` int(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -76,7 +77,9 @@ CREATE TABLE `user_profile` (
   `last_name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `dob` date DEFAULT NULL,
   `city` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `street` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
+  `street` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `building` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `floor` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
