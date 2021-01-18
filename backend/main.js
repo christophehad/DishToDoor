@@ -15,10 +15,12 @@ const database = require('./database/database');
 // port used by the server
 const port = 3000;
 
-app.use(express.json()); // for retrieving json files from POST requests
+//app.use(express.json()); // for retrieving json files from POST requests
+app.use(express.urlencoded({extended: true})); // for passport POST requests
 
 // dummy response for now
 app.get('/', (req,res) => {
+    database.tryConnection();
     res.send("Welcome to the DishToDoor backend!");
 })
 
@@ -38,3 +40,8 @@ app.listen(port, () => {
 httpsServer.listen(port, () => {
     console.log(`Listening on port ${port}`);
 }); */
+
+// process.on('uncaughtException', function (err) {
+//     console.error(err);
+//     console.log("Node NOT Exiting...");
+// });
