@@ -30,6 +30,15 @@ router.post('/register-email', (req, res, next) => {
     })(req,res,next);
 });
 
+router.post('/register', (req, res, next) => {
+    if (DEBUG) console.log(req.body);
+    passportLocal.authenticate('cook-register-email-phone', (err, id, info) => {
+        if (err) return next(err);
+        if (!id) return res.send(failureJSON(info.message));
+        res.send(successJSON());
+    })(req,res,next);
+});
+
 // login routes with tokens
 router.post('/login-phone', (req, res, next) => {
     if (DEBUG) console.log(req.body);

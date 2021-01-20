@@ -94,6 +94,24 @@ module.exports.cookRegisterEmail = function cookRegisterEmail(email,pass,fname,l
         })
     })
 }
+// returns the cook ID
+module.exports.cookRegister = function cookRegister(email,phone,pass,fname,lname,isVerified=false, done) {
+    // create account
+    con.query('INSERT into user_account (email,phone,type,password) values (?,?,?,?)',[email,phone,'COOK',pass], (err,result) => {
+        if (err) return done(err);
+        const id = result.insertId;
+        
+        // create common cook profile
+        con.query('INSERT into user_profile (id,type,first_name,last_name) values (?,?,?,?)',[id,'COOK',fname,lname], (err,result) => {
+            if (err) return done(err);
+            // create specific cook profile
+            con.query('INSERT into cook (cook_id,is_verified) values (?,?)',[id,isVerified],(err,result) => {
+                if (err) return done(err);
+                return done(null,id);
+            })
+        })
+    })
+}
 
 // returns the eater ID
 module.exports.eaterRegisterPhone = function eaterRegisterPhone(phone,pass,fname,lname,done) {
@@ -116,6 +134,24 @@ module.exports.eaterRegisterPhone = function eaterRegisterPhone(phone,pass,fname
 module.exports.eaterRegisterEmail = function eaterRegisterEmail(email,pass,fname,lname,done) {
     // create account
     con.query('INSERT into user_account (email,type,password) values (?,?,?)',[email,'EATER',pass], (err,result) => {
+        if (err) return done(err);
+        const id = result.insertId;
+        
+        // create common eater profile
+        con.query('INSERT into user_profile (id,type,first_name,last_name) values (?,?,?,?)',[id,'EATER',fname,lname], (err,result) => {
+            if (err) return done(err);
+            // create specific eater profile
+            con.query('INSERT into eater (eater_id) values (?)',[id],(err,result) => {
+                if (err) return done(err);
+                return done(null,id);
+            })
+        })
+    })
+}
+// returns the eater ID
+module.exports.eaterRegister = function eaterRegister(email,phone,pass,fname,lname,done) {
+    // create account
+    con.query('INSERT into user_account (email,phone,type,password) values (?,?,?,?)',[email,phone,'EATER',pass], (err,result) => {
         if (err) return done(err);
         const id = result.insertId;
         
