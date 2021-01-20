@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:dishtodoor/app_properties.dart';
 import 'package:flutter/material.dart';
 import 'register_as_cook.dart';
+import 'package:http/http.dart' as http;
 
 class RegisterEaterPage extends StatefulWidget {
   @override
@@ -48,7 +51,31 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
       bottom: 0,
       child: InkWell(
         //MODIFY to different button - here onTap should communicate with backend
-        onTap: () {},
+        onTap: () async {
+          final http.Response response = await http.post(
+            'http://4.tcp.eu.ngrok.io:13873/cook/register',
+            // headers: <String, String>{
+            //   'Content-Type': 'application/json; charset=UTF-8',
+            // },
+            body: jsonEncode(<String, String>{
+              'email': "test1@mail.com",
+              'phone': "03999999",
+              'password': "abc123",
+              'first_name': "fname_test",
+              'last_name': "lname_test",
+            }),
+          );
+          if (response.statusCode == 201) {
+            // If the server did return a 201 CREATED response,
+            // then parse the JSON.
+            print(jsonDecode(response.body));
+          } else {
+            // If the server did not return a 201 CREATED response,
+            // then throw an exception.
+            throw Exception('Failed');
+          }
+        },
+
         child: Container(
           width: MediaQuery.of(context).size.width / 2,
           height: 80,
