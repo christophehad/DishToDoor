@@ -36,7 +36,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
     Widget subTitle = Padding(
         padding: const EdgeInsets.only(right: 56.0),
         child: Text(
-          'Sign-up to start your cooking journey',
+          'Sign-up to start exploring dishes',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16.0,

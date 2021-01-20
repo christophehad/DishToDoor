@@ -40,7 +40,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
     Widget subTitle = Padding(
         padding: const EdgeInsets.only(right: 56.0),
         child: Text(
-          'Sign-up to start exploring dishes',
+          'Sign-up to start your cooking journey',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16.0,

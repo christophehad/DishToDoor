@@ -1,8 +1,9 @@
 import 'package:intl_phone_field/intl_phone_field.dart'; //
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 
 import 'package:dishtodoor/screens/auth/login_email.dart';
-import 'register_page.dart';
+import 'register_as_eater.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -41,8 +42,7 @@ class _Login extends State<Login> {
       bottom: 0,
       child: InkWell(
         onTap: () {
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => RegisterPage()));
+          //Add OTP page navigation
         },
         child: Container(
           width: MediaQuery.of(context).size.width / 2,
@@ -206,6 +206,11 @@ class _Login extends State<Login> {
               ),
               TextSpan(
                 text: 'Sign Up',
+                recognizer: new TapGestureRecognizer()
+                  ..onTap = () {
+                    Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => RegisterEaterPage()));
+                  },
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 18.0,
@@ -218,18 +223,21 @@ class _Login extends State<Login> {
 
     return Scaffold(
       backgroundColor: Colors.blue[100],
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          loginText,
-          logo,
-          phoneNumber,
-          emailLogin,
-          divider,
-          signInWithText,
-          socialBtnRow,
-          signupBtn
-        ],
+      body: Padding(
+        padding: const EdgeInsets.only(left: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            loginText,
+            logo,
+            phoneNumber,
+            emailLogin,
+            divider,
+            signInWithText,
+            socialBtnRow,
+            signupBtn
+          ],
+        ),
       ),
     );
   }
