@@ -52,27 +52,34 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
       child: InkWell(
         //MODIFY to different button - here onTap should communicate with backend
         onTap: () async {
+          String baseURL = "http://a4250d1bc8cf.eu.ngrok.io";
           final http.Response response = await http.post(
-            'http://4.tcp.eu.ngrok.io:13873/cook/register',
-            // headers: <String, String>{
-            //   'Content-Type': 'application/json; charset=UTF-8',
-            // },
+            baseURL+'/cook/register',
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            },
             body: jsonEncode(<String, String>{
-              'email': "test1@mail.com",
-              'phone': "03999999",
+              'email': "test2@mail.com",
+              'phone': "04999999",
               'password': "abc123",
               'first_name': "fname_test",
               'last_name': "lname_test",
             }),
           );
-          if (response.statusCode == 201) {
+          if (response.statusCode == 200) {
             // If the server did return a 201 CREATED response,
             // then parse the JSON.
-            print(jsonDecode(response.body));
+            dynamic decoded = jsonDecode(response.body);
+            print("Received: " + decoded.toString());
+            bool success = decoded['success'];
+            if (success)
+              print("Successful!");
+            else
+              print("Error: " + decoded['error']);
           } else {
             // If the server did not return a 201 CREATED response,
             // then throw an exception.
-            throw Exception('Failed');
+            print("An unkown error occured");
           }
         },
 
