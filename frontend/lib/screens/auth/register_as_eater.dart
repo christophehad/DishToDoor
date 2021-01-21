@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'package:dishtodoor/screens/auth/login.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 
 import 'package:dishtodoor/app_properties.dart';
-import 'package:flutter/material.dart';
 import 'register_as_cook.dart';
-import 'package:http/http.dart' as http;
 
 class RegisterEaterPage extends StatefulWidget {
   @override
@@ -18,6 +20,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
 
   TextEditingController fname = TextEditingController(text: 'First Name');
   TextEditingController lname = TextEditingController(text: 'Last Name');
+  String phonenumber = "";
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +39,35 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
           ]),
     );
 
+//Alert Dialaog
+    Future<void> _registerSuccessfulAlert() async {
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Success!'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text('You have successfuly registered.'),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Continue'),
+                onPressed: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => Login()));
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     Widget subTitle = Padding(
         padding: const EdgeInsets.only(right: 56.0),
         child: Text(
@@ -48,33 +80,34 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
 
     Widget registerButton = Positioned(
       left: MediaQuery.of(context).size.width / 4,
-      bottom: 0,
+      bottom: 20,
       child: InkWell(
         //MODIFY to different button - here onTap should communicate with backend
         onTap: () async {
-          String baseURL = "http://a4250d1bc8cf.eu.ngrok.io";
+          String baseURL = "http://fdfe861c76f0.eu.ngrok.io";
           final http.Response response = await http.post(
-            baseURL+'/cook/register',
+            baseURL + '/eater/register',
             headers: <String, String>{
               'Content-Type': 'application/json; charset=UTF-8',
             },
             body: jsonEncode(<String, String>{
-              'email': "test2@mail.com",
-              'phone': "04999999",
-              'password': "abc123",
-              'first_name': "fname_test",
-              'last_name': "lname_test",
+              'email': email.text,
+              'phone': phonenumber,
+              'password': password.text,
+              'first_name': fname.text,
+              'last_name': lname.text,
             }),
           );
           if (response.statusCode == 200) {
-            // If the server did return a 201 CREATED response,
-            // then parse the JSON.
+            // If the server did return a 200 CREATED response,
+            // then parse the JSON and send user to login screen
             dynamic decoded = jsonDecode(response.body);
             print("Received: " + decoded.toString());
             bool success = decoded['success'];
-            if (success)
+            if (success) {
+              _registerSuccessfulAlert();
               print("Successful!");
-            else
+            } else
               print("Error: " + decoded['error']);
           } else {
             // If the server did not return a 201 CREATED response,
@@ -108,11 +141,11 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
     );
 
     Widget registerForm = Container(
-      height: 320,
+      height: 400,
       child: Stack(
         children: <Widget>[
           Container(
-            height: 250,
+            height: 320,
             width: MediaQuery.of(context).size.width,
             padding: const EdgeInsets.only(left: 32.0, right: 12.0),
             decoration: BoxDecoration(
@@ -135,6 +168,19 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
                   child: TextField(
                     controller: lname,
                     style: TextStyle(fontSize: 16.0),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: IntlPhoneField(
+                    decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                        suffixIcon: Icon(Icons.phone)),
+                    initialCountryCode: 'LB',
+                    onChanged: (phone) {
+                      print(phone.completeNumber);
+                      phonenumber = phone.number;
+                    },
                   ),
                 ),
                 Padding(
