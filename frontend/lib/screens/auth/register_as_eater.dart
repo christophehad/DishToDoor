@@ -53,10 +53,10 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
         //MODIFY to different button - here onTap should communicate with backend
         onTap: () async {
           final http.Response response = await http.post(
-            'http://4.tcp.eu.ngrok.io:13873/cook/register',
-            // headers: <String, String>{
-            //   'Content-Type': 'application/json; charset=UTF-8',
-            // },
+            'http://a4250d1bc8cf.eu.ngrok.io/cook/register',
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            },
             body: jsonEncode(<String, String>{
               'email': "test1@mail.com",
               'phone': "03999999",
@@ -65,7 +65,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
               'last_name': "lname_test",
             }),
           );
-          if (response.statusCode == 201) {
+          if (response.statusCode == 200) {
             // If the server did return a 201 CREATED response,
             // then parse the JSON.
             print(jsonDecode(response.body));
