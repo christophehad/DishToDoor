@@ -1,4 +1,4 @@
-module.exports.DEBUG = false;
+module.exports.DEBUG = true;
 
 // Communication with API
 module.exports.successJSON = function successJSON() {
