@@ -1,5 +1,10 @@
-import 'package:dishtodoor/app_properties.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter/material.dart';
+
+import 'package:dishtodoor/app_properties.dart';
+import 'package:dishtodoor/screens/auth/login.dart';
 
 class RegisterCookPage extends StatefulWidget {
   @override
@@ -19,6 +24,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
   String dropdownvalue_cert = 'Yes';
   String dropdownvalue_train = 'Yes';
   String dropdownvalue_inspect = 'Yes';
+  String phonenumber = "";
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +43,36 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           ]),
     );
 
+//Alert Dialaog
+    Future<void> _registerSuccessfulAlert() async {
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Success!'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text(
+                      'We will process your request and get back to you soon!'),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.done_rounded),
+                onPressed: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => Login()));
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     Widget subTitle = Padding(
         padding: const EdgeInsets.only(right: 56.0),
         child: Text(
@@ -49,10 +85,9 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
 
     Widget registerButton = Positioned(
       left: MediaQuery.of(context).size.width / 4,
-      bottom: 0,
+      bottom: 15,
       child: InkWell(
         //MODIFY to different button - here onTap should communicate with backend
-        onTap: () {},
         child: Container(
           width: MediaQuery.of(context).size.width / 2,
           height: 80,
@@ -74,6 +109,40 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
               ],
               borderRadius: BorderRadius.circular(9.0)),
         ),
+        onTap: () async {
+          String baseURL = "http://fdfe861c76f0.eu.ngrok.io";
+          final http.Response response = await http.post(
+            baseURL + '/cook/register',
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            },
+            body: jsonEncode(<String, String>{
+              'email': email.text,
+              'phone': phonenumber,
+              'password': password.text,
+              'first_name': fname.text,
+              'last_name': lname.text,
+
+              //MODIFY by adding relevant COOK parts
+            }),
+          );
+          if (response.statusCode == 200) {
+            // If the server did return a 200 CREATED response,
+            // then parse the JSON and send user to login screen
+            dynamic decoded = jsonDecode(response.body);
+            print("Received: " + decoded.toString());
+            bool success = decoded['success'];
+            if (success) {
+              _registerSuccessfulAlert();
+              print("Successful!");
+            } else
+              print("Error: " + decoded['error']);
+          } else {
+            // If the server did not return a 201 CREATED response,
+            // then throw an exception.
+            print("An unkown error occured");
+          }
+        },
       ),
     );
 
@@ -164,11 +233,11 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
         ));
 
     Widget registerForm = Container(
-      height: 515,
+      height: 600,
       child: Stack(
         children: <Widget>[
           Container(
-            height: 450,
+            height: 525,
             width: MediaQuery.of(context).size.width,
             padding: const EdgeInsets.only(left: 32.0, right: 12.0),
             decoration: BoxDecoration(
@@ -191,6 +260,19 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                   child: TextField(
                     controller: lname,
                     style: TextStyle(fontSize: 14.0),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: IntlPhoneField(
+                    decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                        suffixIcon: Icon(Icons.phone)),
+                    initialCountryCode: 'LB',
+                    onChanged: (phone) {
+                      print(phone.completeNumber);
+                      phonenumber = phone.number;
+                    },
                   ),
                 ),
                 Padding(
@@ -278,9 +360,8 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                 title,
                 Spacer(),
                 subTitle,
-                Spacer(flex: 2),
+                Spacer(),
                 registerForm,
-                Spacer(flex: 2),
               ],
             ),
           ),
