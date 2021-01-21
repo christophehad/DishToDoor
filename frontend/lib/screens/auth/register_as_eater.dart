@@ -13,13 +13,12 @@ class RegisterEaterPage extends StatefulWidget {
 }
 
 class _RegisterEaterPageState extends State<RegisterEaterPage> {
-  TextEditingController email =
-      TextEditingController(text: 'example@email.com');
+  TextEditingController email = TextEditingController(text: "");
 
-  TextEditingController password = TextEditingController(text: '12345678');
+  TextEditingController password = TextEditingController(text: "");
 
-  TextEditingController fname = TextEditingController(text: 'First Name');
-  TextEditingController lname = TextEditingController(text: 'Last Name');
+  TextEditingController fname = TextEditingController(text: "");
+  TextEditingController lname = TextEditingController(text: "");
   String phonenumber = "";
 
   @override
@@ -84,7 +83,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
       child: InkWell(
         //MODIFY to different button - here onTap should communicate with backend
         onTap: () async {
-          String baseURL = "http://fdfe861c76f0.eu.ngrok.io";
+          String baseURL = "http://c1b1702a4094.eu.ngrok.io";
           final http.Response response = await http.post(
             baseURL + '/eater/register',
             headers: <String, String>{
@@ -159,6 +158,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: TextField(
+                    decoration: InputDecoration(hintText: 'First Name'),
                     controller: fname,
                     style: TextStyle(fontSize: 16.0),
                   ),
@@ -166,6 +166,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: TextField(
+                    decoration: InputDecoration(hintText: 'Last Name'),
                     controller: lname,
                     style: TextStyle(fontSize: 16.0),
                   ),
@@ -186,6 +187,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: TextField(
+                    decoration: InputDecoration(hintText: 'email'),
                     controller: email,
                     style: TextStyle(fontSize: 16.0),
                   ),
@@ -193,6 +195,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: TextField(
+                    decoration: InputDecoration(hintText: 'password'),
                     controller: password,
                     style: TextStyle(fontSize: 16.0),
                     obscureText: true,
