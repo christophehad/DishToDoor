@@ -12,15 +12,14 @@ class RegisterCookPage extends StatefulWidget {
 }
 
 class _RegisterCookPageState extends State<RegisterCookPage> {
-  TextEditingController email =
-      TextEditingController(text: 'example@email.com');
+  TextEditingController email = TextEditingController(text: "");
 
-  TextEditingController password = TextEditingController(text: '12345678');
+  TextEditingController password = TextEditingController(text: "");
 
-  TextEditingController fname = TextEditingController(text: 'First Name');
-  TextEditingController lname = TextEditingController(text: 'Last Name');
-  TextEditingController experience =
-      TextEditingController(text: 'Tell us about your cooking experience');
+  TextEditingController fname = TextEditingController(text: "");
+  TextEditingController lname = TextEditingController(text: "");
+
+  TextEditingController experience = TextEditingController(text: '');
   String dropdownvalue_cert = 'Yes';
   String dropdownvalue_train = 'Yes';
   String dropdownvalue_inspect = 'Yes';
@@ -110,7 +109,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
               borderRadius: BorderRadius.circular(9.0)),
         ),
         onTap: () async {
-          String baseURL = "http://fdfe861c76f0.eu.ngrok.io";
+          String baseURL = "http://c1b1702a4094.eu.ngrok.io";
           final http.Response response = await http.post(
             baseURL + '/cook/register',
             headers: <String, String>{
@@ -251,6 +250,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 7.0),
                   child: TextField(
+                    decoration: InputDecoration(hintText: 'First name'),
                     controller: fname,
                     style: TextStyle(fontSize: 14.0),
                   ),
@@ -258,6 +258,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 7.0),
                   child: TextField(
+                    decoration: InputDecoration(hintText: 'Last name'),
                     controller: lname,
                     style: TextStyle(fontSize: 14.0),
                   ),
@@ -278,6 +279,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 7.0),
                   child: TextField(
+                    decoration: InputDecoration(hintText: 'Email'),
                     controller: email,
                     style: TextStyle(fontSize: 14.0),
                   ),
@@ -285,6 +287,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 7.0),
                   child: TextField(
+                    decoration: InputDecoration(hintText: 'Password'),
                     controller: password,
                     style: TextStyle(fontSize: 14.0),
                     obscureText: true,
@@ -293,6 +296,8 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 7.0, bottom: 7.0),
                   child: TextField(
+                    decoration: InputDecoration(
+                        hintText: 'Tell us about your cooking experience'),
                     controller: experience,
                     style: TextStyle(fontSize: 14.0),
                   ),
