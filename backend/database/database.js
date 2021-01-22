@@ -1,16 +1,38 @@
 const mysql = require('mysql');
 
-const con = mysql.createConnection({
+const dbConfig = {
     host: 'localhost', // insert the database url here
     port: 3306,
     user: 'root',
     password: '',
     database: 'dishtodoor',
-});
+};
+
+// in the future, it can become a connection pool (more efficient)
+var con; // con
+
+// handling connection errors (after timeout for example)
+function handleDisconnect() {
+    con = mysql.createConnection(dbConfig);
+    con.on('error', (err) => {
+        if (err.code == 'PROTOCOL_CONNECTION_LOST') {
+            console.log('MySQL connection lost. Reconnecting...');
+            handleDisconnect();
+        }
+        else
+            throw err;
+    });
+}
+handleDisconnect();
 
 module.exports.tryConnection = function tryConnection() {
     con.connect( (err) => {
-        if (err) return console.log('MySQL already connected');
+        if (err) {
+            if (err.code == 'PROTOCOL_ENQUEUE_HANDSHAKE_TWICE')
+                return console.log('MySQL already connected');
+            else
+                return console.log(err);
+        }
         console.log('Connected to the MySQL database!');
     })
 }
