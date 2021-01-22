@@ -2,7 +2,7 @@ import 'package:intl_phone_field/intl_phone_field.dart'; //
 import 'package:dishtodoor/app_properties.dart';
 import 'package:flutter/material.dart';
 
-import 'register_page.dart';
+import 'package:dishtodoor/screens/Map/main_map.dart';
 
 class LoginEmail extends StatefulWidget {
   @override
@@ -23,7 +23,7 @@ class _LoginEmail extends State<LoginEmail> {
       child: InkWell(
         onTap: () {
           Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => RegisterPage()));
+              .push(MaterialPageRoute(builder: (_) => MainMap()));
         },
         child: Container(
           width: MediaQuery.of(context).size.width / 2,
