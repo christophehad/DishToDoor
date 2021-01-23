@@ -23,7 +23,7 @@ class _LoginEmail extends State<LoginEmail> {
       child: InkWell(
         onTap: () {
           Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => MainMap()));
+              .push(MaterialPageRoute(builder: (_) => Map_main()));
         },
         child: Container(
           width: MediaQuery.of(context).size.width / 2,
