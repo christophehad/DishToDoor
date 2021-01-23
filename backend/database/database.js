@@ -9,6 +9,7 @@ const dbConfig = {
 };
 
 // in the future, it can become a connection pool (more efficient)
+/** @type {mysql.Connection} */
 var con; // con
 
 // handling connection errors (after timeout for example)
@@ -234,4 +235,12 @@ module.exports.cookAccountExists = function cookAccountExists(id,done) {
 // returns 1 if eater account exists
 module.exports.eaterAccountExists = function eaterAccountExists(id,done) {
     return accountExists(id,'EATER',done);
+}
+
+// returns 1 if cook is verified
+module.exports.cookIsVerified = function cookIsVerified(id,done) {
+    con.query('SELECT is_verified FROM cook WHERE cook_id = ?',[id], (err,rows) => {
+        if (err) return done(err);
+        return done(null,rows[0].is_verified == 1);
+    })
 }
