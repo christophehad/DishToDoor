@@ -23,10 +23,11 @@ router.post('/gen-dish/add', (req,res,next) => {
     })
 })
 
-router.post('/gen-dish/search', (req,res,next) => {
+// query should be in a 'query' query parameter
+router.get('/gen-dish/search', (req,res,next) => {
     if (DEBUG) console.log(req.body);
 
-    let query=req.body.query;
+    let query=req.query.query;
     genDish.search(query, (err,gendishes,message) => {
         if (err) return next(err);
         if (!gendishes) return res.json(failureJSON(message));
