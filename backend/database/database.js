@@ -1,5 +1,9 @@
 const mysql = require('mysql');
 
+// Schemes and templates of database functions/entities
+const schemes = require('./schemes');
+module.exports.schemes = schemes;
+
 const dbConfig = {
     host: 'localhost', // insert the database url here
     port: 3306,
@@ -49,6 +53,8 @@ module.exports.tryConnection = function tryConnection() {
 
    TODO: Should we use instead connection pools?
 */
+
+/* Login/Register Functions */
 
 // internal functions for phone/email exist
 function phoneExists(phone,type,done) {
@@ -242,5 +248,32 @@ module.exports.cookIsVerified = function cookIsVerified(id,done) {
     con.query('SELECT is_verified FROM cook WHERE cook_id = ?',[id], (err,rows) => {
         if (err) return done(err);
         return done(null,rows[0].is_verified == 1);
+    })
+}
+
+/* Generic Dishes Functions */
+
+// returns the gendish id
+module.exports.genDishAdd = function genDishAdd(name,category,mean_price=0,done) {
+    con.query('INSERT into generic_dishes (gendish_name,category,mean_price) values (?,?,?)',[name,category,mean_price], (err,result) => {
+        if (err) return done(err);
+        return done(null,result.insertId);
+    })
+}
+
+/**
+ * search for rows having query in name; returns an array of GenDish
+ * @param {schemes.genDishSearchCallback} done 
+ */
+module.exports.genDishSearch = function genDishSearch(query,done) {
+    con.query('SELECT * FROM generic_dishes WHERE LOCATE(?,LOWER(gendish_name))>0',[query.toLowerCase()], (err,rows) => {
+        if (err) return done(err);
+
+        /** @type {schemes.GenDish[]} */
+        let found_gen = [];
+        for (const row of rows) {
+            found_gen.push(schemes.genDish(row.gendish_id,row.gendish_name,row.category));
+        }
+        return done(null,found_gen);
     })
 }
