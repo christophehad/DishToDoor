@@ -33,3 +33,8 @@ exports.search = function search(query,done) {
         return done(null,gendishes);
     })
 }
+
+
+exports.getCategories = function getCategories() {
+    return dishCategories;
+}
