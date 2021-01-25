@@ -59,6 +59,10 @@ flutter:
     - assets/chef_cooking.jpg
     - assets/night_mode.json
     - assets/map_theme.json
+    - assets/destination_map_marker.png
+    - assets/driving_pin.png
+    - assets/friend1.jpg
+    - assets/friend2.jpg
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

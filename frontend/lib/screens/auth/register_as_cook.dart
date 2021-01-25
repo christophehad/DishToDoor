@@ -20,9 +20,9 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
   TextEditingController lname = TextEditingController(text: "");
 
   TextEditingController experience = TextEditingController(text: '');
-  String dropdownvalue_cert = 'Yes';
-  String dropdownvalue_train = 'Yes';
-  String dropdownvalue_inspect = 'Yes';
+  String dropDownValueCert = 'Yes';
+  String dropDownValueTrain = 'Yes';
+  String dropDownValueInspect = 'Yes';
   String phonenumber = "";
 
   @override
@@ -147,10 +147,10 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
 
 //FIND A WAY TO REFACTOR REDUNDANT CODE
 
-    Widget dropDownMenu_Cert = Container(
+    Widget dropDownMenuCert = Container(
         alignment: Alignment.centerLeft,
         child: DropdownButton<String>(
-          value: dropdownvalue_cert,
+          value: dropDownValueCert,
           dropdownColor: Colors.grey[200],
           isDense: true,
           icon: Icon(Icons.arrow_downward),
@@ -163,7 +163,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           ),
           onChanged: (String newValue) {
             setState(() {
-              dropdownvalue_cert = newValue;
+              dropDownValueCert = newValue;
             });
           },
           items: <String>['Yes', 'No']
@@ -175,10 +175,10 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           }).toList(),
         ));
 
-    Widget dropDownMenu_Train = Container(
+    Widget dropDownMenuTrain = Container(
         alignment: Alignment.centerLeft,
         child: DropdownButton<String>(
-          value: dropdownvalue_train,
+          value: dropDownValueTrain,
           dropdownColor: Colors.grey[200],
           isDense: true,
           icon: Icon(Icons.arrow_downward),
@@ -191,7 +191,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           ),
           onChanged: (String newValue) {
             setState(() {
-              dropdownvalue_train = newValue;
+              dropDownValueTrain = newValue;
             });
           },
           items: <String>['Yes', 'No']
@@ -203,10 +203,10 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           }).toList(),
         ));
 
-    Widget dropDownMenu_Inspect = Container(
+    Widget dropDownMenuInspect = Container(
         alignment: Alignment.centerLeft,
         child: DropdownButton<String>(
-          value: dropdownvalue_inspect,
+          value: dropDownValueInspect,
           dropdownColor: Colors.grey[200],
           isDense: true,
           icon: Icon(Icons.arrow_downward),
@@ -219,7 +219,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           ),
           onChanged: (String newValue) {
             setState(() {
-              dropdownvalue_inspect = newValue;
+              dropDownValueInspect = newValue;
             });
           },
           items: <String>['Yes', 'No']
@@ -311,7 +311,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                         textAlign: TextAlign.left),
                   ),
                 ),
-                dropDownMenu_Cert, //calling the drop down menu widget
+                dropDownMenuCert, //calling the drop down menu widget
                 SizedBox(
                   width: double.infinity,
                   child: Padding(
@@ -322,7 +322,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                         textAlign: TextAlign.left),
                   ),
                 ),
-                dropDownMenu_Train,
+                dropDownMenuTrain,
                 SizedBox(
                   width: double.infinity,
                   child: Padding(
@@ -332,7 +332,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                         textAlign: TextAlign.left),
                   ),
                 ),
-                dropDownMenu_Inspect,
+                dropDownMenuInspect,
               ],
             ),
           ),
