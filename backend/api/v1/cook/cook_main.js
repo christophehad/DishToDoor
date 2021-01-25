@@ -11,12 +11,16 @@ module.exports = function(app) {
     const routesAuth = require('./routes_auth');
     const some_api_routes = express.Router();
 
+    // Load dish routes (uncomment below)
+    const routesDish = require('./routes_dish');
+
     some_api_routes.get('/secret', (req,res) => {
         res.send(`Welcome!\nThis is the secret page for cook ${req.user}`);
     });
 
     app.use('/cook',routesAuth);
     app.use('/cook/api',passportJWT.authenticate('jwt-cook', { session: false }), some_api_routes);
+    app.use('/cook/api',passportJWT.authenticate('jwt-cook', {session: false}),routesDish);
 
     // Add cook API calls
     app.get('/cook', (req,res) => {

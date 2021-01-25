@@ -18,3 +18,12 @@ module.exports.failureJSON = function failureJSON(error) {
         error: error
     }
 }
+
+module.exports.genDish = function genDish(id,name,category) {
+    return {
+        id: id, name: name, category: category
+    }
+}
+
+// Allowed categories (for now, on long run we get them from database)
+module.exports.gendishCategories = ['appetizer','main dish', 'dessert', 'salad'];
