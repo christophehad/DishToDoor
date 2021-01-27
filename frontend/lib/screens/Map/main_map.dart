@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:location/location.dart';
 import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
+
 import 'custom_info_widget.dart';
 import 'package:dishtodoor/screens/auth/register_as_eater.dart';
 
@@ -28,6 +30,12 @@ class PointObject {
 }
 
 class _MapMainState extends State<MapMain> {
+  PanelController _pc = new PanelController();
+  final double _initFabHeight = 120.0;
+  double _fabHeight;
+  double _panelHeightOpen = 450;
+  double _panelHeightClosed = 95.0;
+
   LatLng _initialcameraposition = LatLng(0, 0);
   GoogleMapController _controller;
   Location _location = Location();
@@ -44,6 +52,35 @@ class _MapMainState extends State<MapMain> {
   void initState() {
     super.initState();
     setSourceAndDestinationIcons();
+    _fabHeight = _initFabHeight;
+  }
+
+//Google maps enclosed in _body
+  Widget _body() {
+    return GoogleMap(
+      padding: EdgeInsets.only(bottom: 100, top: 50),
+      initialCameraPosition: CameraPosition(target: _initialcameraposition),
+      mapType: MapType.normal,
+      markers: _markers,
+      onMapCreated: _onMapCreated,
+      circles: _circles,
+      myLocationEnabled: true,
+      onCameraMove: (newPosition) {
+        _mapIdleSubscription?.cancel();
+        _mapIdleSubscription =
+            Future.delayed(Duration(milliseconds: 150)).asStream().listen((_) {
+          if (_infoWidgetRoute != null) {
+            Navigator.of(context, rootNavigator: true)
+                .push(_infoWidgetRoute)
+                .then<void>(
+              (newValue) {
+                _infoWidgetRoute = null;
+              },
+            );
+          }
+        });
+      },
+    );
   }
 
 //Convert asset image to BitmapDescriptor
@@ -56,6 +93,125 @@ class _MapMainState extends State<MapMain> {
     destIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(devicePixelRatio: 2.5),
         'assets/destination_map_marker.png');
+  }
+
+//sliding up panel content -- infinite scroll
+  Widget _panel(ScrollController sc) {
+    return MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: ListView(
+          controller: sc,
+          children: <Widget>[
+            SizedBox(
+              height: 12.0,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  width: 30,
+                  height: 5,
+                  decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.all(Radius.circular(12.0))),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 18.0,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  "Explore Cooks",
+                  style: TextStyle(
+                    fontWeight: FontWeight.normal,
+                    fontSize: 24.0,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 36.0,
+            ),
+            Container(
+              padding: const EdgeInsets.only(left: 24.0, right: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  cooksCards(),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 24,
+            ),
+          ],
+        ));
+  }
+
+  //List creation -- cooks cards
+  //TODO automate process using GET -- backend communication
+  //TODO add link to cook's page on tap
+  Widget cooksCards() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Card(
+          child: Column(
+            children: [
+              const ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: AssetImage("assets/friend1.jpg"),
+                ),
+                title: Text("Fady's Kitchen"),
+                subtitle: Text("Distance xkm | Today's dishes maybe?"),
+              ),
+              TextButton(
+                child: const Text('Order Here'),
+                onPressed: () {/* ... */},
+              ),
+            ],
+          ),
+        ),
+        Card(
+          child: Column(
+            children: [
+              const ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: AssetImage("assets/friend2.jpg"),
+                ),
+                title: Text("Karam's Kitchen"),
+                subtitle: Text("Today's dishes maybe?"),
+              ),
+              TextButton(
+                child: const Text('Order Here'),
+                onPressed: () {/* ... */},
+              ),
+            ],
+          ),
+        ),
+        Card(
+          child: Column(
+            children: [
+              const ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: AssetImage("assets/friend1.jpg"),
+                ),
+                title: Text("Test's Kitchen"),
+                subtitle: Text("Today's dishes maybe?"),
+              ),
+              TextButton(
+                child: const Text('Order Here'),
+                onPressed: () {/* ... */},
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
 //Creation of the cook instances
@@ -113,7 +269,7 @@ class _MapMainState extends State<MapMain> {
             i.location.latitude.toString() + i.location.longitude.toString()),
         position: i.location,
         onTap: () {
-          _onTap(i);
+          if (_pc.isPanelClosed) _onTap(i);
         },
         icon: i.icon,
       ));
@@ -212,49 +368,39 @@ class _MapMainState extends State<MapMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: Stack(
-          children: [
-            GoogleMap(
-                initialCameraPosition:
-                    CameraPosition(target: _initialcameraposition),
-                mapType: MapType.normal,
-                markers: _markers,
-                onMapCreated: _onMapCreated,
-                circles: _circles,
-                myLocationEnabled: true,
-                onCameraMove: (newPosition) {
-                  _mapIdleSubscription?.cancel();
-                  _mapIdleSubscription =
-                      Future.delayed(Duration(milliseconds: 150))
-                          .asStream()
-                          .listen((_) {
-                    if (_infoWidgetRoute != null) {
-                      Navigator.of(context, rootNavigator: true)
-                          .push(_infoWidgetRoute)
-                          .then<void>(
-                        (newValue) {
-                          _infoWidgetRoute = null;
-                        },
-                      );
-                    }
-                  });
-                }),
-            Positioned(
-              top: 35,
-              left: 5,
-              child: IconButton(
-                color: Colors.white,
-                icon: Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
-            )
-          ],
-        ),
+      body: Stack(
+        alignment: Alignment.topCenter,
+        children: <Widget>[
+          SlidingUpPanel(
+            controller: _pc,
+            maxHeight: _panelHeightOpen,
+            minHeight: _panelHeightClosed,
+            parallaxEnabled: true,
+            parallaxOffset: .5,
+            body: _body(),
+            panelBuilder: (sc) => _panel(sc),
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(18.0),
+                topRight: Radius.circular(18.0)),
+            onPanelSlide: (double pos) => setState(
+              () {
+                _fabHeight = pos * (_panelHeightOpen - _panelHeightClosed) +
+                    _initFabHeight;
+              },
+            ),
+          ),
+          Positioned(
+            top: 35,
+            left: 5,
+            child: IconButton(
+              color: Colors.white,
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          )
+        ],
       ),
     );
   }

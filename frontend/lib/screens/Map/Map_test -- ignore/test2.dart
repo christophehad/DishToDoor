@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -6,6 +7,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:dishtodoor/screens/Map/custom_info_widget.dart';
 
 import 'package:dishtodoor/screens/auth/register_as_eater.dart'; // for testing
+
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 void main() => runApp(MyApp());
 
@@ -40,6 +43,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  PanelController _pc = new PanelController();
+  final double _initFabHeight = 120.0;
+  double _fabHeight;
+  double _panelHeightOpen = 450;
+  double _panelHeightClosed = 95.0;
+
   Set<PointObject> _points = {}; //actual locations of users
   StreamSubscription _mapIdleSubscription;
   InfoWidgetRoute _infoWidgetRoute;
@@ -53,6 +62,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     setSourceAndDestinationIcons();
+    _fabHeight = _initFabHeight;
   }
 
   void setSourceAndDestinationIcons() async {
@@ -116,7 +126,7 @@ class _HomePageState extends State<HomePage> {
             i.location.latitude.toString() + i.location.longitude.toString()),
         position: i.location,
         onTap: () {
-          _onTap(i);
+          if (_pc.isPanelClosed) _onTap(i);
         },
         icon: i.icon,
       ));
@@ -147,54 +157,197 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.green,
-        child: GoogleMap(
-          initialCameraPosition: CameraPosition(
-            target: const LatLng(47.6, 8.6796),
-            zoom: 10,
+      body: Stack(
+        alignment: Alignment.topCenter,
+        children: <Widget>[
+          SlidingUpPanel(
+            controller: _pc,
+            maxHeight: _panelHeightOpen,
+            minHeight: _panelHeightClosed,
+            parallaxEnabled: true,
+            parallaxOffset: .5,
+            body: _body(),
+            panelBuilder: (sc) => _panel(sc),
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(18.0),
+                topRight: Radius.circular(18.0)),
+            onPanelSlide: (double pos) => setState(
+              () {
+                _fabHeight = pos * (_panelHeightOpen - _panelHeightClosed) +
+                    _initFabHeight;
+              },
+            ),
           ),
-
-          markers: _markers,
-
-          // Set<Marker>()
-          //   ..add(Marker(
-          //     markerId: MarkerId(point.location.latitude.toString() +
-          //         point.location.longitude.toString()),
-          //     position: point.location,
-          //     onTap: () => _onTap(point),
-          //     icon: sourceIcon,
-          //   )),
-          onMapCreated: (mapController) {
-            _mapController = mapController;
-            setPoints();
-            setMapPins();
-            circleCreation();
-          },
-
-          circles: _circles,
-
-          /// This fakes the onMapIdle, as the googleMaps on Map Idle does not always work
-          /// (see: https://github.com/flutter/flutter/issues/37682)
-          /// When the Map Idles and a _infoWidgetRoute exists, it gets displayed.
-          onCameraMove: (newPosition) {
-            _mapIdleSubscription?.cancel();
-            _mapIdleSubscription = Future.delayed(Duration(milliseconds: 150))
-                .asStream()
-                .listen((_) {
-              if (_infoWidgetRoute != null) {
-                Navigator.of(context, rootNavigator: true)
-                    .push(_infoWidgetRoute)
-                    .then<void>(
-                  (newValue) {
-                    _infoWidgetRoute = null;
-                  },
-                );
-              }
-            });
-          },
-        ),
+        ],
       ),
+    );
+  }
+
+//Google maps enclosed in _body
+  Widget _body() {
+    return GoogleMap(
+      padding: EdgeInsets.only(bottom: 100, top: 30),
+      initialCameraPosition: CameraPosition(
+        target: const LatLng(47.6, 8.6796),
+        zoom: 10,
+      ),
+
+      markers: _markers,
+
+      // Set<Marker>()
+      //   ..add(Marker(
+      //     markerId: MarkerId(point.location.latitude.toString() +
+      //         point.location.longitude.toString()),
+      //     position: point.location,
+      //     onTap: () => _onTap(point),
+      //     icon: sourceIcon,
+      //   )),
+      onMapCreated: (mapController) {
+        _mapController = mapController;
+        setPoints();
+        setMapPins();
+        circleCreation();
+      },
+
+      circles: _circles,
+
+      /// This fakes the onMapIdle, as the googleMaps on Map Idle does not always work
+      /// (see: https://github.com/flutter/flutter/issues/37682)
+      /// When the Map Idles and a _infoWidgetRoute exists, it gets displayed.
+      onCameraMove: (newPosition) {
+        _mapIdleSubscription?.cancel();
+        _mapIdleSubscription =
+            Future.delayed(Duration(milliseconds: 150)).asStream().listen((_) {
+          if (_infoWidgetRoute != null) {
+            Navigator.of(context, rootNavigator: true)
+                .push(_infoWidgetRoute)
+                .then<void>(
+              (newValue) {
+                _infoWidgetRoute = null;
+              },
+            );
+          }
+        });
+      },
+    );
+  }
+
+//sliding up panel content -- infinite scroll
+  Widget _panel(ScrollController sc) {
+    return MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: ListView(
+          controller: sc,
+          children: <Widget>[
+            SizedBox(
+              height: 12.0,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  width: 30,
+                  height: 5,
+                  decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.all(Radius.circular(12.0))),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 18.0,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  "Explore Cooks",
+                  style: TextStyle(
+                    fontWeight: FontWeight.normal,
+                    fontSize: 24.0,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 36.0,
+            ),
+            Container(
+              padding: const EdgeInsets.only(left: 24.0, right: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  cooksCards(),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 24,
+            ),
+          ],
+        ));
+  }
+
+  //List creation -- cooks cards
+  //TODO automate process using GET -- backend communication
+  //TODO add link to cook's page on tap
+  Widget cooksCards() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Card(
+          child: Column(
+            children: [
+              const ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: AssetImage("assets/friend1.jpg"),
+                ),
+                title: Text("Fady's Kitchen"),
+                subtitle: Text("Distance xkm | Today's dishes maybe?"),
+              ),
+              TextButton(
+                child: const Text('Order Here'),
+                onPressed: () {/* ... */},
+              ),
+            ],
+          ),
+        ),
+        Card(
+          child: Column(
+            children: [
+              const ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: AssetImage("assets/friend2.jpg"),
+                ),
+                title: Text("Karam's Kitchen"),
+                subtitle: Text("Today's dishes maybe?"),
+              ),
+              TextButton(
+                child: const Text('Order Here'),
+                onPressed: () {/* ... */},
+              ),
+            ],
+          ),
+        ),
+        Card(
+          child: Column(
+            children: [
+              const ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: AssetImage("assets/friend1.jpg"),
+                ),
+                title: Text("Test's Kitchen"),
+                subtitle: Text("Today's dishes maybe?"),
+              ),
+              TextButton(
+                child: const Text('Order Here'),
+                onPressed: () {/* ... */},
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

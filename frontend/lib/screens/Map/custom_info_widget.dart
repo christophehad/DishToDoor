@@ -22,7 +22,7 @@ class _InfoWidgetRouteLayout<T> extends SingleChildLayoutDelegate {
 //    if (Platform.isIOS) {
     return Offset(
       mapsWidgetSize.center.dx - childSize.width / 2,
-      mapsWidgetSize.center.dy - childSize.height - 50,
+      mapsWidgetSize.center.dy - childSize.height - 65,
     );
 //    } else {
 //      return Offset(
