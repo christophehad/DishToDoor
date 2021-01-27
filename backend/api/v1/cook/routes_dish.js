@@ -44,4 +44,15 @@ router.get('/gen-dish/search', (req,res,next) => {
 })
 
 
+// get the gendish categories
+router.get('/gen-dish/categories', (req,res,next) => {
+    if (DEBUG) console.log(req.body);
+
+    let genCategories = genDish.getCategories();
+    let toSend = successJSON();
+    toSend.gen_dish_categories = genCategories;
+    res.json(toSend);
+})
+
+
 module.exports = router;
