@@ -13,7 +13,6 @@ const dishCategories = require('../../api_config').gendishCategories;
 // adding a gendish (later becomes add request) 
 exports.add = function add(name,category,done) {
     if (!name || !category) return done(null,false,'missing_fields');
-    if (!dishCategories.includes(category.toLowerCase())) return done(null,false,'wrong_category');
 
     database.genDishAdd(name,category,undefined,(err,id) => {
         if (err) return done(err);

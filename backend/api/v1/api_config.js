@@ -1,4 +1,5 @@
 module.exports.DEBUG = true;
+module.exports.tmpPath = 'tmp/';
 
 // Communication with API
 module.exports.successJSON = function successJSON() {
@@ -27,3 +28,15 @@ module.exports.genDish = function genDish(id,name,category) {
 
 // Allowed categories (for now, on long run we get them from database)
 module.exports.gendishCategories = ['appetizer','main dish', 'dessert', 'salad'];
+
+/**
+ * API CookDish
+ * @typedef {Object} CookDishAPI
+ * @property {Number} dish_id
+ * @property {Number} gendish_id
+ * @property {String} name
+ * @property {Number} price
+ * @property {String} category
+ * @property {String} description
+ * @property {String} dish_pic
+ */

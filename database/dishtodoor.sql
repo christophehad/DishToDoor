@@ -169,7 +169,9 @@ CREATE TABLE `dishes` (
   `dish_id` int(11) NOT NULL,
   `gendish_id` int(11) NOT NULL,
   `cook_id` int(11) NOT NULL,
+  `custom_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `price` int(255) NOT NULL,
+  `category` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `label` varchar(2083) DEFAULT NULL,
   `description` varchar(2083) DEFAULT NULL,
   `dish_discount` int(255) DEFAULT NULL,
@@ -608,6 +610,18 @@ ALTER TABLE `user_profile`
 --
 ALTER TABLE `cook_review_pics`
   MODIFY `pic_review_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `dishes`
+--
+ALTER TABLE `dishes`
+  MODIFY `dish_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `dish_rating`
+--
+ALTER TABLE `dish_rating`
+  MODIFY `rating_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `eater_dish_order`

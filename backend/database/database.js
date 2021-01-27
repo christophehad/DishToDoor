@@ -4,6 +4,9 @@ const mysql = require('mysql');
 const schemes = require('./schemes');
 module.exports.schemes = schemes;
 
+// Cloud Storage
+const cloudStorage = require('./cloud_storage');
+
 const dbConfig = {
     host: 'localhost', // insert the database url here
     port: 3306,
@@ -277,3 +280,39 @@ module.exports.genDishSearch = function genDishSearch(query,done) {
         return done(null,found_gen);
     })
 }
+
+
+/* Cook Dishes Functions */
+
+// returns the cookdish id
+module.exports.cookDishAdd = function cookDishAdd(gendish_id,cook_id,custom_name,price,category,label,description,dish_pic,done) {
+    con.query('INSERT into dishes (gendish_id,cook_id,custom_name,price,category,label,description,dish_pic) values (?,?,?,?,?,?,?,?)',
+        [gendish_id,cook_id,custom_name,price,category,label,description,dish_pic], (err,result) => {
+            if (err) return done(err);
+            return done(null,result.insertId);
+        })
+}
+
+/**
+ * returns a list of the dishes for a cook (the name is the gendish_name if custom_name is null or custom_name else)
+ * @param {schemes.cookDishSearchCallback} done 
+ */
+module.exports.cookDishGetAll = function cookDishGetAll(cook_id,done) {
+    con.query('SELECT dishes.*, generic_dishes.gendish_name FROM dishes, generic_dishes '+
+                'WHERE dishes.gendish_id = generic_dishes.gendish_id AND dishes.cook_id = ?',[cook_id], (err,rows) => {
+                    if (err) return done(err);
+
+                    /** @type {schemes.CookDish[]} */
+                    let cookdishes = [];
+                    for (const row of rows) {
+                        let name = row.custom_name ? row.custom_name : row.gendish_name;
+                        cookdishes.push(schemes.cookDish(
+                            row.dish_id,row.gendish_id,row.cook_id,name,row.price,
+                            row.category,row.label,row.description,row.dish_pic
+                        ));
+                    }
+                    return done(null,cookdishes);
+                })
+}
+
+module.exports.uploadCookDishPic = cloudStorage.uploadCookDishPic;
