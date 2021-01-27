@@ -38,6 +38,47 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
           ]),
     );
 
+//Error Alert
+    Future<void> _registerErrorAlert(String e) async {
+      String _errorDisp = "";
+      if (e == "missing_credentials") {
+        _errorDisp = "Please fill out all the fields.";
+      } else if (e == "email_used") {
+        _errorDisp =
+            "This email was used previously, please select another one.";
+      } else if (e == "phone_used") {
+        _errorDisp =
+            "This phone number was used previously, please select another one.";
+      } else {
+        _errorDisp = "An unkown error occured, please try again later.";
+      }
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text(_errorDisp),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.done_rounded),
+                onPressed: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => Login()));
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
 //Alert Dialaog
     Future<void> _registerSuccessfulAlert() async {
       return showDialog<void>(
@@ -107,7 +148,9 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
               _registerSuccessfulAlert();
               print("Successful!");
             } else
+              //handle errors
               print("Error: " + decoded['error']);
+            _registerErrorAlert(decoded['error']);
           } else {
             // If the server did not return a 201 CREATED response,
             // then throw an exception.
