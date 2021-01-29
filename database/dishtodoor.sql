@@ -53,6 +53,8 @@ CREATE TABLE `cook` (
   `exp_delivery_time` time DEFAULT NULL,
   `cook_discount` varchar(16) COLLATE utf8_unicode_ci DEFAULT NULL,
   `delivery_radius` int(255) DEFAULT NULL,
+  `lat` decimal(10, 8) DEFAULT NULL,
+  `lon` decimal(11, 8) DEFAULT NULL,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
