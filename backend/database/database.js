@@ -13,6 +13,7 @@ const dbConfig = {
     user: 'root',
     password: '',
     database: 'dishtodoor',
+    supportBigNumbers: true // for the DECIMAL column
 };
 
 // in the future, it can become a connection pool (more efficient)
@@ -251,6 +252,25 @@ module.exports.cookIsVerified = function cookIsVerified(id,done) {
     con.query('SELECT is_verified FROM cook WHERE cook_id = ?',[id], (err,rows) => {
         if (err) return done(err);
         return done(null,rows[0].is_verified == 1);
+    })
+}
+
+// returns 1 if successful
+module.exports.cookSetLocation = function cookSetLocation(id,lat,lon,done) {
+    con.query('UPDATE cook SET lat = ?, lon = ? WHERE cook_id = ?',[lat,lon,id], (err,result) => {
+        if (err) return done(err);
+        return done(null,result.affectedRows > 0);
+    })
+}
+
+// returns false if unsuccessful (no lat or lon set); else return [lat,lon] as floats
+module.exports.cookGetLocation = function cookGetLocation(id,done) {
+    con.query('SELECT lat,lon FROM cook WHERE cook_id = ?',[id], (err,rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null,false);
+        let lat=rows[0].lat, lon=rows[0].lon;
+        if (!lat || !lon) return done(null,false);
+        return done(null,[parseFloat(lat),parseFloat(lon)]);
     })
 }
 
