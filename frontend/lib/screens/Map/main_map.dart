@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:dishtodoor/screens/Eater/cook_page.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -8,11 +11,12 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 import 'custom_info_widget.dart';
 import 'package:dishtodoor/screens/auth/register_as_eater.dart';
+import 'package:dishtodoor/config/config.dart';
 
 //GET HERE FROM EMAIL LOGIN SCREEN
 //This is an attempt at getting the current device location after asking user for permission
 //TO-DO: add support for ios for both API google maps and geolocator enabling
-//TO-DO: add diameter + dishes
+//TO-DO: add diameter
 
 class MapMain extends StatefulWidget {
   @override
@@ -32,10 +36,12 @@ class PointObject {
 class _MapMainState extends State<MapMain> {
   PanelController _pc = new PanelController();
   final double _initFabHeight = 120.0;
+  // ignore: unused_field
   double _fabHeight;
   double _panelHeightOpen = 450;
   double _panelHeightClosed = 95.0;
 
+  LatLng _finaluserlocation;
   LatLng _initialcameraposition = LatLng(0, 0);
   GoogleMapController _controller;
   Location _location = Location();
@@ -53,6 +59,38 @@ class _MapMainState extends State<MapMain> {
     super.initState();
     setSourceAndDestinationIcons();
     _fabHeight = _initFabHeight;
+  }
+
+//send location to backend
+  void locsharing() async {
+    final http.Response response = await http.post(
+      baseURL + '/eater/map', //modify
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'location': _finaluserlocation.toString(),
+      }),
+    );
+    if (response.statusCode == 200) {
+      // If the server did return a 200 CREATED response,
+      // then parse the JSON and send user to login screen
+      dynamic decoded = jsonDecode(response.body);
+      print("Received: " + decoded.toString());
+      bool success = decoded['success'];
+      if (success) {
+        //_registerSuccessfulAlert();
+        print("Successful!");
+      } else {
+        //handle errors
+        print("Error: " + decoded['error']);
+        //_registerErrorAlert(decoded['error']);
+      }
+    } else {
+      // If the server did not return a 201 CREATED response,
+      // then throw an exception.
+      print("An unkown error occured");
+    }
   }
 
 //Google maps enclosed in _body
@@ -88,11 +126,12 @@ class _MapMainState extends State<MapMain> {
 //TODO try to see if pin icon can be picture of someone cropped as circle
   void setSourceAndDestinationIcons() async {
     sourceIcon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: 2.5), 'assets/driving_pin.png');
+        ImageConfiguration(devicePixelRatio: 2.5),
+        'assets/map/driving_pin.png');
 
     destIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(devicePixelRatio: 2.5),
-        'assets/destination_map_marker.png');
+        'assets/map/destination_map_marker.png');
   }
 
 //sliding up panel content -- infinite scroll
@@ -164,7 +203,7 @@ class _MapMainState extends State<MapMain> {
             children: [
               const ListTile(
                 leading: CircleAvatar(
-                  backgroundImage: AssetImage("assets/friend1.jpg"),
+                  backgroundImage: AssetImage("assets/map/friend1.jpg"),
                 ),
                 title: Text("Fady's Kitchen"),
                 subtitle: Text("Distance xkm | Today's dishes maybe?"),
@@ -181,7 +220,7 @@ class _MapMainState extends State<MapMain> {
             children: [
               const ListTile(
                 leading: CircleAvatar(
-                  backgroundImage: AssetImage("assets/friend2.jpg"),
+                  backgroundImage: AssetImage("assets/map/friend2.jpg"),
                 ),
                 title: Text("Karam's Kitchen"),
                 subtitle: Text("Today's dishes maybe?"),
@@ -198,7 +237,7 @@ class _MapMainState extends State<MapMain> {
             children: [
               const ListTile(
                 leading: CircleAvatar(
-                  backgroundImage: AssetImage("assets/friend1.jpg"),
+                  backgroundImage: AssetImage("assets/map/friend1.jpg"),
                 ),
                 title: Text("Test's Kitchen"),
                 subtitle: Text("Today's dishes maybe?"),
@@ -229,7 +268,7 @@ class _MapMainState extends State<MapMain> {
                 image: new DecorationImage(
                   fit: BoxFit.fill,
                   image: AssetImage(
-                    "assets/friend1.jpg",
+                    "assets/map/friend1.jpg",
                   ),
                 ),
               ),
@@ -240,8 +279,8 @@ class _MapMainState extends State<MapMain> {
               child: Text("Sami Thawak"),
               onTap: () {
                 Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) =>
-                        RegisterEaterPage())); //placeholder destination
+                    builder: (_) => CookPageEater(
+                        cookID: "FADISKITCHEN"))); //placeholder destination
               },
             ),
           ),
@@ -358,11 +397,13 @@ class _MapMainState extends State<MapMain> {
     setState(() {});
     _controller = _cntlr;
     var _loc = await _location.getLocation();
+    _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
     _controller.animateCamera(
       CameraUpdate.newCameraPosition(
-        CameraPosition(target: LatLng(_loc.latitude, _loc.longitude), zoom: 17),
+        CameraPosition(target: _finaluserlocation, zoom: 17),
       ),
     );
+    //locsharing();
   }
 
   @override

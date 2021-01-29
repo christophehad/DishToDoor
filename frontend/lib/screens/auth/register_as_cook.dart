@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:dishtodoor/app_properties.dart';
 import 'package:dishtodoor/screens/auth/login.dart';
+import 'package:dishtodoor/config/config.dart';
 
 //TODO add forgot my password
 
@@ -152,7 +153,6 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
               borderRadius: BorderRadius.circular(9.0)),
         ),
         onTap: () async {
-          String baseURL = "http://1b3fa2fc0839.eu.ngrok.io";
           final http.Response response = await http.post(
             baseURL + '/cook/register',
             headers: <String, String>{
