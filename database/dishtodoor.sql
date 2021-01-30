@@ -230,7 +230,7 @@ CREATE TABLE `dish_to_generic` (
 
 CREATE TABLE `eater` (
   `eater_id` int(11) NOT NULL,
-  `pickup_radius` int(255) DEFAULT NULL,
+  `pickup_radius` int(255) DEFAULT 2,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
