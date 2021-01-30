@@ -45,6 +45,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   PanelController _pc = new PanelController();
   final double _initFabHeight = 120.0;
+  // ignore: unused_field
   double _fabHeight;
   double _panelHeightOpen = 450;
   double _panelHeightClosed = 95.0;
@@ -67,11 +68,12 @@ class _HomePageState extends State<HomePage> {
 
   void setSourceAndDestinationIcons() async {
     sourceIcon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: 2.5), 'assets/driving_pin.png');
+        ImageConfiguration(devicePixelRatio: 2.5),
+        'assets/map/driving_pin.png');
 
     destIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(devicePixelRatio: 2.5),
-        'assets/destination_map_marker.png');
+        'assets/map/destination_map_marker.png');
   }
 
   void setPoints() {
@@ -82,14 +84,8 @@ class _HomePageState extends State<HomePage> {
         children: <Widget>[
           Expanded(
             child: Container(
-              decoration: new BoxDecoration(
-                shape: BoxShape.circle,
-                image: new DecorationImage(
-                  fit: BoxFit.fill,
-                  image: AssetImage(
-                    "assets/friend1.jpg",
-                  ),
-                ),
+              child: CircleAvatar(
+                backgroundImage: AssetImage("assets/map/friend1.jpg"),
               ),
             ),
           ),
@@ -301,7 +297,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               const ListTile(
                 leading: CircleAvatar(
-                  backgroundImage: AssetImage("assets/friend1.jpg"),
+                  backgroundImage: AssetImage("assets/map/friend1.jpg"),
                 ),
                 title: Text("Fady's Kitchen"),
                 subtitle: Text("Distance xkm | Today's dishes maybe?"),
@@ -318,7 +314,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               const ListTile(
                 leading: CircleAvatar(
-                  backgroundImage: AssetImage("assets/friend2.jpg"),
+                  backgroundImage: AssetImage("assets/map/friend2.jpg"),
                 ),
                 title: Text("Karam's Kitchen"),
                 subtitle: Text("Today's dishes maybe?"),
@@ -335,7 +331,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               const ListTile(
                 leading: CircleAvatar(
-                  backgroundImage: AssetImage("assets/friend1.jpg"),
+                  backgroundImage: AssetImage("assets/map/friend1.jpg"),
                 ),
                 title: Text("Test's Kitchen"),
                 subtitle: Text("Today's dishes maybe?"),

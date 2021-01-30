@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'package:dishtodoor/app_properties.dart';
 import 'register_as_cook.dart';
+import 'package:dishtodoor/config/config.dart';
 
 class RegisterEaterPage extends StatefulWidget {
   @override
@@ -124,7 +125,6 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
       child: InkWell(
         //MODIFY to different button - here onTap should communicate with backend
         onTap: () async {
-          String baseURL = "http://c1b1702a4094.eu.ngrok.io";
           final http.Response response = await http.post(
             baseURL + '/eater/register',
             headers: <String, String>{
