@@ -68,5 +68,5 @@ module.exports.cookDish = function cookDish(dish_id,gendish_id,name,price,catego
  */
 module.exports.cookMap = function cookMap(f_name,l_name,logo,lat,lon,distance,dishes) {
     return {
-        first_name:f_name, last_name:l_name, logo:logo, lat, lon, distance:distance, dishes:dishes
+        first_name:f_name, last_name:l_name, logo:logo, lat:lat, lon:lon, distance:distance, dishes:dishes
 }}
