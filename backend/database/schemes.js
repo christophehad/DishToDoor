@@ -54,3 +54,31 @@ exports.genDish = function (id,name,category) {
 * @param {String} err
 * @param {CookDish[]} cookdishes
 */
+
+/**
+ * Cook and Dishes on Map
+ * @typedef CookMap
+ * @property {Number} cook_id
+ * @property {String} first_name
+ * @property {String} last_name
+ * @property {String} logo
+ * @property {Number} distance
+ * @property {CookDish[]} dishes
+*/
+
+/**
+ * @param {CookDish[]} dishes
+ * @returns {CookMap}
+ */
+exports.cookMap = function(cook_id,f_name,l_name,logo,distance,dishes) {
+    return {
+        cook_id:cook_id, first_name:f_name, last_name:l_name, logo:logo, distance:distance, dishes:dishes
+    }
+}
+
+/**
+  * Cook Map Callback
+  * @callback cookMapCallback
+  * @param {String} err
+  * @param {CookMap[]} cooks
+*/

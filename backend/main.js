@@ -21,6 +21,10 @@ app.use(express.urlencoded({extended: true})); // for passport POST requests
 // dummy response for now
 app.get('/', (req,res) => {
     database.tryConnection();
+    database.getDishesAround(1, 34.018272, 35.658234,undefined,(err,rows)=>{
+        if (err) console.log(err);
+        else console.log(rows);
+    })
     res.send("Welcome to the DishToDoor backend!");
 })
 

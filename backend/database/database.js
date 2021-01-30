@@ -335,4 +335,56 @@ module.exports.cookDishGetAll = function cookDishGetAll(cook_id,done) {
                 })
 }
 
+
+/* Map Functions */
+
+/**
+ * get the cooks and dishes with status provided around an eater's coordinates
+ * @param {schemes.cookMapCallback} done 
+ */
+module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_status=null,done) {
+    con.query('SELECT *,distance FROM ('+
+                'SELECT cook.cook_logo,profile.first_name,profile.last_name,eater.pickup_radius, '+
+                        'dishes.*, generic_dishes.gendish_name, '+
+                        'p.distance_unit '+
+                            '* DEGREES(ACOS(LEAST(1.0, COS(RADIANS(p.lat)) '+
+                            '* COS(RADIANS(cook.lat)) '+
+                            '* COS(RADIANS(p.lon - cook.lon)) '+
+                            '+ SIN(RADIANS(p.lat)) '+
+                            '* SIN(RADIANS(cook.lat))))) AS distance '+
+                'FROM cook, user_profile as profile, dishes, generic_dishes, eater '+
+                'JOIN (SELECT ? AS lat, ? AS lon, 111.045 AS distance_unit, ? AS status) AS p ON 1=1 '+ // 111.045 km/degree
+                'WHERE eater.eater_id = ? '+
+                    'AND cook.lat BETWEEN p.lat - (eater.pickup_radius / p.distance_unit) '+
+                                    'AND p.lat + (eater.pickup_radius / p.distance_unit) '+
+                    'AND cook.lon BETWEEN p.lon - (eater.pickup_radius / (p.distance_unit * COS(RADIANS(p.lat)))) '+
+                                    'AND p.lon + (eater.pickup_radius / (p.distance_unit * COS(RADIANS(p.lat)))) '+
+                    'AND cook.cook_id = profile.id '+
+                    'AND dishes.gendish_id = generic_dishes.gendish_id AND dishes.cook_id = cook.cook_id '+
+                    'AND (dishes.dish_status = p.status OR p.status IS NULL) '+
+                ') AS d '+
+                'WHERE distance <= pickup_radius '  // can add LIMIT x
+                ,[lat,lon,dish_status,eater_id], (err,rows) => {
+                    if (err) return done(err);
+                    if (rows.length == 0) return done(null,false);
+                    let cookDetails = {};
+                    for (const row of rows) {
+                        let cook_id = row.cook_id;
+                        let dishname = row.custom_name ? row.custom_name : row.gendish_name;
+                        let curDish = schemes.cookDish(row.dish_id, row.gendish_id, row.cook_id, dishname, row.price,
+                            row.category, row.label, row.description, row.dish_pic);
+                        if (cook_id in cookDetails) { // just add meal
+                            cookDetails[cook_id].dishes.push(curDish);
+                        }
+                        else {
+                            cookDetails[cook_id] = schemes.cookMap(
+                                cook_id,row.first_name,row.last_name,
+                                row.cook_logo,row.distance,[curDish]);
+                        }
+                    }
+                    let cookList = Object.values(cookDetails);
+                    return done(null,cookList);
+                });
+}
+
 module.exports.uploadCookDishPic = cloudStorage.uploadCookDishPic;

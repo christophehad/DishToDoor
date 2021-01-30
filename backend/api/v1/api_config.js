@@ -39,4 +39,32 @@ module.exports.gendishCategories = ['appetizer','main dish', 'dessert', 'salad']
  * @property {String} category
  * @property {String} description
  * @property {String} dish_pic
+*/
+
+/**
+ * @returns {CookDishAPI}
  */
+module.exports.cookDish = function cookDish(dish_id,gendish_id,name,price,category,description,dish_pic) {
+    return {
+        dish_id:dish_id, gendish_id:gendish_id, name:name, price: price, category: category, 
+        description:description, dish_pic:dish_pic
+}}
+
+/**
+ * API CookMap
+ * @typedef {Object} CookMapAPI
+ * @property {String} first_name
+ * @property {String} last_name
+ * @property {String} logo
+ * @property {Number} distance
+ * @property {CookDishAPI[]} dishes
+*/
+
+/**
+ * @param {CookDishAPI[]} dishes
+ * @returns {CookMapAPI} 
+ */
+module.exports.cookMap = function cookMap(f_name,l_name,logo,distance,dishes) {
+    return {
+        first_name:f_name, last_name:l_name, logo:logo, distance:distance, dishes:dishes
+}}
