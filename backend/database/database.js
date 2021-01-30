@@ -344,7 +344,7 @@ module.exports.cookDishGetAll = function cookDishGetAll(cook_id,done) {
  */
 module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_status=null,done) {
     con.query('SELECT *,distance FROM ('+
-                'SELECT cook.cook_logo,profile.first_name,profile.last_name,eater.pickup_radius, '+
+                'SELECT cook.cook_logo,cook.lat,cook.lon,profile.first_name,profile.last_name,eater.pickup_radius, '+
                         'dishes.*, generic_dishes.gendish_name, '+
                         'p.distance_unit '+
                             '* DEGREES(ACOS(LEAST(1.0, COS(RADIANS(p.lat)) '+
@@ -379,7 +379,7 @@ module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_
                         else {
                             cookDetails[cook_id] = schemes.cookMap(
                                 cook_id,row.first_name,row.last_name,
-                                row.cook_logo,row.distance,[curDish]);
+                                row.cook_logo,row.lat,row.lon,row.distance,[curDish]);
                         }
                     }
                     let cookList = Object.values(cookDetails);

@@ -56,6 +56,8 @@ module.exports.cookDish = function cookDish(dish_id,gendish_id,name,price,catego
  * @property {String} first_name
  * @property {String} last_name
  * @property {String} logo
+ * @property {Number} lat
+ * @property {Number} lon
  * @property {Number} distance
  * @property {CookDishAPI[]} dishes
 */
@@ -64,7 +66,7 @@ module.exports.cookDish = function cookDish(dish_id,gendish_id,name,price,catego
  * @param {CookDishAPI[]} dishes
  * @returns {CookMapAPI} 
  */
-module.exports.cookMap = function cookMap(f_name,l_name,logo,distance,dishes) {
+module.exports.cookMap = function cookMap(f_name,l_name,logo,lat,lon,distance,dishes) {
     return {
-        first_name:f_name, last_name:l_name, logo:logo, distance:distance, dishes:dishes
+        first_name:f_name, last_name:l_name, logo:logo, lat, lon, distance:distance, dishes:dishes
 }}
