@@ -13,7 +13,7 @@ const eaterComponents = require('./api/v1/eater/eater_main');
 const database = require('./database/database');
 
 // port used by the server
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.json()); // for retrieving json files from POST requests
 app.use(express.urlencoded({extended: true})); // for passport POST requests
