@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:dishtodoor/screens/Eater/cook_page.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -9,18 +7,19 @@ import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
-import 'custom_info_widget.dart';
-import 'package:dishtodoor/screens/auth/register_as_eater.dart';
-import 'package:dishtodoor/config/config.dart';
+import 'package:dishtodoor/screens/Map/custom_info_widget.dart';
+import 'package:dishtodoor/screens/Map/cookClass.dart';
 
 //GET HERE FROM EMAIL LOGIN SCREEN
 //This is an attempt at getting the current device location after asking user for permission
-//TO-DO: add support for ios for both API google maps and geolocator enabling
-//TO-DO: add diameter
+//TODO: add support for ios for both API google maps and geolocator enabling
+//TODO: add diameter
 
-class MapMain extends StatefulWidget {
+class MainMap extends StatefulWidget {
+  final CookList cookList;
+  MainMap({Key key, @required this.cookList}) : super(key: key);
   @override
-  _MapMainState createState() => _MapMainState();
+  _MainMapState createState() => _MainMapState();
 }
 
 //Attributes of point/marker on map
@@ -29,11 +28,15 @@ class PointObject {
   final Widget child;
   final LatLng location;
   final BitmapDescriptor icon;
+  final CookMap cookPoint;
 
-  PointObject({this.child, this.location, this.icon});
+  PointObject({this.child, this.location, this.icon, this.cookPoint});
 }
 
-class _MapMainState extends State<MapMain> {
+class _MainMapState extends State<MainMap> {
+  //cook classes
+  //CookList cooks;
+
   PanelController _pc = new PanelController();
   final double _initFabHeight = 120.0;
   // ignore: unused_field
@@ -57,40 +60,9 @@ class _MapMainState extends State<MapMain> {
   @override
   void initState() {
     super.initState();
+    //cooks = widget.cookList;
     setSourceAndDestinationIcons();
     _fabHeight = _initFabHeight;
-  }
-
-//send location to backend
-  void locsharing() async {
-    final http.Response response = await http.post(
-      baseURL + '/eater/map', //modify
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'location': _finaluserlocation.toString(),
-      }),
-    );
-    if (response.statusCode == 200) {
-      // If the server did return a 200 CREATED response,
-      // then parse the JSON and send user to login screen
-      dynamic decoded = jsonDecode(response.body);
-      print("Received: " + decoded.toString());
-      bool success = decoded['success'];
-      if (success) {
-        //_registerSuccessfulAlert();
-        print("Successful!");
-      } else {
-        //handle errors
-        print("Error: " + decoded['error']);
-        //_registerErrorAlert(decoded['error']);
-      }
-    } else {
-      // If the server did not return a 201 CREATED response,
-      // then throw an exception.
-      print("An unkown error occured");
-    }
   }
 
 //Google maps enclosed in _body
@@ -136,6 +108,7 @@ class _MapMainState extends State<MapMain> {
 
 //sliding up panel content -- infinite scroll
   Widget _panel(ScrollController sc) {
+    print("panel creation");
     return MediaQuery.removePadding(
         context: context,
         removeTop: true,
@@ -178,11 +151,10 @@ class _MapMainState extends State<MapMain> {
             Container(
               padding: const EdgeInsets.only(left: 24.0, right: 24.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  cooksCards(),
-                ],
-              ),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: widget.cookList.cooksList.map((p) {
+                    return cooksCards(p);
+                  }).toList()),
             ),
             SizedBox(
               height: 24,
@@ -191,65 +163,45 @@ class _MapMainState extends State<MapMain> {
         ));
   }
 
+  String _checkIndex(List<CookDish> dish, int index) {
+    if (dish.length > index) {
+      return dish[index].name;
+    }
+    return "";
+  }
+
   //List creation -- cooks cards
   //TODO automate process using GET -- backend communication
   //TODO add link to cook's page on tap
-  Widget cooksCards() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Card(
-          child: Column(
-            children: [
-              const ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: AssetImage("assets/map/friend1.jpg"),
-                ),
-                title: Text("Fady's Kitchen"),
-                subtitle: Text("Distance xkm | Today's dishes maybe?"),
-              ),
-              TextButton(
-                child: const Text('Order Here'),
-                onPressed: () {/* ... */},
-              ),
-            ],
+  Widget cooksCards(CookMap cook) {
+    return Card(
+      child: Column(
+        children: [
+          ListTile(
+            leading: CircleAvatar(
+              backgroundImage: NetworkImage(cook.logo),
+            ),
+            title: Text(cook.firstName + "'s Kitchen"),
+            subtitle: Text(
+              "Distance " +
+                  cook.distance.toStringAsFixed(2) +
+                  "Km | " +
+                  _checkIndex(cook.dishes, 0) +
+                  ", " +
+                  _checkIndex(cook.dishes, 1) +
+                  ", " +
+                  _checkIndex(cook.dishes, 2),
+            ),
           ),
-        ),
-        Card(
-          child: Column(
-            children: [
-              const ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: AssetImage("assets/map/friend2.jpg"),
-                ),
-                title: Text("Karam's Kitchen"),
-                subtitle: Text("Today's dishes maybe?"),
-              ),
-              TextButton(
-                child: const Text('Order Here'),
-                onPressed: () {/* ... */},
-              ),
-            ],
+          TextButton(
+            child: const Text('Order Here'),
+            onPressed: () {
+              Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => CookPageEater(cook: cook)));
+            },
           ),
-        ),
-        Card(
-          child: Column(
-            children: [
-              const ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: AssetImage("assets/map/friend1.jpg"),
-                ),
-                title: Text("Test's Kitchen"),
-                subtitle: Text("Today's dishes maybe?"),
-              ),
-              TextButton(
-                child: const Text('Order Here'),
-                onPressed: () {/* ... */},
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -257,45 +209,39 @@ class _MapMainState extends State<MapMain> {
 //TODO modify to take parameters from backend call
   void setPoints() {
     //advanced with picture
-    _points.add(PointObject(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: Container(
-              decoration: new BoxDecoration(
-                shape: BoxShape.circle,
-                image: new DecorationImage(
-                  fit: BoxFit.fill,
-                  image: AssetImage(
-                    "assets/map/friend1.jpg",
+    for (var i in widget.cookList.cooksList) {
+      _points.add(PointObject(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                decoration: new BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: new DecorationImage(
+                    fit: BoxFit.fill,
+                    image: NetworkImage(i.logo),
                   ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: InkWell(
-              child: Text("Sami Thawak"),
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => CookPageEater(
-                        cookID: "FADISKITCHEN"))); //placeholder destination
-              },
+            Expanded(
+              child: InkWell(
+                child: Text(i.firstName + "'s Kitchen"),
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => CookPageEater(
+                          cook: i))); //TODO placeholder destination
+                },
+              ),
             ),
-          ),
-        ],
-      ),
-      location: LatLng(33.87, 35.5097),
-      icon: sourceIcon,
-    ));
-
-//simple
-    _points.add(PointObject(
-      child: Text('Sami Thawak2'),
-      location: LatLng(33.873, 35.5097),
-      icon: destIcon,
-    ));
+          ],
+        ),
+        location: i.getLocation(),
+        icon: sourceIcon, //see what to do with this
+        cookPoint: i,
+      ));
+    }
   }
 
 //Creation of the markers and functionality
@@ -324,6 +270,11 @@ class _MapMainState extends State<MapMain> {
       getJsonFile("assets/map_theme.json").then(setMapStyle);
     else
       getJsonFile("assets/night_mode.json").then(setMapStyle);
+  }
+
+  //for changeMapMode
+  Future<String> getJsonFile(String path) async {
+    return await rootBundle.loadString(path);
   }
 
   //Styling: create circle under mnarker
@@ -379,16 +330,18 @@ class _MapMainState extends State<MapMain> {
     );
   }
 
-  Future<String> getJsonFile(String path) async {
-    return await rootBundle.loadString(path);
-  }
-
   void setMapStyle(String mapStyle) {
     _controller.setMapStyle(mapStyle);
   }
 
 //things to do when map is created
+//TODO add call to locsharing
   void _onMapCreated(GoogleMapController _cntlr) async {
+    print("creating map");
+    var _loc = await _location.getLocation();
+    setState(() {
+      _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
+    });
     isMapCreated = true;
     setPoints();
     setMapPins();
@@ -396,14 +349,12 @@ class _MapMainState extends State<MapMain> {
     changeMapMode();
     setState(() {});
     _controller = _cntlr;
-    var _loc = await _location.getLocation();
-    _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
+
     _controller.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(target: _finaluserlocation, zoom: 17),
       ),
     );
-    //locsharing();
   }
 
   @override
@@ -412,13 +363,13 @@ class _MapMainState extends State<MapMain> {
       body: Stack(
         alignment: Alignment.topCenter,
         children: <Widget>[
+          _body(),
           SlidingUpPanel(
             controller: _pc,
             maxHeight: _panelHeightOpen,
             minHeight: _panelHeightClosed,
             parallaxEnabled: true,
             parallaxOffset: .5,
-            body: _body(),
             panelBuilder: (sc) => _panel(sc),
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(18.0),

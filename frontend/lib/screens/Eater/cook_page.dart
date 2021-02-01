@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:geocoder/geocoder.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:maps_launcher/maps_launcher.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:dishtodoor/config/config.dart';
+import 'package:dishtodoor/screens/Map/cookClass.dart';
 
 void main() => runApp(MyApp());
 
@@ -21,7 +16,27 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: "/",
       routes: {
-        "/": (context) => CookPageEater(cookID: "test"),
+        "/": (context) => CookPageEater(
+              cook: CookMap(
+                  firstName: "fadi",
+                  lastName: "z",
+                  distance: 20,
+                  lat: 33.7,
+                  lon: 33.05,
+                  logo:
+                      "https://www.lark.com/wp-content/uploads/2020/01/Blog_thumb-46.jpg",
+                  dishes: [
+                    CookDish(
+                        category: "Salad",
+                        description: "Delicious salad",
+                        dishID: 4,
+                        dishPic:
+                            "https://christophehad.blob.core.windows.net/dishtodoor/cookpic2.jpeg",
+                        gendishID: 1,
+                        name: "TestSalad",
+                        price: 10000)
+                  ]),
+            ),
       },
     );
   }
@@ -29,14 +44,13 @@ class MyApp extends StatelessWidget {
 
 //TODO pass cookID from map page
 class CookPageEater extends StatefulWidget {
-  final String cookID;
-  CookPageEater({Key key, @required this.cookID}) : super(key: key);
+  final CookMap cook;
+  CookPageEater({Key key, @required this.cook}) : super(key: key);
   @override
   _CookPageEaterState createState() => _CookPageEaterState();
 }
 
 class _CookPageEaterState extends State<CookPageEater> {
-  LatLng _cookaddress = LatLng(33.8915104820843, 35.50438119723922);
   // Address _cookaddress = Address(coordinates: Coordinates(0, 0));
 
   @override
@@ -63,55 +77,23 @@ class _CookPageEaterState extends State<CookPageEater> {
   //   }
   // }
 
-//TODO modify fields + API and call in initState()
-  void _updateCookLocation() async {
-    final http.Response response = await http.post(
-      baseURL + '/cook/location', //modify
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'cookID': widget.cookID,
-      }),
-    );
-    if (response.statusCode == 200) {
-      // If the server did return a 200 CREATED response,
-      // then parse the JSON and send user to login screen
-      dynamic decoded = jsonDecode(response.body);
-      print("Received: " + decoded.toString());
-      bool success = decoded['success'];
-      if (success) {
-        //_registerSuccessfulAlert();
-        print("Successful!");
-      } else {
-        //handle errors
-        print("Error: " + decoded['error']);
-        //_registerErrorAlert(decoded['error']);
-      }
-    } else {
-      // If the server did not return a 201 CREATED response,
-      // then throw an exception.
-      print("An unkown error occured");
-    }
-  }
-
   //List creation -- cooks cards
   //TODO automate process using GET -- backend communication
-  //TODO add link to cook's page on tap
-  Widget cooksCards() {
+  //TODO add link to buy now on tap
+  Widget cooksCards(CookDish dish) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Card(
           child: Column(
             children: [
-              const ListTile(
+              ListTile(
                 leading: CircleAvatar(
-                  backgroundImage: AssetImage("assets/food.jpg"),
+                  backgroundImage: NetworkImage(dish.dishPic),
                 ),
-                trailing: Text("10,000LBP"),
-                title: Text("Dish Name"),
-                subtitle: Text("Some Details maybe"),
+                trailing: Text(dish.price.toString() + "LBP"),
+                title: Text(dish.name + " | " + dish.category),
+                subtitle: Text(dish.description),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -142,13 +124,14 @@ class _CookPageEaterState extends State<CookPageEater> {
         decoration: BoxDecoration(
           image: DecorationImage(
             fit: BoxFit.fill,
-            image: AssetImage("assets/home-cook2.jpg"),
+            image: NetworkImage(widget.cook.logo),
           ),
         ),
       ),
     );
   }
 
+//TODO nead opening hours
   Widget _openNow(BuildContext context) {
     return RichText(
         text: TextSpan(
@@ -180,8 +163,7 @@ class _CookPageEaterState extends State<CookPageEater> {
         IconButton(
           icon: Icon(Icons.pin_drop),
           onPressed: () {
-            MapsLauncher.launchCoordinates(
-                _cookaddress.latitude, _cookaddress.longitude);
+            MapsLauncher.launchCoordinates(widget.cook.lat, widget.cook.lon);
           },
           color: Colors.blueAccent,
         ),
@@ -218,11 +200,11 @@ class _CookPageEaterState extends State<CookPageEater> {
               SizedBox(
                 height: 6.0,
               ),
-              //Design, TODO get stuff from backend
+              //Design, TODO get specialty from backend
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Fadi's Kitchen",
+                  widget.cook.firstName + "'s Kitchen",
                   style: TextStyle(fontSize: 20.0),
                 ),
               ),
@@ -239,7 +221,7 @@ class _CookPageEaterState extends State<CookPageEater> {
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Hazmieh, Mar takla etc.",
+                  widget.cook.distance.toStringAsFixed(2) + "Km away",
                   style: TextStyle(
                       fontWeight: FontWeight.w300,
                       fontSize: 15,
@@ -262,7 +244,10 @@ class _CookPageEaterState extends State<CookPageEater> {
               ),
               Align(
                 alignment: Alignment.topLeft,
-                child: cooksCards(),
+                child: Column(
+                    children: widget.cook.dishes.map((p) {
+                  return cooksCards(p);
+                }).toList()),
               ),
             ],
           )),
