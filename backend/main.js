@@ -13,7 +13,7 @@ const eaterComponents = require('./api/v1/eater/eater_main');
 const database = require('./database/database');
 
 // port used by the server
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.json()); // for retrieving json files from POST requests
 app.use(express.urlencoded({extended: true})); // for passport POST requests
@@ -21,10 +21,6 @@ app.use(express.urlencoded({extended: true})); // for passport POST requests
 // dummy response for now
 app.get('/', (req,res) => {
     database.tryConnection();
-    database.getDishesAround(1, 34.018272, 35.658234,undefined,(err,rows)=>{
-        if (err) console.log(err);
-        else console.log(rows);
-    })
     res.send("Welcome to the DishToDoor backend!");
 })
 

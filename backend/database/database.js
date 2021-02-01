@@ -9,9 +9,9 @@ const cloudStorage = require('./cloud_storage');
 
 const dbConfig = {
     host: 'localhost', // insert the database url here
-    port: 3306,
-    user: 'root',
-    password: '',
+    port: 50207, // 3306, for local
+    user: 'azure', // 'root',
+    password: '6#vWHD_$',// '',
     database: 'dishtodoor',
     supportBigNumbers: true // for the DECIMAL column
 };
