@@ -1,16 +1,47 @@
 const mysql = require('mysql');
 
-const con = mysql.createConnection({
+// Schemes and templates of database functions/entities
+const schemes = require('./schemes');
+module.exports.schemes = schemes;
+
+// Cloud Storage
+const cloudStorage = require('./cloud_storage');
+
+const dbConfig = {
     host: 'localhost', // insert the database url here
-    port: 3306,
-    user: 'root',
-    password: '',
+    port: 50207, // 3306, for local
+    user: 'azure', // 'root',
+    password: '6#vWHD_$',// '',
     database: 'dishtodoor',
-});
+    supportBigNumbers: true // for the DECIMAL column
+};
+
+// in the future, it can become a connection pool (more efficient)
+/** @type {mysql.Connection} */
+var con; // con
+
+// handling connection errors (after timeout for example)
+function handleDisconnect() {
+    con = mysql.createConnection(dbConfig);
+    con.on('error', (err) => {
+        if (err.code == 'PROTOCOL_CONNECTION_LOST') {
+            console.log('MySQL connection lost. Reconnecting...');
+            handleDisconnect();
+        }
+        else
+            throw err;
+    });
+}
+handleDisconnect();
 
 module.exports.tryConnection = function tryConnection() {
     con.connect( (err) => {
-        if (err) return console.log('MySQL already connected');
+        if (err) {
+            if (err.code == 'PROTOCOL_ENQUEUE_HANDSHAKE_TWICE')
+                return console.log('MySQL already connected');
+            else
+                return console.log(err);
+        }
         console.log('Connected to the MySQL database!');
     })
 }
@@ -26,6 +57,8 @@ module.exports.tryConnection = function tryConnection() {
 
    TODO: Should we use instead connection pools?
 */
+
+/* Login/Register Functions */
 
 // internal functions for phone/email exist
 function phoneExists(phone,type,done) {
@@ -213,3 +246,145 @@ module.exports.cookAccountExists = function cookAccountExists(id,done) {
 module.exports.eaterAccountExists = function eaterAccountExists(id,done) {
     return accountExists(id,'EATER',done);
 }
+
+// returns 1 if cook is verified
+module.exports.cookIsVerified = function cookIsVerified(id,done) {
+    con.query('SELECT is_verified FROM cook WHERE cook_id = ?',[id], (err,rows) => {
+        if (err) return done(err);
+        return done(null,rows[0].is_verified == 1);
+    })
+}
+
+// returns 1 if successful
+module.exports.cookSetLocation = function cookSetLocation(id,lat,lon,done) {
+    con.query('UPDATE cook SET lat = ?, lon = ? WHERE cook_id = ?',[lat,lon,id], (err,result) => {
+        if (err) return done(err);
+        return done(null,result.affectedRows > 0);
+    })
+}
+
+// returns false if unsuccessful (no lat or lon set); else return [lat,lon] as floats
+module.exports.cookGetLocation = function cookGetLocation(id,done) {
+    con.query('SELECT lat,lon FROM cook WHERE cook_id = ?',[id], (err,rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null,false);
+        let lat=rows[0].lat, lon=rows[0].lon;
+        if (!lat || !lon) return done(null,false);
+        return done(null,[parseFloat(lat),parseFloat(lon)]);
+    })
+}
+
+/* Generic Dishes Functions */
+
+// returns the gendish id
+module.exports.genDishAdd = function genDishAdd(name,category,mean_price=0,done) {
+    con.query('INSERT into generic_dishes (gendish_name,category,mean_price) values (?,?,?)',[name,category,mean_price], (err,result) => {
+        if (err) return done(err);
+        return done(null,result.insertId);
+    })
+}
+
+/**
+ * search for rows having query in name; returns an array of GenDish
+ * @param {schemes.genDishSearchCallback} done 
+ */
+module.exports.genDishSearch = function genDishSearch(query,done) {
+    con.query('SELECT * FROM generic_dishes WHERE LOCATE(?,LOWER(gendish_name))>0',[query.toLowerCase()], (err,rows) => {
+        if (err) return done(err);
+
+        /** @type {schemes.GenDish[]} */
+        let found_gen = [];
+        for (const row of rows) {
+            found_gen.push(schemes.genDish(row.gendish_id,row.gendish_name,row.category));
+        }
+        return done(null,found_gen);
+    })
+}
+
+
+/* Cook Dishes Functions */
+
+// returns the cookdish id
+module.exports.cookDishAdd = function cookDishAdd(gendish_id,cook_id,custom_name,price,category,label,description,dish_pic,done) {
+    con.query('INSERT into dishes (gendish_id,cook_id,custom_name,price,category,label,description,dish_pic) values (?,?,?,?,?,?,?,?)',
+        [gendish_id,cook_id,custom_name,price,category,label,description,dish_pic], (err,result) => {
+            if (err) return done(err);
+            return done(null,result.insertId);
+        })
+}
+
+/**
+ * returns a list of the dishes for a cook (the name is the gendish_name if custom_name is null or custom_name else)
+ * @param {schemes.cookDishSearchCallback} done 
+ */
+module.exports.cookDishGetAll = function cookDishGetAll(cook_id,done) {
+    con.query('SELECT dishes.*, generic_dishes.gendish_name FROM dishes, generic_dishes '+
+                'WHERE dishes.gendish_id = generic_dishes.gendish_id AND dishes.cook_id = ?',[cook_id], (err,rows) => {
+                    if (err) return done(err);
+
+                    /** @type {schemes.CookDish[]} */
+                    let cookdishes = [];
+                    for (const row of rows) {
+                        let name = row.custom_name ? row.custom_name : row.gendish_name;
+                        cookdishes.push(schemes.cookDish(
+                            row.dish_id,row.gendish_id,row.cook_id,name,row.price,
+                            row.category,row.label,row.description,row.dish_pic
+                        ));
+                    }
+                    return done(null,cookdishes);
+                })
+}
+
+
+/* Map Functions */
+
+/**
+ * get the cooks and dishes with status provided around an eater's coordinates
+ * @param {schemes.cookMapCallback} done 
+ */
+module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_status=null,done) {
+    con.query('SELECT *,distance FROM ('+
+                'SELECT cook.cook_logo,cook.lat,cook.lon,profile.first_name,profile.last_name,eater.pickup_radius, '+
+                        'dishes.*, generic_dishes.gendish_name, '+
+                        'p.distance_unit '+
+                            '* DEGREES(ACOS(LEAST(1.0, COS(RADIANS(p.lat)) '+
+                            '* COS(RADIANS(cook.lat)) '+
+                            '* COS(RADIANS(p.lon - cook.lon)) '+
+                            '+ SIN(RADIANS(p.lat)) '+
+                            '* SIN(RADIANS(cook.lat))))) AS distance '+
+                'FROM cook, user_profile as profile, dishes, generic_dishes, eater '+
+                'JOIN (SELECT ? AS lat, ? AS lon, 111.045 AS distance_unit, ? AS status) AS p ON 1=1 '+ // 111.045 km/degree
+                'WHERE eater.eater_id = ? '+
+                    'AND cook.lat BETWEEN p.lat - (eater.pickup_radius / p.distance_unit) '+
+                                    'AND p.lat + (eater.pickup_radius / p.distance_unit) '+
+                    'AND cook.lon BETWEEN p.lon - (eater.pickup_radius / (p.distance_unit * COS(RADIANS(p.lat)))) '+
+                                    'AND p.lon + (eater.pickup_radius / (p.distance_unit * COS(RADIANS(p.lat)))) '+
+                    'AND cook.cook_id = profile.id '+
+                    'AND dishes.gendish_id = generic_dishes.gendish_id AND dishes.cook_id = cook.cook_id '+
+                    'AND (dishes.dish_status = p.status OR p.status IS NULL) '+
+                ') AS d '+
+                'WHERE distance <= pickup_radius '  // can add LIMIT x
+                ,[lat,lon,dish_status,eater_id], (err,rows) => {
+                    if (err) return done(err);
+                    if (rows.length == 0) return done(null,false);
+                    let cookDetails = {};
+                    for (const row of rows) {
+                        let cook_id = row.cook_id;
+                        let dishname = row.custom_name ? row.custom_name : row.gendish_name;
+                        let curDish = schemes.cookDish(row.dish_id, row.gendish_id, row.cook_id, dishname, row.price,
+                            row.category, row.label, row.description, row.dish_pic);
+                        if (cook_id in cookDetails) { // just add meal
+                            cookDetails[cook_id].dishes.push(curDish);
+                        }
+                        else {
+                            cookDetails[cook_id] = schemes.cookMap(
+                                cook_id,row.first_name,row.last_name,
+                                row.cook_logo,row.lat,row.lon,row.distance,[curDish]);
+                        }
+                    }
+                    let cookList = Object.values(cookDetails);
+                    return done(null,cookList);
+                });
+}
+
+module.exports.uploadCookDishPic = cloudStorage.uploadCookDishPic;

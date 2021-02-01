@@ -5,6 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'globals.dart' as globals;
 import 'register_page.dart';
+import 'package:dishtodoor/screens/Map/main_map.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:dishtodoor/screens/Map/cookClass.dart';
+import 'package:flutter/material.dart';
+import 'package:dishtodoor/config/config.dart';
+import 'package:location/location.dart';
 
 class CookLoginEmail extends StatefulWidget {
   @override
@@ -15,6 +24,67 @@ class _CookLoginEmail extends State<CookLoginEmail> {
   TextEditingController email = TextEditingController(text: "");
 
   TextEditingController password = TextEditingController(text: "");
+
+//Getting location before hand
+//TODO move to page before map later
+// get Location of user
+
+  LatLng _finaluserlocation;
+  CookList cooks;
+  Location _location = Location();
+
+  Future<void> getLoc() async {
+    var _loc = await _location.getLocation();
+    setState(() {
+      _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
+    });
+  }
+
+  Future locsharing() async {
+    print("trying comm");
+    final http.Response response = await http.get(
+      baseURL +
+          '/eater/api/dish/around?lat=' +
+          _finaluserlocation.latitude.toString() +
+          '&lon=' +
+          _finaluserlocation.longitude.toString(),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization':
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjEyMTEwMTgwfQ.TdVSbEd7yzVWC4tBz_QdCV9ZujR8_0C3gfTLcTjoRCg",
+      },
+    );
+    if (response.statusCode == 200) {
+      // If the server did return a 200 CREATED response,
+      // then parse the JSON and send user to login screen
+      dynamic decoded = jsonDecode(response.body);
+      print("Received: " + decoded.toString());
+      bool success = decoded['success'];
+      print("success: " + success.toString());
+      print(decoded['cooks']);
+      if (success) {
+        cooks = CookList.fromJson(decoded['cooks']);
+        print(cooks.cooksList);
+        //_registerSuccessfulAlert();
+        print("Successful!");
+      } else {
+        //handle errors
+        print("Error: " + decoded['error']);
+        //_registerErrorAlert(decoded['error']);
+      }
+    } else {
+      // If the server did not return a 201 CREATED response,
+      // then throw an exception.
+      print("An unkown error occured");
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getLoc().then((value) => locsharing());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +119,11 @@ class _CookLoginEmail extends State<CookLoginEmail> {
           } else {
             print("An unkown error occured");
           }
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => MainMap(
+                    cookList: cooks,
+                  )));
         },
         child: Container(
           width: MediaQuery.of(context).size.width / 2,

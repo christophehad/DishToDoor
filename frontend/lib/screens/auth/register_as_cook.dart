@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 
 import 'package:dishtodoor/app_properties.dart';
 import 'package:dishtodoor/screens/auth/login.dart';
+import 'package:dishtodoor/config/config.dart';
+
+//TODO add forgot my password
 
 class RegisterCookPage extends StatefulWidget {
   @override
@@ -20,9 +23,9 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
   TextEditingController lname = TextEditingController(text: "");
 
   TextEditingController experience = TextEditingController(text: '');
-  String dropdownvalue_cert = 'Yes';
-  String dropdownvalue_train = 'Yes';
-  String dropdownvalue_inspect = 'Yes';
+  String dropDownValueCert = 'Yes';
+  String dropDownValueTrain = 'Yes';
+  String dropDownValueInspect = 'Yes';
   String phonenumber = "";
 
   @override
@@ -41,6 +44,47 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
             )
           ]),
     );
+
+//Error Alert
+    Future<void> _registerErrorAlert(String e) async {
+      String _errorDisp = "";
+      if (e == "missing_credentials") {
+        _errorDisp = "Please fill out all the fields.";
+      } else if (e == "email_used") {
+        _errorDisp =
+            "This email was used previously, please select another one.";
+      } else if (e == "phone_used") {
+        _errorDisp =
+            "This phone number was used previously, please select another one.";
+      } else {
+        _errorDisp = "An unkown error occured, please try again later.";
+      }
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text(_errorDisp),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.done_rounded),
+                onPressed: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => Login()));
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
 
 //Alert Dialaog
     Future<void> _registerSuccessfulAlert() async {
@@ -109,7 +153,6 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
               borderRadius: BorderRadius.circular(9.0)),
         ),
         onTap: () async {
-          String baseURL = "http://c1b1702a4094.eu.ngrok.io";
           final http.Response response = await http.post(
             baseURL + '/cook/register',
             headers: <String, String>{
@@ -134,8 +177,11 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
             if (success) {
               _registerSuccessfulAlert();
               print("Successful!");
-            } else
+            } else {
+              //handle errors
               print("Error: " + decoded['error']);
+              _registerErrorAlert(decoded['error']);
+            }
           } else {
             // If the server did not return a 201 CREATED response,
             // then throw an exception.
@@ -147,10 +193,10 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
 
 //FIND A WAY TO REFACTOR REDUNDANT CODE
 
-    Widget dropDownMenu_Cert = Container(
+    Widget dropDownMenuCert = Container(
         alignment: Alignment.centerLeft,
         child: DropdownButton<String>(
-          value: dropdownvalue_cert,
+          value: dropDownValueCert,
           dropdownColor: Colors.grey[200],
           isDense: true,
           icon: Icon(Icons.arrow_downward),
@@ -163,7 +209,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           ),
           onChanged: (String newValue) {
             setState(() {
-              dropdownvalue_cert = newValue;
+              dropDownValueCert = newValue;
             });
           },
           items: <String>['Yes', 'No']
@@ -175,10 +221,10 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           }).toList(),
         ));
 
-    Widget dropDownMenu_Train = Container(
+    Widget dropDownMenuTrain = Container(
         alignment: Alignment.centerLeft,
         child: DropdownButton<String>(
-          value: dropdownvalue_train,
+          value: dropDownValueTrain,
           dropdownColor: Colors.grey[200],
           isDense: true,
           icon: Icon(Icons.arrow_downward),
@@ -191,7 +237,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           ),
           onChanged: (String newValue) {
             setState(() {
-              dropdownvalue_train = newValue;
+              dropDownValueTrain = newValue;
             });
           },
           items: <String>['Yes', 'No']
@@ -203,10 +249,10 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           }).toList(),
         ));
 
-    Widget dropDownMenu_Inspect = Container(
+    Widget dropDownMenuInspect = Container(
         alignment: Alignment.centerLeft,
         child: DropdownButton<String>(
-          value: dropdownvalue_inspect,
+          value: dropDownValueInspect,
           dropdownColor: Colors.grey[200],
           isDense: true,
           icon: Icon(Icons.arrow_downward),
@@ -219,7 +265,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           ),
           onChanged: (String newValue) {
             setState(() {
-              dropdownvalue_inspect = newValue;
+              dropDownValueInspect = newValue;
             });
           },
           items: <String>['Yes', 'No']
@@ -311,7 +357,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                         textAlign: TextAlign.left),
                   ),
                 ),
-                dropDownMenu_Cert, //calling the drop down menu widget
+                dropDownMenuCert, //calling the drop down menu widget
                 SizedBox(
                   width: double.infinity,
                   child: Padding(
@@ -322,7 +368,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                         textAlign: TextAlign.left),
                   ),
                 ),
-                dropDownMenu_Train,
+                dropDownMenuTrain,
                 SizedBox(
                   width: double.infinity,
                   child: Padding(
@@ -332,7 +378,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                         textAlign: TextAlign.left),
                   ),
                 ),
-                dropDownMenu_Inspect,
+                dropDownMenuInspect,
               ],
             ),
           ),

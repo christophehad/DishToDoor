@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const jwtData = require('../../../cert/config').jwtData;
 const apiConfig = require('../api_config');
 const DEBUG = apiConfig.DEBUG;
+const database = require('../../../database/database');
 // to be returned in the HTTP requests
 const successJSON = apiConfig.successJSON;
 const failureJSON = apiConfig.failureJSON;
@@ -52,8 +53,12 @@ router.post('/login-phone', (req, res, next) => {
         };
         jwt.sign(to_sign,jwtData.privKey, (err,token) => {
             if (err) return next(err);
-            let toSend = successJSON(); toSend.token = token;
-            res.json(toSend);
+            database.cookIsVerified(user.id, (err, isVerified) => {
+                if (err) return next(err);
+                let toSend = successJSON(); toSend.token = token;
+                toSend.is_verified = isVerified;
+                res.json(toSend);
+            })
         });
     })(req, res, next);
 });
@@ -70,8 +75,12 @@ router.post('/login-email', (req, res, next) => {
         };
         jwt.sign(to_sign,jwtData.privKey, (err,token) => {
             if (err) return next(err);
-            let toSend = successJSON(); toSend.token = token;
-            res.json(toSend);
+            database.cookIsVerified(user.id, (err,isVerified) => {
+                if (err) return next(err);
+                let toSend = successJSON(); toSend.token = token;
+                toSend.is_verified = isVerified;
+                res.json(toSend);
+            })
         });
     })(req, res, next);
 });
