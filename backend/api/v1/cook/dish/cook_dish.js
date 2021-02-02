@@ -1,6 +1,6 @@
 // functions for adding, retrieving cook dishes
 const database = require('../../../../database/database');
-const { DEBUG } = require('../../api_config');
+const { DEBUG, clientTimeZone } = require('../../api_config');
 
 /**
  * Callback for cookdish routes
@@ -46,5 +46,38 @@ exports.getAll = function getAll(cook_id,done) {
         if (err) return done(err);
         if (cookdishes.length == 0) return done(null,false,'no_dishes');
         return done(null,cookdishes);
+    })
+}
+
+exports.makeAvailable = function makeAvailable(cook_id,dish_id,done) {
+    if (!dish_id) return done(null,false,'missing_fields');
+    // check if dish belongs to cook/exists
+    database.cookDishExists(dish_id,cook_id,(err,exists) => {
+        if (err) return done(err);
+        if (!exists) return done(null,false,'dish_not_for_cook');
+        
+        let curDate = new Date();
+        // date in time zone of client (represented as a Date object)
+        let clientDate = new Date(curDate.toLocaleString('en-US',{timeZone: clientTimeZone}));
+        database.cookDishMakeAvailable(dish_id,clientDate, (err,added) => {
+            if (err) return done(err);
+            if (!added) return done(null,false,'database_problem');
+            return done(null,true);
+        })
+    })
+}
+
+exports.makeUnavailable = function makeUnavailable(cook_id, dish_id, done) {
+    if (!dish_id) return done(null, false, 'missing_fields');
+    // check if dish belongs to cook/exists
+    database.cookDishExists(dish_id, cook_id, (err, exists) => {
+        if (err) return done(err);
+        if (!exists) return done(null, false, 'dish_not_for_cook');
+
+        database.cookDishMakeUnavailable(dish_id, (err, added) => {
+            if (err) return done(err);
+            if (!added) return done(null, false, 'database_problem');
+            return done(null, true);
+        });
     })
 }

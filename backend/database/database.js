@@ -9,11 +9,10 @@ const cloudStorage = require('./cloud_storage');
 
 const dbConfig = {
     host: 'localhost', // insert the database url here
-    port: 50207, // 3306, for local
+    port: 3306,//50207, // 3306, for local
     user: 'azure', // 'root',
     password: '6#vWHD_$',// '',
     database: 'dishtodoor',
-    timezone: 'utc',
     supportBigNumbers: true // for the DECIMAL column
 };
 
@@ -341,6 +340,14 @@ module.exports.genDishSearch = function genDishSearch(query,done) {
 
 /* Cook Dishes Functions */
 
+// returns true if cook has dish with id
+module.exports.cookDishExists = function cookDishExists(cookdish_id,cook_id,done) {
+    con.query('SELECT * FROM dishes WHERE dish_id = ? AND cook_id = ?',[cookdish_id,cook_id],(err,rows) => {
+        if (err) return done(err);
+        return done(null,rows.length > 0);
+    })
+}
+
 // returns the cookdish id
 module.exports.cookDishAdd = function cookDishAdd(gendish_id,cook_id,custom_name,price,category,label,description,dish_pic,done) {
     con.query('INSERT into dishes (gendish_id,cook_id,custom_name,price,category,label,description,dish_pic) values (?,?,?,?,?,?,?,?)',
@@ -348,6 +355,22 @@ module.exports.cookDishAdd = function cookDishAdd(gendish_id,cook_id,custom_name
             if (err) return done(err);
             return done(null,result.insertId);
         })
+}
+
+// set availability
+function cookDishSetAvailability(cookdish_id,availability,done) {
+    con.query('UPDATE dishes SET dish_status = ? WHERE dish_id = ?',[availability,cookdish_id], (err,result) => {
+        if (err) return done(err);
+        return done(null,result.affectedRows > 0);
+    })
+}
+// returns true if successful
+module.exports.cookDishMakeAvailable = function cookDishMakeAvailable(cookdish_id,date,done) {
+    return cookDishSetAvailability(cookdish_id,date,done);
+}
+// returns true if successful
+module.exports.cookDishMakeUnavailable = function cookDishMakeUnavailable(cookdish_id,done) {
+    return cookDishSetAvailability(cookdish_id,null,done);
 }
 
 /**

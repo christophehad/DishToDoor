@@ -1,5 +1,6 @@
 module.exports.DEBUG = true;
 module.exports.tmpPath = 'tmp/';
+module.exports.clientTimeZone = 'Asia/Beirut';
 
 // Communication with API
 module.exports.successJSON = function successJSON() {
