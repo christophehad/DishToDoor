@@ -294,6 +294,23 @@ module.exports.cookGetPic = function cookGetPic(id, done) {
     })
 }
 
+// return true if successful
+module.exports.cookSetOpenCloseTimes = function cookSetOpenCloseTimes(id,opening_time,closing_time,done) {
+    con.query('UPDATE cook SET opening_time = ?, closing_time = ? WHERE cook_id = ?',[opening_time,closing_time,id], (err,result) => {
+        if (err) return done(err);
+        return done(null, result.affectedRows > 0);
+    })
+}
+// returns a list of [opening,closing] times
+module.exports.cookGetOpenCloseTimes = function cookGetOpenCloseTimes(id, done) {
+    con.query('SELECT opening_time,closing_time FROM cook WHERE cook_id = ?', [id], (err, rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null, false);
+        let opening=rows[0].opening_time, closing=rows[0].closing_time;
+        return done(null, [opening,closing]);
+    })
+}
+
 /* Generic Dishes Functions */
 
 // returns the gendish id

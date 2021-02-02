@@ -82,4 +82,28 @@ router.get('/profile/pic/get',(req,res,next) => {
     })
 });
 
+router.post('/profile/times/set',(req,res,next) => {
+    if (DEBUG) console.log(req.body);
+
+    let cook_id = req.user, opening_time=req.body.opening_time, closing_time=req.body.closing_time;
+    profile.openCloseTimeSet(cook_id, opening_time, closing_time, (err,added,message) => {
+        if (err) return next(err);
+        if (!added) return res.json(failureJSON(message));
+        res.json(successJSON());
+    })
+});
+
+router.get('/profile/times/get',(req,res,next) => {
+    if (DEBUG) console.log(req.body);
+
+    let cook_id = req.user;
+    profile.openCloseTimeGet(cook_id, (err,openclosing,message) => {
+        if (err) return next(err);
+        if (!openclosing) return res.json(failureJSON(message));
+        let toSend = successJSON();
+        toSend.opening_time=openclosing[0], toSend.closing_time=openclosing[1];
+        res.json(toSend);
+    })
+})
+
 module.exports = router;
