@@ -52,19 +52,6 @@ class _SplashScreenState extends State<SplashScreen>
                       opacity: opacity.value,
                       child: new Image.asset('assets/logos/twitter.jpg')),
                 ),
-                // Padding(
-                //   padding: const EdgeInsets.all(8.0),
-                //   child: RichText(
-                //     text: TextSpan(
-                //         style: TextStyle(color: Colors.black),
-                //         children: [
-                //           // TextSpan(text: 'Powered by '),
-                //           // TextSpan(
-                //           //     text: 'DishToDoor',
-                //           //     style: TextStyle(fontWeight: FontWeight.bold))
-                //         ]),
-                //   ),
-                // )
               ],
             ),
           ),

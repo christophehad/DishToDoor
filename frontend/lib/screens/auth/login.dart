@@ -1,10 +1,10 @@
 import 'package:intl_phone_field/intl_phone_field.dart'; //
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-
-import 'package:dishtodoor/screens/auth/login_email.dart';
+import 'package:dishtodoor/screens/page_navigator.dart';
+import 'package:dishtodoor/screens/auth/eater_login_email.dart';
 import 'register_as_eater.dart';
-import 'package:dishtodoor/config/config.dart';
+import 'package:dishtodoor/screens/temp.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -44,6 +44,9 @@ class _Login extends State<Login> {
       child: InkWell(
         onTap: () {
           //Add OTP page navigation
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => PageNavigator()));
+          //.push(MaterialPageRoute(builder: (_) => MyHomePage()));
         },
         child: Container(
           width: MediaQuery.of(context).size.width / 2,
@@ -106,8 +109,8 @@ class _Login extends State<Login> {
                   color: Colors.blue,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0)),
-                  onPressed: () => Navigator.of(context)
-                      .push(MaterialPageRoute(builder: (_) => LoginEmail())),
+                  onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => EaterLoginEmail())),
                   child: Text('Continue with email',
                       style: TextStyle(fontSize: 20, color: Colors.white))))),
       SizedBox(height: 20)

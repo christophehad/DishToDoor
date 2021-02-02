@@ -1,18 +1,20 @@
-import 'package:dishtodoor/screens/Map/main_map.dart';
-
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'dart:convert';
+import 'package:dishtodoor/app_properties.dart';
+import 'package:dishtodoor/screens/auth/cook_login_email.dart';
 import 'package:flutter/material.dart';
-import 'package:dishtodoor/config/config.dart';
+import 'package:http/http.dart' as http;
+import 'globals.dart' as globals;
 
-class LoginEmail extends StatefulWidget {
+class EaterLoginEmail extends StatefulWidget {
   @override
-  _LoginEmail createState() => _LoginEmail();
+  _EaterLoginEmail createState() => _EaterLoginEmail();
 }
 
-class _LoginEmail extends State<LoginEmail> {
-  TextEditingController email =
-      TextEditingController(text: 'example@email.com');
+class _EaterLoginEmail extends State<EaterLoginEmail> {
+  TextEditingController email = TextEditingController(text: "");
 
-  TextEditingController password = TextEditingController(text: '123456789');
+  TextEditingController password = TextEditingController(text: "");
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +22,33 @@ class _LoginEmail extends State<LoginEmail> {
       left: MediaQuery.of(context).size.width / 4,
       bottom: 0,
       child: InkWell(
-        onTap: () {
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => MapMain()));
+        onTap: () async {
+          String baseURL = "http://b1c84252cafb.eu.ngrok.io";
+          final http.Response response = await http.post(
+              baseURL + '/eater/login-email',
+              headers: <String, String>{
+                'Content-Type': 'application/json; charset=UTF-8'
+              },
+              body: jsonEncode(<String, String>{
+                "email": email.text,
+                "password": password.text,
+              }));
+
+          if (response.statusCode == 200) {
+            dynamic decoded = jsonDecode(response.body);
+            print("Received: " + decoded.toString());
+            bool success = decoded['success'];
+            globals.token = decoded['token'];
+            if (success) {
+              //_registerSuccessfulAlert();
+              print("Successful!");
+              print("Your token is" + globals.token);
+            } else {
+              print("Error: " + decoded['error']);
+            }
+          } else {
+            print("An unkown error occured");
+          }
         },
         child: Container(
           width: MediaQuery.of(context).size.width / 2,
@@ -71,7 +97,7 @@ class _LoginEmail extends State<LoginEmail> {
                     child: TextField(
                       decoration: InputDecoration(
                           hintText: 'Email', suffixIcon: Icon(Icons.email)),
-                      //controller: email,
+                      controller: email,
                       style: TextStyle(fontSize: 16.0),
                     ),
                   ),
@@ -81,7 +107,7 @@ class _LoginEmail extends State<LoginEmail> {
                       decoration: InputDecoration(
                           hintText: 'Password',
                           suffixIcon: Icon(Icons.visibility_off)),
-                      //controller: password,
+                      controller: password,
                       style: TextStyle(fontSize: 16.0),
                       obscureText: true,
                     ),
@@ -107,6 +133,25 @@ class _LoginEmail extends State<LoginEmail> {
               ))
         ]));
 
+    Widget socialRegister = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text(
+          'Login as a cook',
+          style: TextStyle(
+              fontSize: 13.0, fontStyle: FontStyle.italic, color: Colors.white),
+        ),
+        IconButton(
+          icon: Icon(Icons.room_service),
+          onPressed: () {
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => CookLoginEmail()));
+          },
+          color: Colors.white,
+        ),
+      ],
+    );
+
     return Scaffold(
         backgroundColor: Colors.blue[100],
         body: Stack(children: <Widget>[
@@ -114,7 +159,7 @@ class _LoginEmail extends State<LoginEmail> {
               padding: EdgeInsets.only(left: 28.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[loginForm, forgotPassword],
+                children: <Widget>[loginForm, forgotPassword, socialRegister],
               )),
           Positioned(
               top: 35,
