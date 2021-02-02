@@ -13,6 +13,7 @@ const dbConfig = {
     user: 'azure', // 'root',
     password: '6#vWHD_$',// '',
     database: 'dishtodoor',
+    timezone: 'utc',
     supportBigNumbers: true // for the DECIMAL column
 };
 
@@ -274,6 +275,25 @@ module.exports.cookGetLocation = function cookGetLocation(id,done) {
     })
 }
 
+// returns false if unsuccessful (cloud or database)
+module.exports.cookSetPic = function cookSetPic(id,local_pic_name,local_pic_path,done) {
+    cloudStorage.uploadCookProfilePic(local_pic_name,local_pic_path).then(cloud_url => {
+        con.query('UPDATE cook SET cook_logo = ? WHERE cook_id = ?',[cloud_url,id], (err,result) => {
+            if (err) return done(err);
+            return done(null,result.affectedRows > 0);
+        })
+    }).catch(err => {return done(null,false);})
+}
+// returns the url of the profile pic
+module.exports.cookGetPic = function cookGetPic(id, done) {
+    con.query('SELECT cook_logo FROM cook WHERE cook_id = ?',[id], (err,rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null,false);
+        let cook_pic = rows[0].cook_logo;
+        return done(null,cook_pic);
+    })
+}
+
 /* Generic Dishes Functions */
 
 // returns the gendish id
@@ -344,7 +364,8 @@ module.exports.cookDishGetAll = function cookDishGetAll(cook_id,done) {
  */
 module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_status=null,done) {
     con.query('SELECT *,distance FROM ('+
-                'SELECT cook.cook_logo,cook.lat,cook.lon,profile.first_name,profile.last_name,eater.pickup_radius, '+
+                'SELECT cook.cook_logo,cook.lat,cook.lon,cook.opening_time,cook.closing_time,profile.first_name,profile.last_name,'+
+                        'eater.pickup_radius, '+
                         'dishes.*, generic_dishes.gendish_name, '+
                         'p.distance_unit '+
                             '* DEGREES(ACOS(LEAST(1.0, COS(RADIANS(p.lat)) '+
@@ -379,7 +400,7 @@ module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_
                         else {
                             cookDetails[cook_id] = schemes.cookMap(
                                 cook_id,row.first_name,row.last_name,
-                                row.cook_logo,row.lat,row.lon,row.distance,[curDish]);
+                                row.cook_logo,row.lat,row.lon,row.distance,row.opening_time,row.closing_time,[curDish]);
                         }
                     }
                     let cookList = Object.values(cookDetails);

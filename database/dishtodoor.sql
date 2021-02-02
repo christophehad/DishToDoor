@@ -47,8 +47,8 @@ CREATE TABLE `charity_organizations` (
 CREATE TABLE `cook` (
   `cook_id` int(11) NOT NULL,
   `is_verified` tinyint(1) NOT NULL DEFAULT 0,
-  `opening_time` time DEFAULT NULL,
-  `closing_time` time DEFAULT NULL,
+  `opening_time` time DEFAULT '0',
+  `closing_time` time DEFAULT '23:59:59',
   `cook_logo` varchar(2083) COLLATE utf8_unicode_ci DEFAULT NULL,
   `exp_delivery_time` time DEFAULT NULL,
   `cook_discount` varchar(16) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -179,7 +179,7 @@ CREATE TABLE `dishes` (
   `dish_discount` int(255) DEFAULT NULL,
   `is_combo` tinyint(1) DEFAULT NULL,
   `dish_pic` varchar(2083) DEFAULT NULL,
-  `dish_status` varchar(2083) DEFAULT NULL,
+  `dish_status` date DEFAULT NULL,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

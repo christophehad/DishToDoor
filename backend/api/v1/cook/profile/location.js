@@ -1,5 +1,4 @@
 const database = require('../../../../database/database');
-const router = require('../routes_dish');
 
 exports.set = function set(cook_id,lat,lon,done) {
     if (!lat || !lon) return done(null,false,'missing_fields');
