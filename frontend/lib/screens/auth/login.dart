@@ -4,7 +4,6 @@ import 'package:flutter/gestures.dart';
 import 'package:dishtodoor/screens/page_navigator.dart';
 import 'package:dishtodoor/screens/auth/eater_login_email.dart';
 import 'register_as_eater.dart';
-import 'package:dishtodoor/screens/temp.dart';
 
 class Login extends StatefulWidget {
   @override

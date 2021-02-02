@@ -50,8 +50,7 @@ class _CookLoginEmail extends State<CookLoginEmail> {
           _finaluserlocation.longitude.toString(),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization':
-            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjEyMTEwMTgwfQ.TdVSbEd7yzVWC4tBz_QdCV9ZujR8_0C3gfTLcTjoRCg",
+        'Authorization': "Bearer " + globals.token
       },
     );
     if (response.statusCode == 200) {
@@ -81,9 +80,8 @@ class _CookLoginEmail extends State<CookLoginEmail> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    getLoc().then((value) => locsharing());
+    getLoc();
   }
 
   @override
@@ -93,7 +91,6 @@ class _CookLoginEmail extends State<CookLoginEmail> {
       bottom: 0,
       child: InkWell(
         onTap: () async {
-          String baseURL = "http://b1c84252cafb.eu.ngrok.io";
           final http.Response response = await http.post(
               baseURL + '/cook/login-email',
               headers: <String, String>{
@@ -113,17 +110,18 @@ class _CookLoginEmail extends State<CookLoginEmail> {
               //_registerSuccessfulAlert();
               print("Successful!");
               print("Your token is" + globals.token);
+
+              locsharing()
+                  .then((value) => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => MainMap(
+                            cookList: cooks,
+                          ))));
             } else {
               print("Error: " + decoded['error']);
             }
           } else {
             print("An unkown error occured");
           }
-        onTap: () {
-          Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => MainMap(
-                    cookList: cooks,
-                  )));
         },
         child: Container(
           width: MediaQuery.of(context).size.width / 2,

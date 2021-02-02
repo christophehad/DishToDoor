@@ -147,14 +147,11 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
             if (success) {
               _registerSuccessfulAlert();
               print("Successful!");
-            } else
+            } else {
               //handle errors
               print("Error: " + decoded['error']);
-            _registerErrorAlert(decoded['error']);
-          } else {
-            // If the server did not return a 201 CREATED response,
-            // then throw an exception.
-            print("An unkown error occured");
+              _registerErrorAlert(decoded['error']);
+            }
           }
         },
 
