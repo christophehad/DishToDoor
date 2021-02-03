@@ -10,10 +10,14 @@ var credentials = {key: privateKey, cert: certificate};
 
 const cookComponents = require('./api/v1/cook/cook_main');
 const eaterComponents = require('./api/v1/eater/eater_main');
+const admin = require('./admin/admin_main');
 const database = require('./database/database');
 
 // port used by the server
 const port = process.env.PORT || 3000;
+
+// load the admin routes
+app.use(admin.rootPath, admin.router);
 
 app.use(express.json()); // for retrieving json files from POST requests
 app.use(express.urlencoded({extended: true})); // for passport POST requests

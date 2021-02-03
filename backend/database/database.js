@@ -9,7 +9,7 @@ const cloudStorage = require('./cloud_storage');
 
 const dbConfig = {
     host: 'localhost', // insert the database url here
-    port: 50207, // 3306, for local
+    port: 3306,//50207, // 3306, for local
     user: 'azure', // 'root',
     password: '6#vWHD_$',// '',
     database: 'dishtodoor',
@@ -200,6 +200,16 @@ module.exports.eaterRegister = function eaterRegister(email,phone,pass,fname,lna
     })
 }
 
+// returns the admin ID
+module.exports.adminRegister = function adminRegister(email, pass, done) {
+    // create account
+    con.query('INSERT into user_account (email,type,password) values (?,?,?)', [email, 'ADMIN', pass], (err, result) => {
+        if (err) return done(err);
+        const id = result.insertId;
+        return done(null,id);
+    })
+}
+
 // returns the rows of the query
 module.exports.cookLoginPhone = function cookLoginPhone(phone,done) {
     con.query('SELECT * FROM user_account WHERE phone = ? AND type = ?',[phone,'COOK'], (err,rows) => {
@@ -225,6 +235,14 @@ module.exports.eaterLoginPhone = function eaterLoginPhone(phone,done) {
 // returns the rows of the query
 module.exports.eaterLoginEmail = function eaterLoginEmail(email,done) {
     con.query('SELECT * FROM user_account WHERE email = ? AND type = ?',[email,'EATER'], (err,rows) => {
+        if (err) return done(err);
+        return done(null,rows);
+    })
+}
+
+// returns the rows of the query
+module.exports.adminLogin = function adminLogin(email,done) {
+    con.query('SELECT * FROM user_account WHERE email = ? AND type = ?',[email,'ADMIN'], (err,rows) => {
         if (err) return done(err);
         return done(null,rows);
     })
