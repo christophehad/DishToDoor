@@ -274,6 +274,42 @@ module.exports.cookGetLocation = function cookGetLocation(id,done) {
     })
 }
 
+// returns false if unsuccessful (cloud or database)
+module.exports.cookSetPic = function cookSetPic(id,local_pic_name,local_pic_path,done) {
+    cloudStorage.uploadCookProfilePic(local_pic_name,local_pic_path).then(cloud_url => {
+        con.query('UPDATE cook SET cook_logo = ? WHERE cook_id = ?',[cloud_url,id], (err,result) => {
+            if (err) return done(err);
+            return done(null,result.affectedRows > 0);
+        })
+    }).catch(err => {return done(null,false);})
+}
+// returns the url of the profile pic
+module.exports.cookGetPic = function cookGetPic(id, done) {
+    con.query('SELECT cook_logo FROM cook WHERE cook_id = ?',[id], (err,rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null,false);
+        let cook_pic = rows[0].cook_logo;
+        return done(null,cook_pic);
+    })
+}
+
+// return true if successful
+module.exports.cookSetOpenCloseTimes = function cookSetOpenCloseTimes(id,opening_time,closing_time,done) {
+    con.query('UPDATE cook SET opening_time = ?, closing_time = ? WHERE cook_id = ?',[opening_time,closing_time,id], (err,result) => {
+        if (err) return done(err);
+        return done(null, result.affectedRows > 0);
+    })
+}
+// returns a list of [opening,closing] times
+module.exports.cookGetOpenCloseTimes = function cookGetOpenCloseTimes(id, done) {
+    con.query('SELECT opening_time,closing_time FROM cook WHERE cook_id = ?', [id], (err, rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null, false);
+        let opening=rows[0].opening_time, closing=rows[0].closing_time;
+        return done(null, [opening,closing]);
+    })
+}
+
 /* Generic Dishes Functions */
 
 // returns the gendish id
@@ -304,6 +340,14 @@ module.exports.genDishSearch = function genDishSearch(query,done) {
 
 /* Cook Dishes Functions */
 
+// returns true if cook has dish with id
+module.exports.cookDishExists = function cookDishExists(cookdish_id,cook_id,done) {
+    con.query('SELECT * FROM dishes WHERE dish_id = ? AND cook_id = ?',[cookdish_id,cook_id],(err,rows) => {
+        if (err) return done(err);
+        return done(null,rows.length > 0);
+    })
+}
+
 // returns the cookdish id
 module.exports.cookDishAdd = function cookDishAdd(gendish_id,cook_id,custom_name,price,category,label,description,dish_pic,done) {
     con.query('INSERT into dishes (gendish_id,cook_id,custom_name,price,category,label,description,dish_pic) values (?,?,?,?,?,?,?,?)',
@@ -311,6 +355,22 @@ module.exports.cookDishAdd = function cookDishAdd(gendish_id,cook_id,custom_name
             if (err) return done(err);
             return done(null,result.insertId);
         })
+}
+
+// set availability
+function cookDishSetAvailability(cookdish_id,availability,done) {
+    con.query('UPDATE dishes SET dish_status = ? WHERE dish_id = ?',[availability,cookdish_id], (err,result) => {
+        if (err) return done(err);
+        return done(null,result.affectedRows > 0);
+    })
+}
+// returns true if successful
+module.exports.cookDishMakeAvailable = function cookDishMakeAvailable(cookdish_id,date,done) {
+    return cookDishSetAvailability(cookdish_id,date,done);
+}
+// returns true if successful
+module.exports.cookDishMakeUnavailable = function cookDishMakeUnavailable(cookdish_id,done) {
+    return cookDishSetAvailability(cookdish_id,null,done);
 }
 
 /**
@@ -344,7 +404,8 @@ module.exports.cookDishGetAll = function cookDishGetAll(cook_id,done) {
  */
 module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_status=null,done) {
     con.query('SELECT *,distance FROM ('+
-                'SELECT cook.cook_logo,cook.lat,cook.lon,profile.first_name,profile.last_name,eater.pickup_radius, '+
+                'SELECT cook.cook_logo,cook.lat,cook.lon,cook.opening_time,cook.closing_time,profile.first_name,profile.last_name,'+
+                        'eater.pickup_radius, '+
                         'dishes.*, generic_dishes.gendish_name, '+
                         'p.distance_unit '+
                             '* DEGREES(ACOS(LEAST(1.0, COS(RADIANS(p.lat)) '+
@@ -379,7 +440,7 @@ module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_
                         else {
                             cookDetails[cook_id] = schemes.cookMap(
                                 cook_id,row.first_name,row.last_name,
-                                row.cook_logo,row.lat,row.lon,row.distance,[curDish]);
+                                row.cook_logo,row.lat,row.lon,row.distance,row.opening_time,row.closing_time,[curDish]);
                         }
                     }
                     let cookList = Object.values(cookDetails);

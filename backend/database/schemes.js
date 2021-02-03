@@ -65,6 +65,8 @@ exports.genDish = function (id,name,category) {
  * @property {Number} lat
  * @property {Number} lon
  * @property {Number} distance
+ * @property {String} opening_time
+ * @property {String} closing_time
  * @property {CookDish[]} dishes
 */
 
@@ -72,9 +74,10 @@ exports.genDish = function (id,name,category) {
  * @param {CookDish[]} dishes
  * @returns {CookMap}
  */
-exports.cookMap = function(cook_id,f_name,l_name,logo,lat,lon,distance,dishes) {
+exports.cookMap = function(cook_id,f_name,l_name,logo,lat,lon,distance,open,close,dishes) {
     return {
-        cook_id:cook_id, first_name:f_name, last_name:l_name, logo:logo, lat:lat, lon:lon, distance:distance, dishes:dishes
+        cook_id:cook_id, first_name:f_name, last_name:l_name, logo:logo, lat:lat, lon:lon, 
+        distance:distance, opening_time:open, closing_time:close, dishes:dishes
     }
 }
 

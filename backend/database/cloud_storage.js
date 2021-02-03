@@ -22,3 +22,7 @@ async function uploadFile(destPath,destName,srcFilePath) {
 exports.uploadCookDishPic = function uploadCookDishPic(destName,picPath) {
     return uploadFile('cookdish_pics/',destName,picPath);
 }
+// returns a promise of the upload
+exports.uploadCookProfilePic = function uploadCookProfilePic(destName,picPath) {
+    return uploadFile('cookprofile_pics/',destName,picPath);
+}

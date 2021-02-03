@@ -33,7 +33,8 @@ router.get('/dish/around',(req,res,next) => {
                                         dish.category,dish.dish_pic));
             }
             cooks_with_dishesAPI.push(cookMapAPI(cook.first_name,cook.last_name,cook.logo,
-                                                cook.lat,cook.lon,cook.distance,dishes));
+                                                cook.lat,cook.lon,cook.distance,cook.opening_time,cook.closing_time,
+                                                dishes));
         }
         toSend.cooks = cooks_with_dishesAPI;
         res.json(toSend);

@@ -120,4 +120,29 @@ router.get('/cook-dish/get', (req, res, next) => {
     }
 })
 
+// make cookdish available
+router.get('/cook-dish/available',(req,res,next) => {
+    if (DEBUG) console.log(req.body);
+
+    let cook_id = req.user, dish_id = req.query.dish_id;
+    cookDish.makeAvailable(cook_id,dish_id, (err,added,message) => {
+        if (err) return next(err);
+        if (!added) return res.json(failureJSON(message));
+        res.json(successJSON());
+    })
+})
+// make cookdish unavailable
+router.get('/cook-dish/unavailable',(req,res,next) => {
+    if (DEBUG) console.log(req.body);
+
+    let cook_id = req.user, dish_id = req.query.dish_id;
+    cookDish.makeUnavailable(cook_id,dish_id, (err,added,message) => {
+        if (err) return next(err);
+        if (!added) return res.json(failureJSON(message));
+        res.json(successJSON());
+    })
+})
+
+
+
 module.exports = router;
