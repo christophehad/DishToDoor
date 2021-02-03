@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:dishtodoor/screens/Map/cookClass.dart';
+import 'package:dishtodoor/screens/Eater/Checkout_Processs/bloc/cart_items.dart';
+import 'package:dishtodoor/screens/Eater/Checkout_Processs/pages/checkout_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -56,26 +58,7 @@ class _CookPageEaterState extends State<CookPageEater> {
   @override
   void initState() {
     super.initState();
-    //_updateLocation();
   }
-
-  // Future<Address> _getLocationAddress(double latitude, double longitude) async {
-  //   final coordinates = new Coordinates(latitude, longitude);
-  //   var addresses =
-  //       await Geocoder.local.findAddressesFromCoordinates(coordinates);
-  //   var first = addresses.first;
-  //   print(first);
-  //   return first;
-  // }
-
-  // void _updateLocation() async {
-  //   _cookaddressLL = LatLng(33.8915104820843, 35.50438119723922);
-  //   _cookaddress = await _getLocationAddress(
-  //       _cookaddressLL.latitude, _cookaddressLL.latitude);
-  //   if (_cookaddress == null) {
-  //     _cookaddress = Address(addressLine: "Lebanon");
-  //   }
-  // }
 
   //List creation -- cooks cards
   //TODO automate process using GET -- backend communication
@@ -100,7 +83,9 @@ class _CookPageEaterState extends State<CookPageEater> {
                 children: [
                   TextButton(
                     child: const Text("Add to cart"),
-                    onPressed: () {/* ... */},
+                    onPressed: () {
+                      bloc.addToCart(CartTuple(dish: dish, count: 1));
+                    },
                   ),
                   TextButton(
                     child: const Text("Buy now"),
@@ -254,15 +239,14 @@ class _CookPageEaterState extends State<CookPageEater> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget body() {
     return Scaffold(
       body: Stack(
         children: [
           picture(context),
           scrollableList(context),
           Positioned(
-            top: 35,
+            top: 45,
             left: 5,
             child: IconButton(
               color: Colors.white,
@@ -271,9 +255,26 @@ class _CookPageEaterState extends State<CookPageEater> {
                 Navigator.pop(context);
               },
             ),
+          ),
+          Positioned(
+            top: 45,
+            right: 15,
+            child: IconButton(
+              color: Colors.white,
+              icon: Icon(Icons.shopping_cart),
+              onPressed: () {
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => Checkout()));
+              },
+            ),
           )
         ],
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return body();
   }
 }

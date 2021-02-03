@@ -34,6 +34,7 @@ dependencies:
   sliding_up_panel: ^1.0.2
   geocoder: ^0.2.1
   maps_launcher: ^1.2.2+2
+  flutter_svg: ^0.19.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -69,6 +70,8 @@ flutter:
     - assets/map/friend1.jpg
     - assets/map/friend2.jpg
     - assets/home-cook2.jpg
+    - assets/Trash.svg
+    - assets/receipt.svg
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
