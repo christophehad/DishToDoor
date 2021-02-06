@@ -1,4 +1,5 @@
 const mysql = require('mysql');
+const async = require ('async'); // for using async loops
 
 // Schemes and templates of database functions/entities
 const schemes = require('./schemes');
@@ -395,6 +396,24 @@ module.exports.cookDishGetAll = function cookDishGetAll(cook_id,done) {
                 })
 }
 
+/**
+ * returns the cookdish info
+ * @param {schemes.cookDishInfoCallback} done
+ */
+function cookDishInfo(dish_id,done) {
+    con.query('SELECT dishes.*, generic_dishes.gendish_name FROM dishes, generic_dishes'+
+            'WHERE dishes.gendish_id = generic_dishes.gendish_id AND dishes.dish_id = ?',[dish_id],(err,rows) => {
+                if (err) return done(err);
+                
+                let row = rows[0];
+                let name = row.custom_name ? row.custom_name : row.gendish_name;
+                let cookdish = schemes.cookDish(
+                    row.dish_id, row.gendish_id, row.cook_id, name, row.price,
+                    row.category, row.label, row.description, row.dish_pic
+                );
+                return done(null, cookdish);
+            });
+}
 
 /* Map Functions */
 
@@ -446,6 +465,55 @@ module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_
                     let cookList = Object.values(cookDetails);
                     return done(null,cookList);
                 });
+}
+
+/* Cart Functions */
+
+// return the insert id
+module.exports.cartAdd = function cartAdd(eater_id,dish_id,cook_id,quantity=1,delivery=false,done) {
+    con.query('INSERT into eater_cart (eater_id,dish_id,cook_id,quantity,delivery_availability) values (?,?,?,?,?)',[eater_id,dish_id,cook_id,quantity,delivery],(err,result) => {
+        if (err) return done(err);
+        return done(null,result.insertId);
+    });
+}
+
+/**
+ * returns the cart dishes and their info
+ * @param {schemes.eaterCartCallback} done 
+ */
+module.exports.cartGetDishes = function cartGetDishes(eater_id,done) {
+    con.query('SELECT * FROM eater_cart WHERE eater_id = ?',[eater_id],(err,rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null,false);
+        /** @type {schemes.EaterCartEntry[]} */
+        let cart = [];
+        async.eachOf(rows, function(row,index,inner_callback) {
+            let dish_id=row.dish_id,quantity=row.quantity,delivery=row.delivery_availability;
+            cookDishInfo(dish_id, (err,cookdish) => {
+                if (err) return inner_callback(err);
+                cart.push(schemes.eaterCartEntry(cookdish,quantity,delivery));
+            })
+        }, function (err) {
+            if (err) return done(err);
+            return done(null,cart);
+        });
+    })
+}
+
+// return true if entry deleted
+module.exports.cartDelete = function cartDelete(eater_id, dish_id, done) {
+    con.query('DELETE FROM eater_cart WHERE eater_id = ? AND dish_id = ?', [eater_id, dish_id], (done, result) => {
+        if (err) return done(err);
+        return done(null, result.affectedRows > 0);
+    });
+}
+
+// return true if cart emptied
+module.exports.cartEmpty = function cartEmpty(eater_id, done) {
+    con.query('DELETE FROM eater_cart WHERE eater_id = ?', [eater_id], (done, result) => {
+        if (err) return done(err);
+        return done(null, result.affectedRows > 0);
+    });
 }
 
 module.exports.uploadCookDishPic = cloudStorage.uploadCookDishPic;

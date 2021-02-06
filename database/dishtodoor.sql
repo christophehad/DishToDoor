@@ -256,6 +256,7 @@ CREATE TABLE `eater_cart` (
   `eater_id` int(11) NOT NULL,
   `dish_id` int(11) NOT NULL,
   `cook_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
   `delivery_availability` tinyint(1) NOT NULL,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -526,8 +527,8 @@ ALTER TABLE `eater_allergens`
 -- Indexes for table `eater_cart`
 --
 ALTER TABLE `eater_cart`
-  ADD PRIMARY KEY (`eater_id`),
-  ADD UNIQUE KEY `dish_id` (`dish_id`),
+  ADD KEY (`eater_id`),
+  ADD KEY `dish_id` (`dish_id`),
   ADD KEY `cook_id` (`cook_id`);
 
 --

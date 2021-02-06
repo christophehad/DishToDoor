@@ -20,6 +20,7 @@
   "homepage": "https://github.com/christophehad/DishToDoor#readme",
   "dependencies": {
     "@azure/storage-blob": "^12.4.0",
+    "async": "^3.2.0",
     "bcrypt": "^5.0.0",
     "express": "^4.17.1",
     "https": "^1.0.0",

@@ -56,6 +56,13 @@ exports.genDish = function (id,name,category) {
 */
 
 /**
+* CookDish info callback
+* @callback cookDishInfoCallback
+* @param {String} err
+* @param {CookDish} cookdish
+*/
+
+/**
  * Cook and Dishes on Map
  * @typedef CookMap
  * @property {Number} cook_id
@@ -87,3 +94,30 @@ exports.cookMap = function(cook_id,f_name,l_name,logo,lat,lon,distance,open,clos
   * @param {String} err
   * @param {CookMap[]} cooks
 */
+
+
+/**
+ * Eater Cart Entry
+ * @typedef EaterCartEntry
+ * @property {CookDish} cookdish
+ * @property {Number} quantity
+ * @property {Boolean} delivery
+*/
+
+/**
+  * Eater Cart Callback
+  * @callback eaterCartCallback
+  * @param {String} err
+  * @param {EaterCartEntry[]} cart
+*/
+
+/**
+ * 
+ * @param {CookDish} cookdish 
+ * @returns {EaterCartEntry}
+ */
+exports.eaterCartEntry = function(cookdish,quantity,delivery) {
+    return {
+        cookdish: cookdish, quantity:quantity, delivery:delivery
+    }
+}
