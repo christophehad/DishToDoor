@@ -1,3 +1,5 @@
+const {DateTime} = require('luxon');
+
 module.exports.DEBUG = true;
 module.exports.tmpPath = 'tmp/';
 module.exports.clientTimeZone = 'Asia/Beirut';
@@ -64,6 +66,13 @@ module.exports.cookDish = function cookDish(dish_id,gendish_id,name,price,catego
  * @property {String} closing_time
  * @property {CookDishAPI[]} dishes
 */
+
+// append today's date in ISO format to time
+module.exports.addDateISO = function addDateISO(time) {
+    let today = DateTime.local().setZone(this.clientTimeZone);
+    let dateISO = today.toISODate(); // yyyy-mm-dd
+    return dateISO + " " + time;
+}
 
 /**
  * @param {CookDishAPI[]} dishes
