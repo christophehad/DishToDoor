@@ -92,7 +92,7 @@ exports.getOrdersAll = function getOrdersAll(eater_id,done) {
                 async.eachOf(order.dishes,(dishtuple,index2,inner_callback2) => {
                     database.cookDishInfo(dishtuple.dish_id, (err,cookdish) => {
                         if (err) return inner_callback2(err);
-                        dishes.push(apiConfig.orderDishAPI(dishtuple.dish_id,dishtuple.quantity,cookdish.price,cookdish.dish_pic));
+                        dishes.push(apiConfig.orderDishAPI(dishtuple.dish_id,cookdish.name,dishtuple.quantity,cookdish.price,cookdish.dish_pic));
                         inner_callback2();
                     })
                 }, (err) => {

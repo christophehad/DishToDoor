@@ -121,6 +121,7 @@ module.exports.cookProfileAPI = function cookProfileAPI(f_name,l_name,logo,lat,l
  * Order Dish API
  * @typedef {Object} OrderDishAPI
  * @property {Number} dish_id
+ * @property {String} name
  * @property {Number} quantity
  * @property {Number} price
  * @property {String} dish_pic
@@ -129,9 +130,9 @@ module.exports.cookProfileAPI = function cookProfileAPI(f_name,l_name,logo,lat,l
 /**
  * @returns {OrderDishAPI}
  */
-module.exports.orderDishAPI = function orderDishAPI(dish_id,quantity,price,dish_pic) {
+module.exports.orderDishAPI = function orderDishAPI(dish_id,name,quantity,price,dish_pic) {
     return {
-        dish_id:dish_id, quantity:quantity, price:price, dish_pic:dish_pic
+        dish_id:dish_id, name:name, quantity:quantity, price:price, dish_pic:dish_pic
     }
 }
 
