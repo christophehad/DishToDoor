@@ -311,6 +311,18 @@ module.exports.cookGetOpenCloseTimes = function cookGetOpenCloseTimes(id, done) 
     })
 }
 
+/**
+ * @param {schemes.cookProfileCallback} done 
+ */
+module.exports.cookGetProfile = function cookGetProfile(cook_id,done) {
+    con.query('SELECT cook.*,user_profile.* FROM cook,user_profile WHERE cook_id = ? AND id = cook_id',[cook_id], (err,rows) => {
+        if (err) return done(err);
+        let row = rows[0];
+        let cookProfile = schemes.cookProfile(row.cook_id,row.first_name,row.last_name,row.cook_logo,row.lat,row.lon,row.opening_time,row.closing_time);
+        return done(null,cookProfile);
+    })
+}
+
 /* Generic Dishes Functions */
 
 // returns the gendish id
@@ -539,8 +551,8 @@ function orderAddDishes(order_id,eater_id,dishes,done) {
  * @param {Date} datetime 
  * @param {schemes.DishTuple[]} dishes 
  */
-module.exports.orderCreate = function orderCreate(eater_id,cook_id,del_method='takeaway',datetime,dishes,done) {
-    con.query('INSERT into order_status (cook_id,delivery_method,date_scheduled_on) values (?,?,?)',[cook_id,del_method,datetime],(err,result) => {
+module.exports.orderCreate = function orderCreate(eater_id,cook_id,del_method='takeaway',datetime,total,dishes,done) {
+    con.query('INSERT into order_status (cook_id,total_price,delivery_method,date_scheduled_on) values (?,?,?,?)',[cook_id,total,del_method,datetime],(err,result) => {
         if (err) return done(err);
         const order_id = result.insertId;
         // insert the dishes to the order
@@ -560,7 +572,6 @@ module.exports.orderGet_Eater = function orderGet_Eater(eater_id,status=null,don
                 'WHERE eater_dish_order.order_id=order_status.order_id AND eater_dish_order.eater_id = ? '+
                     'AND (order_status.general_status = ? OR ? IS NULL)',[eater_id,status,status], (err,rows) => {
                         if (err) return done(err);
-                        if (rows.length == 0) return done(null,false);
                         let orderByCook = {};
                         for (const row of rows) {
                             let cook_id=row.cook_id;
@@ -570,7 +581,7 @@ module.exports.orderGet_Eater = function orderGet_Eater(eater_id,status=null,don
                                 orderByCook[cook_id].dishes.push(dish);
                             else {
                                 orderByCook[cook_id] = schemes.order(
-                                    row.order_id, row.eater_id, cook_id, row.general_status, row.prepared_status, row.packaged_status,
+                                    row.order_id, row.eater_id, cook_id, row.total_price, row.general_status, row.prepared_status, row.packaged_status,
                                     row.message,row.date_scheduled_on,[dish]);
                             }
                         }

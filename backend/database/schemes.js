@@ -78,6 +78,36 @@ exports.genDish = function (id,name,category) {
 */
 
 /**
+ * Cook Profile Info
+ * @typedef CookProfile
+ * @property {Number} cook_id
+ * @property {String} first_name
+ * @property {String} last_name
+ * @property {String} logo
+ * @property {Number} lat
+ * @property {Number} lon
+ * @property {String} opening_time
+ * @property {String} closing_time
+*/
+
+/**
+ * @returns {CookProfile}
+ */
+exports.cookProfile = function(cook_id,f_name,l_name,logo,lat,lon,open,close) {
+    return {
+        cook_id:cook_id, first_name:f_name, last_name:l_name, logo:logo, lat:lat, lon:lon,
+        opening_time:open, closing_time: close
+    }
+}
+
+/**
+  * Cook Profile Callback
+  * @callback cookProfileCallback
+  * @param {String} err
+  * @param {CookProfile} cook
+*/
+
+/**
  * @param {CookDish[]} dishes
  * @returns {CookMap}
  */
@@ -144,6 +174,7 @@ exports.OrderStatus = Object.freeze(OrderStatus);
  * @property {Number} order_id
  * @property {Number} eater_id
  * @property {Number} cook_id
+ * @property {Number} total_price
  * @property {String} general_status
  * @property {String} prepared_status
  * @property {String} packaged_status
@@ -156,9 +187,9 @@ exports.OrderStatus = Object.freeze(OrderStatus);
  * @param {DishTuple[]} dishes
  * @returns {Order}
  */
-exports.order = function(order_id,eater_id,cook_id,general_status,prepared_status,packaged_status,message,time,dishes) {
+exports.order = function(order_id,eater_id,cook_id,total,general_status,prepared_status,packaged_status,message,time,dishes) {
     return {
-        order_id:order_id, eater_id:eater_id, cook_id:cook_id, general_status:general_status, prepared_status:prepared_status,
+        order_id:order_id, eater_id:eater_id, cook_id:cook_id, total_price:total, general_status:general_status, prepared_status:prepared_status,
         packaged_status:packaged_status, message:message, scheduled_time:time, dishes:dishes
     }
 }

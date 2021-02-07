@@ -368,6 +368,7 @@ CREATE TABLE `order_status` (
   `order_id` int(11) NOT NULL,
   `cook_id` int(11) NOT NULL,
   `general_status` enum('pending','approved','rejected','cancelled','completed') NOT NULL DEFAULT 'pending',
+  `total_price` int(255) NOT NULL,
   `prepared_status` varchar(255) DEFAULT NULL,
   `packaged_status` varchar(255) DEFAULT NULL,
   `delivery_method` enum('delivery','takeaway') NOT NULL,

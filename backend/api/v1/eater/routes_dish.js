@@ -7,6 +7,8 @@ const DEBUG = apiConfig.DEBUG;
 // to be returned in the HTTP requests
 const cookDishAPI = apiConfig.cookDish;
 const cookMapAPI = apiConfig.cookMap;
+const cookProfileAPI = apiConfig.cookProfileAPI;
+const eaterOrderAPI = apiConfig.eaterOrderAPI;
 const successJSON = apiConfig.successJSON;
 const failureJSON = apiConfig.failureJSON;
 const addDate = apiConfig.addDateISO;
@@ -47,12 +49,44 @@ router.get('/dish/around',(req,res,next) => {
 router.post('/dish/checkout',(req,res,next) => {
     if (DEBUG) console.log(req.body);
 
-    let eater_id=req.user, datetime=req.body.scheduled_time, dishes=req.body.dishes;
-    order.checkout(eater_id,datetime,dishes, (err,ordered,message) => {
+    let eater_id=req.user, datetime=req.body.scheduled_time, dishes=req.body.dishes, total=req.body.total;
+    order.checkout(eater_id,datetime,dishes,total, (err,ordered,message) => {
         if (err) return next(err);
         if (!ordered) return res.json(failureJSON(message));
         res.json(successJSON());
     })
+})
+
+router.get('/orders/get',(req,res,next) => {
+    if (DEBUG) console.log(req.query);
+
+    let eater_id=req.user;
+    if (Object.keys(req.query).length == 0) {
+        // get all the orders
+        order.getOrdersAll(eater_id, (err,orderwrappers,message) => {
+            if (err) return next(err);
+            if (!orderwrappers) return res.json(failureJSON(message));
+            let toSend = successJSON();
+            /** @type {apiConfig.EaterOrderAPI[]} */
+            let orders = [];
+            for (const orderwrapper of orderwrappers) {
+                let cookProfile = cookProfileAPI(
+                    orderwrapper.cook.first_name, orderwrapper.cook.last_name, orderwrapper.cook.logo,
+                    orderwrapper.cook.lat, orderwrapper.cook.lon, orderwrapper.cook.opening_time, orderwrapper.cook.closing_time
+                );
+                let curOrder = eaterOrderAPI(
+                    orderwrapper.order.order_id, cookProfile, orderwrapper.order.total_price,
+                    orderwrapper.order.general_status, orderwrapper.order.scheduled_time, orderwrapper.dishes
+                );
+                orders.push(curOrder);
+            }
+            toSend.orders = orders;
+            res.json(toSend);
+        })
+    }
+    else {
+        res.sendStatus(400);
+    }
 })
 
 module.exports = router;
