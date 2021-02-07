@@ -400,8 +400,8 @@ module.exports.cookDishGetAll = function cookDishGetAll(cook_id,done) {
  * returns the cookdish info
  * @param {schemes.cookDishInfoCallback} done
  */
-function cookDishInfo(dish_id,done) {
-    con.query('SELECT dishes.*, generic_dishes.gendish_name FROM dishes, generic_dishes'+
+module.exports.cookDishInfo = function cookDishInfo(dish_id,done) {
+    con.query('SELECT dishes.*, generic_dishes.gendish_name FROM dishes, generic_dishes '+
             'WHERE dishes.gendish_id = generic_dishes.gendish_id AND dishes.dish_id = ?',[dish_id],(err,rows) => {
                 if (err) return done(err);
                 
@@ -514,6 +514,69 @@ module.exports.cartEmpty = function cartEmpty(eater_id, done) {
         if (err) return done(err);
         return done(null, result.affectedRows > 0);
     });
+}
+
+
+/* Orders Functions */
+
+/**
+ * adds a dish to an already created order
+ * @param {schemes.DishTuple[]} dishes 
+ */
+function orderAddDishes(order_id,eater_id,dishes,done) {
+    let dishlist = [];
+    for (const dish of dishes) {
+        dishlist.push([order_id,dish.dish_id,eater_id,dish.quantity]);
+    }
+    con.query('INSERT into eater_dish_order (order_id,dish_id,eater_id,quantity) values ?',[dishlist],(err,result)=>{
+        if (err) return done(err);
+        return done(null,result.insertId);
+    })
+}
+
+/**
+ * returns true if successful
+ * @param {Date} datetime 
+ * @param {schemes.DishTuple[]} dishes 
+ */
+module.exports.orderCreate = function orderCreate(eater_id,cook_id,del_method='takeaway',datetime,dishes,done) {
+    con.query('INSERT into order_status (cook_id,delivery_method,date_scheduled_on) values (?,?,?)',[cook_id,del_method,datetime],(err,result) => {
+        if (err) return done(err);
+        const order_id = result.insertId;
+        // insert the dishes to the order
+        orderAddDishes(order_id,eater_id,dishes, (err,resultId) => {
+            if (err) return done(err);
+            return done(null,true);
+        })
+    });
+}
+
+/**
+ * returns a list of orders for a given eater
+ * @param {schemes.orderCallback} done 
+ */
+module.exports.orderGet_Eater = function orderGet_Eater(eater_id,status=null,done) {
+    con.query('SELECT eater_dish_order.*,order_status.* FROM eater_dish_order,order_status '+
+                'WHERE eater_dish_order.order_id=order_status.order_id AND eater_dish_order.eater_id = ? '+
+                    'AND (order_status.general_status = ? OR ? IS NULL)',[eater_id,status,status], (err,rows) => {
+                        if (err) return done(err);
+                        if (rows.length == 0) return done(null,false);
+                        let orderByCook = {};
+                        for (const row of rows) {
+                            let cook_id=row.cook_id;
+                            /** @type {schemes.DishTuple} */
+                            let dish = {dish_id: row.dish_id, quantity: row.quantity};
+                            if (cook_id in orderByCook)
+                                orderByCook[cook_id].dishes.push(dish);
+                            else {
+                                orderByCook[cook_id] = schemes.order(
+                                    row.order_id, row.eater_id, cook_id, row.general_status, row.prepared_status, row.packaged_status,
+                                    row.message,row.date_scheduled_on,[dish]);
+                            }
+                        }
+                        let orderList = Object.values(orderByCook);
+                        return done(null,orderList);
+                    })
 }
 
 module.exports.uploadCookDishPic = cloudStorage.uploadCookDishPic;

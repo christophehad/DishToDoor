@@ -14,6 +14,7 @@ const addDate = apiConfig.addDateISO;
 const router = express.Router();
 
 const map = require('./dish/map');
+const order = require('./dish/order');
 
 router.get('/dish/around',(req,res,next) => {
     if (DEBUG) console.log(req.query);
@@ -40,6 +41,17 @@ router.get('/dish/around',(req,res,next) => {
         }
         toSend.cooks = cooks_with_dishesAPI;
         res.json(toSend);
+    })
+});
+
+router.post('/dish/checkout',(req,res,next) => {
+    if (DEBUG) console.log(req.body);
+
+    let eater_id=req.user, datetime=req.body.scheduled_time, dishes=req.body.dishes;
+    order.checkout(eater_id,datetime,dishes, (err,ordered,message) => {
+        if (err) return next(err);
+        if (!ordered) return res.json(failureJSON(message));
+        res.json(successJSON());
     })
 })
 

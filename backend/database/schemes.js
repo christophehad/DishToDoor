@@ -98,7 +98,7 @@ exports.cookMap = function(cook_id,f_name,l_name,logo,lat,lon,distance,open,clos
 
 /**
  * Eater Cart Entry
- * @typedef EaterCartEntry
+ * @typedef {Object} EaterCartEntry
  * @property {CookDish} cookdish
  * @property {Number} quantity
  * @property {Boolean} delivery
@@ -121,3 +121,51 @@ exports.eaterCartEntry = function(cookdish,quantity,delivery) {
         cookdish: cookdish, quantity:quantity, delivery:delivery
     }
 }
+
+const OrderStatus = {
+    pending: 'pending',
+    approved: 'approved',
+    rejected: 'rejected',
+    cancelled: 'cancelled',
+    completed: 'completed'
+}
+exports.OrderStatus = Object.freeze(OrderStatus);
+
+/**
+ * Dish Tuple
+ * @typedef {Object} DishTuple
+ * @property {Number} dish_id
+ * @property {Number} quantity
+*/
+
+/**
+ * Order
+ * @typedef {Object} Order
+ * @property {Number} order_id
+ * @property {Number} eater_id
+ * @property {Number} cook_id
+ * @property {String} general_status
+ * @property {String} prepared_status
+ * @property {String} packaged_status
+ * @property {String} message
+ * @property {Date} scheduled_time
+ * @property {DishTuple[]} dishes
+*/
+
+/**
+ * @param {DishTuple[]} dishes
+ * @returns {Order}
+ */
+exports.order = function(order_id,eater_id,cook_id,general_status,prepared_status,packaged_status,message,time,dishes) {
+    return {
+        order_id:order_id, eater_id:eater_id, cook_id:cook_id, general_status:general_status, prepared_status:prepared_status,
+        packaged_status:packaged_status, message:message, scheduled_time:time, dishes:dishes
+    }
+}
+
+/**
+  * Order Callback
+  * @callback orderCallback
+  * @param {String} err
+  * @param {Order[]} orders
+*/
