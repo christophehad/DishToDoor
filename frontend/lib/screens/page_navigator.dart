@@ -1,6 +1,5 @@
 import 'package:dishtodoor/screens/add_generic_dish.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 //import 'globals.dart' as globals;
 import 'placeholder_widget.dart';
 

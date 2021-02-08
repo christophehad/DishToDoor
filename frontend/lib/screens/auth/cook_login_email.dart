@@ -1,17 +1,10 @@
-import 'package:intl_phone_field/intl_phone_field.dart';
 import 'dart:convert';
-import 'package:dishtodoor/app_properties.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'globals.dart' as globals;
-import 'register_page.dart';
 import 'package:dishtodoor/screens/Map/main_map.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:dishtodoor/screens/Map/cookClass.dart';
-import 'package:flutter/material.dart';
 import 'package:dishtodoor/config/config.dart';
 import 'package:location/location.dart';
 

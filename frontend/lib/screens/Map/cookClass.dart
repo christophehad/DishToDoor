@@ -18,6 +18,11 @@ class CookList {
   }
 }
 
+// DateTime dateFormatting(String s) {
+//   final formatter = DateFormat.Hms();
+//   return formatter.parse(s);
+// }
+
 //definition of cooks and construction from Json
 class CookMap {
   final String firstName;
@@ -26,6 +31,8 @@ class CookMap {
   final double lat;
   final double lon;
   final double distance;
+  final DateTime opening;
+  final DateTime closing;
   final List<CookDish> dishes;
 
   LatLng getLocation() {
@@ -39,17 +46,19 @@ class CookMap {
       this.lat,
       this.lon,
       this.distance,
-      this.dishes});
+      this.dishes,
+      this.opening,
+      this.closing});
 
   factory CookMap.fromJson(Map<String, dynamic> json) {
     var list = json['dishes'] as List;
     String defaultLogo = json['logo'];
     print(list.runtimeType);
     List<CookDish> dishesList = list.map((i) => CookDish.fromJson(i)).toList();
-
+    //TODO add default logo to database
     if (defaultLogo == null) {
       defaultLogo =
-          "https://www.google.com/url?sa=i&url=https%3A%2F%2Funsplash.com%2Fs%2Fphotos%2Fperson&psig=AOvVaw1tXah7K-KEoMCGK6zNu1ic&ust=1612200337625000&source=images&cd=vfe&ved=0CAIQjRxqFwoTCKjsqrXYxu4CFQAAAAAdAAAAABAD";
+          "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
     } else {
       defaultLogo = json['logo'];
     }
@@ -61,6 +70,8 @@ class CookMap {
       lat: json['lat'],
       lon: json['lon'],
       distance: json['distance'],
+      opening: DateTime.parse(json['opening_time']),
+      closing: DateTime.parse(json['closing_time']),
       dishes: dishesList,
     );
   }

@@ -25,7 +25,7 @@ class CartTuple {
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'dish_id': dish.dishID,
-        'count': count,
+        'quantity': count,
       };
 }
 
@@ -38,6 +38,7 @@ class CartItems {
   Stream get getStream => cartStreamController.stream;
 
   List<CartTuple> cartItems = [];
+  DateTime pickupDate;
 
   void addToCart(CartTuple item) {
     var contain =
@@ -71,6 +72,7 @@ class CartItems {
 
   void emptyCart() {
     cartItems.clear();
+    pickupDate = DateTime.now();
   }
 
   int totalCost() {
@@ -88,8 +90,9 @@ class CartItems {
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'Cart_items': cartItems,
-        'Total': this.totalCost(),
+        'dishes': cartItems,
+        'total': this.totalCost(),
+        'scheduled_time': pickupDate.toString(),
       };
 }
 

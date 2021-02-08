@@ -7,8 +7,18 @@ import 'size_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/screens/auth/globals.dart' as globals;
 import 'package:dishtodoor/config/config.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:dishtodoor/screens/splash.dart';
 
-class Checkout extends StatelessWidget {
+class Checkout extends StatefulWidget {
+  Checkout({Key key}) : super(key: key);
+  @override
+  _CheckoutState createState() => _CheckoutState();
+}
+
+class _CheckoutState extends State<Checkout> {
+  DateTime pickupDate;
+
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -26,7 +36,7 @@ class Checkout extends StatelessWidget {
                   /// doesn't occupy the whole screen and leaves
                   /// room for the the RaisedButton
                   Expanded(child: checkoutListBuilder(snapshot)),
-                  checkoutTab(context, cartList),
+                  checkoutTab(context, cartList, pickupDate),
                 ],
               );
             },
@@ -49,7 +59,8 @@ class Checkout extends StatelessWidget {
 }
 
 //bottom checkout with total
-Widget checkoutTab(BuildContext context, List<CartTuple> cartList) {
+Widget checkoutTab(
+    BuildContext context, List<CartTuple> cartList, DateTime pickupDate) {
   return Container(
     padding: EdgeInsets.symmetric(
       vertical: getProportionateScreenWidth(15),
@@ -91,6 +102,28 @@ Widget checkoutTab(BuildContext context, List<CartTuple> cartList) {
                 child: SvgPicture.asset("assets/receipt.svg"),
               ),
               Spacer(),
+              FlatButton(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                color: Colors.blueAccent,
+                onPressed: () {
+                  DatePicker.showDateTimePicker(context, showTitleActions: true,
+                      onChanged: (date) {
+                    print('change $date in time zone ' +
+                        date.timeZoneOffset.inHours.toString());
+                  }, onConfirm: (date) {
+                    print('confirm $date');
+                    pickupDate = date;
+                  }, currentTime: DateTime.now());
+                },
+                child: Text(
+                  "Pickup time",
+                  style: TextStyle(
+                    fontSize: getProportionateScreenWidth(18),
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             ],
           ),
           SizedBox(height: getProportionateScreenHeight(20)),
@@ -119,7 +152,7 @@ Widget checkoutTab(BuildContext context, List<CartTuple> cartList) {
                         borderRadius: BorderRadius.circular(20)),
                     color: Colors.blueAccent,
                     onPressed: () {
-                      checkoutProcedure(context, cartList);
+                      checkoutProcedure(context, cartList, pickupDate);
                     },
                     child: Text(
                       "Checkout",
@@ -141,13 +174,16 @@ Widget checkoutTab(BuildContext context, List<CartTuple> cartList) {
 
 //TODO: fix the API URL + alert boxes and errors
 Future<void> checkoutProcedure(
-    BuildContext context, List<CartTuple> cartList) async {
+    BuildContext context, List<CartTuple> cartList, DateTime pickupDate) async {
   CartItems temp = CartItems();
   temp.cartItems = cartList;
+  temp.pickupDate = pickupDate;
+
   final String requestBody = json.encoder.convert(temp);
   print(requestBody);
+  print(globals.token);
   final http.Response response = await http.post(
-    baseURL + '/eater/login-email',
+    baseURL + '/eater/api/dish/checkout',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
       'Authorization': "Bearer " + globals.token,
@@ -159,27 +195,68 @@ Future<void> checkoutProcedure(
     dynamic decoded = jsonDecode(response.body);
     print("Received: " + decoded.toString());
     bool success = decoded['success'];
-    globals.token = decoded['token'];
     if (success) {
       _registerSuccessfulAlert(context);
       bloc.emptyCart(); //empty the cart after success
       print("Successful!");
     } else {
+      _registerErrorAlert(decoded['error'], context);
       print("Error: " + decoded['error']);
     }
   } else {
+    print(response.statusCode);
     print("An unkown error occured");
   }
 }
 
 //TODO refactor alerts into one .dart file in config
 //error Alert
+//Error Alert
+Future<void> _registerErrorAlert(String e, BuildContext context) async {
+  String _errorDisp = "";
+  if (e == "missing_fields") {
+    _errorDisp = "Please fill out all the fields.";
+  } else if (e == "total_price_wrong") {
+    _errorDisp = "You've encountered a very rare bug!";
+  } else {
+    _errorDisp = "An unkown error occured, please try again later.";
+  }
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false, // user must tap button!
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Error'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text(_errorDisp),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.done_rounded),
+            onPressed: () {
+              if (e == "missing_fields") {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => SplashScreen()));
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
 //Alert Dialaog
 Future<void> _registerSuccessfulAlert(BuildContext context) async {
   return showDialog<void>(
     context: context,
-    barrierDismissible: false, // user must tap button!
+    barrierDismissible: true, // user must tap button!
     builder: (BuildContext context) {
       return AlertDialog(
         title: Text('Success!'),

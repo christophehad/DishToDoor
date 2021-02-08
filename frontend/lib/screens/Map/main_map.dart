@@ -381,17 +381,6 @@ class _MainMapState extends State<MainMap> {
               },
             ),
           ),
-          Positioned(
-            top: 35,
-            left: 5,
-            child: IconButton(
-              color: Colors.white,
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          )
         ],
       ),
     );
