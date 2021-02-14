@@ -7,6 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:dishtodoor/screens/Map/cookClass.dart';
 import 'package:dishtodoor/config/config.dart';
 import 'package:location/location.dart';
+import 'package:dishtodoor/screens/search_gendish.dart';
 
 class CookLoginEmail extends StatefulWidget {
   @override
@@ -103,12 +104,14 @@ class _CookLoginEmail extends State<CookLoginEmail> {
               //_registerSuccessfulAlert();
               print("Successful!");
               print("Your token is" + globals.token);
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => GenDishSearchBar()));
 
-              locsharing()
-                  .then((value) => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => MainMap(
-                            cookList: cooks,
-                          ))));
+              // locsharing()
+              //     .then((value) => Navigator.of(context).push(MaterialPageRoute(
+              //         builder: (_) => MainMap(
+              //               cookList: cooks,
+              //             ))));
             } else {
               print("Error: " + decoded['error']);
             }

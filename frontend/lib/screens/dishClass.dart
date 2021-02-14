@@ -1,29 +1,29 @@
-class DishList {
-  final List<GenDish> dishList;
+class GenDishList {
+  final List<GenDish> genDishList;
 
-  DishList({
-    this.dishList,
+  GenDishList({
+    this.genDishList,
   });
 
-  factory DishList.fromJson(List<dynamic> json) {
-    List<GenDish> dishes = new List<GenDish>();
-    dishes = json.map<GenDish>((i) => GenDish.fromJson(i)).toList();
+  factory GenDishList.fromJson(List<dynamic> json) {
+    List<GenDish> genDishes = new List<GenDish>();
+    genDishes = json.map<GenDish>((i) => GenDish.fromJson(i)).toList();
 
-    return new DishList(dishList: dishes);
+    return new GenDishList(genDishList: genDishes);
   }
 }
 
 class GenDish {
-  final int genDishID;
-  final String genDishName;
+  final int id;
+  final String name;
   final String category;
 
-  GenDish({this.genDishID, this.genDishName, this.category});
+  GenDish({this.id, this.name, this.category});
 
   factory GenDish.fromJson(Map<String, dynamic> json) {
     return GenDish(
-      genDishID: json['id'],
-      genDishName: json['name'],
+      id: json['id'],
+      name: json['name'],
       category: json['category'],
     );
   }

@@ -1,100 +1,94 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:maps_launcher/maps_launcher.dart';
-import 'package:dishtodoor/screens/Map/cookClass.dart';
-import 'package:dishtodoor/screens/Eater/Checkout_Processs/bloc/cart_items.dart';
-import 'package:dishtodoor/screens/Eater/Checkout_Processs/pages/checkout_screen.dart';
+import 'package:http/http.dart' as http;
+import 'package:dishtodoor/screens/auth/globals.dart' as globals;
+import 'package:dishtodoor/config/config.dart';
 import 'package:dishtodoor/screens/dishClass.dart';
 
-//void main() => runApp(MyApp());
-
-//class MyApp extends StatelessWidget {
-// This widget is the root of your application.
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       debugShowCheckedModeBanner: false,
-//       title: 'Flutter Demo',
-//       theme: ThemeData(
-//         primarySwatch: Colors.blue,
-//       ),
-//       initialRoute: "/",
-//       routes: {
-//         "/": (context) => CookPageEater(
-//               cook: CookMap(
-//                   firstName: "fadi",
-//                   lastName: "z",
-//                   distance: 20,
-//                   lat: 33.7,
-//                   lon: 33.05,
-//                   logo:
-//                       "https://www.lark.com/wp-content/uploads/2020/01/Blog_thumb-46.jpg",
-//                   dishes: [
-//                     CookDish(
-//                         category: "Salad",
-//                         description: "Delicious salad",
-//                         dishID: 4,
-//                         dishPic:
-//                             "https://christophehad.blob.core.windows.net/dishtodoor/cookpic2.jpeg",
-//                         gendishID: 1,
-//                         name: "TestSalad",
-//                         price: 10000)
-//                   ]),
-//             ),
-//       },
-//     );
-//   }
-// }
-
-class GenDishList extends StatefulWidget {
-  final GenDish dish;
-  GenDishList({Key key, @required this.dish}) : super(key: key);
+class GenDishSearchBar extends StatefulWidget {
   @override
-  _GenDishListState createState() => _GenDishListState();
+  _GenDishSearchBar createState() => _GenDishSearchBar();
 }
 
-class _GenDishListState extends State<GenDishList> {
-  // Address _cookaddress = Address(coordinates: Coordinates(0, 0));
+class _GenDishSearchBar extends State<GenDishSearchBar> {
+  String query;
+  GenDishList genDishes;
 
-  @override
-  void initState() {
-    super.initState();
+  Future getGenDish() async {
+    print("Trying comm");
+    final http.Response response = await http.get(
+      baseURL + '/cook/api/gen-dish/search?query=' + query,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': "Bearer " + globals.token
+      },
+    );
+    if (response.statusCode == 200) {
+      // If the server did return a 200 CREATED response,
+      // then parse the JSON
+      dynamic decoded = jsonDecode(response.body);
+      print("Received: " + decoded.toString());
+      bool success = decoded['success'];
+      print("success: " + success.toString());
+      print(decoded['gen_dishes']);
+      if (success) {
+        setState(() {
+          genDishes = GenDishList.fromJson(decoded['gen_dishes']);
+        });
+
+        print(genDishes.genDishList);
+        //_registerSuccessfulAlert();
+        print("Successful!");
+        //showList2();
+      } else {
+        //handle errors
+        print("Error: " + decoded['error']);
+        //_registerErrorAlert(decoded['error']);
+      }
+    } else {
+      // If the server did not return a 201 CREATED response,
+      // then throw an exception.
+      print("An unkown error occured");
+    }
+  }
+
+  Widget searchField() {
+    //search input field
+    return Container(
+        child: TextField(
+      autofocus: true,
+      style: TextStyle(color: Colors.white, fontSize: 18),
+      decoration: InputDecoration(
+        hintStyle: TextStyle(color: Colors.white, fontSize: 18),
+        hintText: "Search Dishes",
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.white, width: 2),
+        ), //under line border, set OutlineInputBorder() for all side border
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.white, width: 2),
+        ), // focused border color
+      ), //decoration for search input field
+      onChanged: (value) {
+        query = value; //update the value of query
+        getGenDish();
+        //start to get suggestion
+      },
+    ));
   }
 
   //List creation -- cooks cards
-  Widget dishesCards(GenDish gendish) {
+  Widget genDishCards(GenDish genDish) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Card(
           child: Column(
             children: [
-              // ListTile(
-              //   leading: CircleAvatar(
-              //     backgroundImage: NetworkImage(dish.dishPic),
-              //   ),
-              //   trailing: Text(dish.price.toString() + "LBP"),
-              //   title: Text(dish.name + " | " + dish.category),
-              //   subtitle: Text(dish.description),
-              // ),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.end,
-              //   children: [
-              //     TextButton(
-              //       child: const Text("Add to cart"),
-              //       onPressed: () {
-              //         bloc.addToCart(CartTuple(dish: dish, count: 1));
-              //       },
-              //     ),
-              //     TextButton(
-              //       child: const Text("Buy now"),
-              //       onPressed: () {
-              //         bloc.addToCart(CartTuple(dish: dish, count: 1));
-              //         Navigator.of(context)
-              //             .push(MaterialPageRoute(builder: (_) => Checkout()));
-              //       },
-              //     ),
-              //   ],
-              // ),
+              ListTile(
+                //trailing: Text(dish.price.toString() + "LBP"),
+                title: Text(genDish.name),
+                //subtitle: Text(dish.description),
+              ),
             ],
           ),
         ),
@@ -102,212 +96,39 @@ class _GenDishListState extends State<GenDishList> {
     );
   }
 
-//   Widget picture(context) {
-//     return Positioned(
-//       top: 0.0,
-//       width: MediaQuery.of(context).size.width,
-//       height: MediaQuery.of(context).size.height / 3,
-//       child: Container(
-//         decoration: BoxDecoration(
-//           image: DecorationImage(
-//             fit: BoxFit.fill,
-//             image: NetworkImage(widget.cook.logo),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-
-// //check time range
-//   bool isCurrentDateInRange(DateTime startDate, DateTime endDate) {
-//     final currentDate = DateTime.now();
-//     print(currentDate);
-//     return currentDate.isAfter(startDate) && currentDate.isBefore(endDate);
-//   }
-
-//   TextSpan _openingCheck(startDate, endDate) {
-//     if (isCurrentDateInRange(startDate, endDate)) {
-//       return TextSpan(
-//         text: "Open now - ",
-//         style: TextStyle(color: Colors.blueAccent),
-//       );
-//     } else {
-//       return TextSpan(
-//         text: "Closed - ",
-//         style: TextStyle(color: Colors.redAccent),
-//       );
-//     }
-//   }
-
-// //TODO need opening hours
-//   Widget _openNow(BuildContext context) {
-//     return RichText(
-//         text: TextSpan(
-//             // set the default style for the children TextSpans
-//             style: Theme.of(context).textTheme.bodyText2.copyWith(fontSize: 13),
-//             children: [
-//           // TextSpan(
-//           //   text: "Opening time  ",
-//           //   style: TextStyle(color: Colors.blueAccent),
-//           // ),
-
-//           _openingCheck(widget.cook.opening, widget.cook.closing),
-//           TextSpan(
-//               text: widget.cook.opening.toLocal().hour.toString() +
-//                   ':' +
-//                   widget.cook.opening.toLocal().minute.toString() +
-//                   ' - ',
-//               style:
-//                   TextStyle(fontWeight: FontWeight.w500, color: Colors.grey)),
-//           TextSpan(
-//               text: widget.cook.closing.toLocal().hour.toString() +
-//                   ':' +
-//                   widget.cook.closing.toLocal().minute.toString(),
-//               style:
-//                   TextStyle(fontWeight: FontWeight.w500, color: Colors.grey)),
-//         ]));
-//   }
-
-//   Widget _getDirections() {
-//     return Row(
-//       mainAxisAlignment: MainAxisAlignment.start,
-//       children: <Widget>[
-//         Text(
-//           'Get Directions',
-//           style: TextStyle(
-//               fontSize: 13.0,
-//               fontStyle: FontStyle.italic,
-//               color: Colors.blueAccent),
-//         ),
-//         IconButton(
-//           icon: Icon(Icons.pin_drop),
-//           onPressed: () {
-//             MapsLauncher.launchCoordinates(widget.cook.lat, widget.cook.lon);
-//           },
-//           color: Colors.blueAccent,
-//         ),
-//       ],
-//     );
-//   }
-
-  Widget scrollableList(context) {
-    return Positioned(
-      left: 0.0,
-      right: 0.0,
-      bottom: 0.0,
-      child: Container(
-          height: 2.1 * MediaQuery.of(context).size.height / 3,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(18.0),
-              topRight: Radius.circular(18.0),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black,
-                blurRadius: 16.0,
-                spreadRadius: 0.5,
-                offset: Offset(0.7, 0.7),
-              ),
-            ],
-          ),
-          child: ListView(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
-            children: [
-              SizedBox(
-                height: 6.0,
-              ),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  widget.dish.genDishName + "'s Kitchen",
-                  style: TextStyle(fontSize: 20.0),
-                ),
-              ),
-              // Align(
-              //   alignment: Alignment.topLeft,
-              //   child: Text(
-              //     "Specialty?",
-              //     style: TextStyle(
-              //         fontWeight: FontWeight.w500,
-              //         fontSize: 15,
-              //         color: Colors.grey),
-              //   ),
-              // ),
-              // Align(
-              //   alignment: Alignment.topLeft,
-              //   child: Text(
-              //     widget.cook.distance.toStringAsFixed(2) + "Km away",
-              //     style: TextStyle(
-              //         fontWeight: FontWeight.w300,
-              //         fontSize: 15,
-              //         color: Colors.grey),
-              //   ),
-              // ),
-              // Align(
-              //   alignment: Alignment.topLeft,
-              //   child: _openNow(context),
-              // ),
-              SizedBox(
-                height: 8.0,
-              ),
-              // Align(
-              //   alignment: Alignment.topLeft,
-              //   child: _getDirections(),
-              // ),
-              SizedBox(
-                height: 8.0,
-              ),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Column(
-                    children: widget.dish.map((p) {
-                  return dishesCards(p);
-                }).toList()),
-              ),
-            ],
-          )),
-    );
-  }
-
-  Widget body() {
-    return Scaffold(
-      body: Stack(
-        children: [
-          //picture(context),
-          scrollableList(context),
-          Positioned(
-            top: 45,
-            left: 5,
-            child: IconButton(
-              color: Colors.white,
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ),
-          Positioned(
-            top: 45,
-            right: 15,
-            child: IconButton(
-              color: Colors.white,
-              icon: Icon(Icons.shopping_cart),
-              onPressed: () {
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => Checkout()));
-              },
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return body();
+    return Scaffold(
+        backgroundColor: Colors.blue[100],
+        body: Stack(children: <Widget>[
+          Padding(
+              padding: EdgeInsets.only(left: 28.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  SizedBox(height: 90),
+                  searchField(),
+                  ListView(
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      children: [
+                        Column(
+                            children: genDishes.genDishList.map((p) {
+                          return genDishCards(p);
+                        }).toList()),
+                      ])
+                ],
+              )),
+          Positioned(
+              top: 35,
+              left: 5,
+              child: IconButton(
+                color: Colors.white,
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ))
+        ]));
   }
 }
