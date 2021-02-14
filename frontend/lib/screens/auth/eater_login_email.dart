@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'globals.dart' as globals;
 
+import 'package:dishtodoor/screens/page_navigator.dart';
 import 'package:dishtodoor/config/config.dart';
 import 'package:location/location.dart';
 
@@ -57,7 +58,11 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
       print("success: " + success.toString());
       print(decoded['cooks']);
       if (success) {
-        cooks = CookList.fromJson(decoded['cooks']);
+        print(globals.token);
+        setState(() {
+          cooks = CookList.fromJson(decoded['cooks']);
+        });
+
         print(cooks.cooksList);
         //_registerSuccessfulAlert();
         print("Successful!");
@@ -108,7 +113,7 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
 
               locsharing()
                   .then((value) => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => MainMap(
+                      builder: (_) => PageNavigator(
                             cookList: cooks,
                           ))));
             } else {

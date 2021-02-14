@@ -2,23 +2,36 @@ import 'package:dishtodoor/screens/add_generic_dish.dart';
 import 'package:flutter/material.dart';
 //import 'globals.dart' as globals;
 import 'placeholder_widget.dart';
+import 'Map/main_map.dart';
+import 'package:dishtodoor/screens/Map/cookClass.dart';
+import 'Eater/Order_Tracking/orderTracking2.dart';
 
 class PageNavigator extends StatefulWidget {
+  final CookList cookList;
+  PageNavigator({Key key, this.cookList}) : super(key: key);
   @override
   _PageNavigator createState() => _PageNavigator();
 }
 
 class _PageNavigator extends State<PageNavigator> {
+  CookList cookListLocal;
   TextEditingController email = TextEditingController(text: "");
   TextEditingController password = TextEditingController(text: "");
   int _currentIndex = 0; //track the index of our currently selected tab
-  final List<Widget> _children = [
-    AddGenericDish(),
-    PlaceholderWidget(Colors.deepOrange),
-    PlaceholderWidget(Colors.white),
-    PlaceholderWidget(Colors.green),
-    PlaceholderWidget(Colors.blue)
-  ]; //list of widgets that we want to render based on the currently selected tab
+  //list of widgets that we want to render based on the currently selected tab
+  List<Widget> _children = [];
+
+  @override
+  void initState() {
+    _children = [
+      AddGenericDish(),
+      MainMap(cookList: widget.cookList),
+      Order(),
+      PlaceholderWidget(Colors.green),
+      PlaceholderWidget(Colors.blue)
+    ];
+    super.initState();
+  }
 
   //takes in the tapped tab’s index and calls setState on our state class.
   //This will trigger the build method to be run again with the state that we pass in to it

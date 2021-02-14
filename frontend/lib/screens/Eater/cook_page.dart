@@ -81,13 +81,21 @@ class _CookPageEaterState extends State<CookPageEater> {
                   TextButton(
                     child: const Text("Add to cart"),
                     onPressed: () {
-                      bloc.addToCart(CartTuple(dish: dish, count: 1));
+                      bloc.addToCart(CartTuple(
+                          dish: dish,
+                          count: 1,
+                          cookFname: widget.cook.firstName,
+                          cookLname: widget.cook.lastName));
                     },
                   ),
                   TextButton(
                     child: const Text("Buy now"),
                     onPressed: () {
-                      bloc.addToCart(CartTuple(dish: dish, count: 1));
+                      bloc.addToCart(CartTuple(
+                          dish: dish,
+                          count: 1,
+                          cookFname: widget.cook.firstName,
+                          cookLname: widget.cook.lastName));
                       Navigator.of(context)
                           .push(MaterialPageRoute(builder: (_) => Checkout()));
                     },

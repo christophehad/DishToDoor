@@ -2,11 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'globals.dart' as globals;
-import 'package:dishtodoor/screens/Map/main_map.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:dishtodoor/screens/Map/cookClass.dart';
 import 'package:dishtodoor/config/config.dart';
-import 'package:location/location.dart';
 
 class CookLoginEmail extends StatefulWidget {
   @override
@@ -19,62 +15,10 @@ class _CookLoginEmail extends State<CookLoginEmail> {
   TextEditingController password = TextEditingController(text: "");
 
 //Getting location before hand
-//TODO move to page before map later
-// get Location of user
-
-  LatLng _finaluserlocation;
-  CookList cooks;
-  Location _location = Location();
-
-  Future<void> getLoc() async {
-    var _loc = await _location.getLocation();
-    setState(() {
-      _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
-    });
-  }
-
-  Future locsharing() async {
-    print("trying comm");
-    final http.Response response = await http.get(
-      baseURL +
-          '/eater/api/dish/around?lat=' +
-          _finaluserlocation.latitude.toString() +
-          '&lon=' +
-          _finaluserlocation.longitude.toString(),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': "Bearer " + globals.token
-      },
-    );
-    if (response.statusCode == 200) {
-      // If the server did return a 200 CREATED response,
-      // then parse the JSON and send user to login screen
-      dynamic decoded = jsonDecode(response.body);
-      print("Received: " + decoded.toString());
-      bool success = decoded['success'];
-      print("success: " + success.toString());
-      print(decoded['cooks']);
-      if (success) {
-        cooks = CookList.fromJson(decoded['cooks']);
-        print(cooks.cooksList);
-        //_registerSuccessfulAlert();
-        print("Successful!");
-      } else {
-        //handle errors
-        print("Error: " + decoded['error']);
-        //_registerErrorAlert(decoded['error']);
-      }
-    } else {
-      // If the server did not return a 201 CREATED response,
-      // then throw an exception.
-      print("An unkown error occured");
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    getLoc();
   }
 
   @override
@@ -103,12 +47,6 @@ class _CookLoginEmail extends State<CookLoginEmail> {
               //_registerSuccessfulAlert();
               print("Successful!");
               print("Your token is" + globals.token);
-
-              locsharing()
-                  .then((value) => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => MainMap(
-                            cookList: cooks,
-                          ))));
             } else {
               print("Error: " + decoded['error']);
             }
