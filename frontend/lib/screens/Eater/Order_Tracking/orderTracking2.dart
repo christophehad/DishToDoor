@@ -32,7 +32,7 @@ class Order extends StatefulWidget {
 }
 
 class OrderState extends State<Order> {
-  EaterOrderList orderList;
+  EaterOrderList orderList = EaterOrderList();
   ScrollController _scrollController;
 
   @override
@@ -130,11 +130,15 @@ class OrderState extends State<Order> {
                     ],
                   ),
                   Expanded(
-                    child: CustomScrollView(
-                      slivers: orderList.eaterOrderList.map((p) {
-                        return deliveryTimeline(p);
-                      }).toList(),
-                    ),
+                    child: orderList.eaterOrderList != null
+                        ? CustomScrollView(
+                            slivers: orderList.eaterOrderList.map((p) {
+                            return deliveryTimeline(p);
+                          }).toList())
+                        : Text(
+                            "It looks like you don't have any orders yet!",
+                            style: TextStyle(fontSize: 20),
+                          ),
                   )
                 ],
               ),

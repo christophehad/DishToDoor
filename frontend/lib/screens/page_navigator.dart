@@ -21,12 +21,10 @@ class PageNavigator extends StatefulWidget {
 
 class _PageNavigator extends State<PageNavigator> {
   CookList cookListLocal;
-  TextEditingController email = TextEditingController(text: "");
-  TextEditingController password = TextEditingController(text: "");
   int _currentIndex = 0; //track the index of our currently selected tab
   //list of widgets that we want to render based on the currently selected tab
   List<Widget> _children = [];
-  EaterOrderList orderList;
+  EaterOrderList orderList = EaterOrderList();
 
   //for order fetching
   Future<void> orderFetching() async {

@@ -57,7 +57,6 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
       print("success: " + success.toString());
       print(decoded['cooks']);
       if (success) {
-        print(globals.token);
         setState(() {
           cooks = CookList.fromJson(decoded['cooks']);
         });
