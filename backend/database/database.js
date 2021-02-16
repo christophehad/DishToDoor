@@ -350,6 +350,23 @@ module.exports.genDishSearch = function genDishSearch(query,done) {
     })
 }
 
+/**
+ * get all the generic dishes
+ * @param {schemes.genDishSearchCallback} done 
+ */
+module.exports.genDishGetAll = function genDishGetAll(done) {
+    con.query('SELECT * FROM generic_dishes ORDER BY gendish_name',undefined, (err,rows) => {
+        if (err) return done(err);
+
+        /** @type {schemes.GenDish[]} */
+        let found_gen = [];
+        for (const row of rows) {
+            found_gen.push(schemes.genDish(row.gendish_id,row.gendish_name,row.category));
+        }
+        return done(null,found_gen);
+    })
+}
+
 
 /* Cook Dishes Functions */
 

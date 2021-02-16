@@ -57,6 +57,28 @@ router.get('/gen-dish/search', (req,res,next) => {
     })
 })
 
+router.get('/gen-dish/get', (req,res,next) => {
+    if (DEBUG) console.log(req.query);
+
+    if (Object.keys(req.query).length == 0) {
+        genDish.getAll((err, gendishes, message) => {
+            if (err) return next(err);
+
+            let toSend = successJSON();
+            toSend.gen_dishes = [];
+            for (const gendish of gendishes) {
+                toSend.gen_dishes.push(
+                    genDishAPI(gendish.id, gendish.name, gendish.category)
+                );
+            }
+            res.json(toSend);
+        })
+    }
+    else {
+        res.status(400);
+    }
+})
+
 // get the gendish categories
 router.get('/gen-dish/categories', (req,res,next) => {
     let genCategories = genDish.getCategories();
