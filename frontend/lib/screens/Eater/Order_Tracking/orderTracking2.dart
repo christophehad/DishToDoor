@@ -4,7 +4,6 @@ import 'package:timeline_tile/timeline_tile.dart';
 
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/screens/auth/globals.dart' as globals;
 import 'package:dishtodoor/config/config.dart';
@@ -26,6 +25,8 @@ class OrderApp extends StatelessWidget {
 const deliverySteps = ['Pending', 'Cooking', 'Ready'];
 
 class Order extends StatefulWidget {
+  final EaterOrderList orderList;
+  Order({Key key, this.orderList}) : super(key: key);
   @override
   OrderState createState() => OrderState();
 }
@@ -36,8 +37,9 @@ class OrderState extends State<Order> {
 
   @override
   void initState() {
+    orderList = widget.orderList;
     _scrollController = ScrollController();
-
+    orderFetching();
     super.initState();
   }
 
@@ -48,9 +50,8 @@ class OrderState extends State<Order> {
       baseURL + '/eater/api/orders/get',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        //TODO replace token
-        'Authorization': "Bearer " +
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiaWF0IjoxNjEzMDQwOTgyfQ.5Pp6xPvfmqAeL09oWqX0sJugy3ryxsXdVfNSrHdv2TY",
+        'Authorization': "Bearer " + globals.token,
+        //"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiaWF0IjoxNjEzMDQwOTgyfQ.5Pp6xPvfmqAeL09oWqX0sJugy3ryxsXdVfNSrHdv2TY",
       },
     );
 
@@ -190,92 +191,99 @@ class OrderState extends State<Order> {
           Card(
             child: Column(
               children: [
-                ListTile(
-                  dense: true,
-                  title: Text(
-                    "Order " + order.orderId.toString(),
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-                  ),
-                  subtitle:
-                      Text(order.cook.firstName + " " + order.cook.lastName),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Column(
                   children: [
-                    TextButton(
-                      child: Text("Call " + order.cook.firstName),
-                      onPressed: () {
-                        //call cook
-                      },
+                    ListTile(
+                      dense: true,
+                      title: Text(
+                        "Order " + order.orderId.toString(),
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(
+                          order.cook.firstName + " " + order.cook.lastName),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          child: Text("Call " + order.cook.firstName),
+                          onPressed: () {
+                            //call cook
+                          },
+                        ),
+                      ],
                     ),
                   ],
+                ),
+                Container(
+                  margin: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(maxHeight: 180),
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    controller: _scrollController,
+                    itemCount: deliverySteps.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final step = deliverySteps[index];
+                      var indicatorSize = 30.0;
+                      var beforeLineStyle = LineStyle(
+                        color: Colors.green.withOpacity(0.8),
+                      );
+
+                      _DeliveryStatus status;
+                      LineStyle afterLineStyle;
+                      if (index < order.completedStep) {
+                        status = _DeliveryStatus.done;
+                      } else if (index > order.completedStep) {
+                        status = _DeliveryStatus.todo;
+                        indicatorSize = 20;
+                        beforeLineStyle =
+                            const LineStyle(color: Color(0xFF747888));
+                      } else if (order.generalStatus == "rejected" ||
+                          order.generalStatus == "cancelled") {
+                        afterLineStyle =
+                            const LineStyle(color: Color(0xFF747888));
+                        status = _DeliveryStatus.rejected;
+                      } else {
+                        afterLineStyle =
+                            const LineStyle(color: Color(0xFF747888));
+                        status = _DeliveryStatus.doing;
+                      }
+
+                      return TimelineTile(
+                        axis: TimelineAxis.horizontal,
+                        alignment: TimelineAlign.center,
+                        isFirst: index == 0,
+                        isLast: index == deliverySteps.length - 1,
+                        beforeLineStyle: beforeLineStyle,
+                        afterLineStyle: afterLineStyle,
+                        indicatorStyle: IndicatorStyle(
+                          width: indicatorSize,
+                          height: indicatorSize,
+                          indicator: _IndicatorDelivery(status: status),
+                        ),
+                        startChild: _StartChildDelivery(index: index),
+                        endChild: _EndChildDelivery(
+                          text: step,
+                          current: index == order.completedStep,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  child: ListView(
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    children: order.dishes.map((p) {
+                      return dishesCards(p);
+                    }).toList(),
+                  ),
                 ),
               ],
             ),
           ),
-          Container(
-            margin: const EdgeInsets.all(8),
-            constraints: const BoxConstraints(maxHeight: 180),
-            color: const Color(0xFF5D6173),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              controller: _scrollController,
-              itemCount: deliverySteps.length,
-              itemBuilder: (BuildContext context, int index) {
-                final step = deliverySteps[index];
-                var indicatorSize = 30.0;
-                var beforeLineStyle = LineStyle(
-                  color: Colors.white.withOpacity(0.8),
-                );
-
-                _DeliveryStatus status;
-                LineStyle afterLineStyle;
-                if (index < order.completedStep) {
-                  status = _DeliveryStatus.done;
-                } else if (index > order.completedStep) {
-                  status = _DeliveryStatus.todo;
-                  indicatorSize = 20;
-                  beforeLineStyle = const LineStyle(color: Color(0xFF747888));
-                } else if (order.generalStatus == "rejected" ||
-                    order.generalStatus == "cancelled") {
-                  afterLineStyle = const LineStyle(color: Color(0xFF747888));
-                  status = _DeliveryStatus.rejected;
-                } else {
-                  afterLineStyle = const LineStyle(color: Color(0xFF747888));
-                  status = _DeliveryStatus.doing;
-                }
-
-                return TimelineTile(
-                  axis: TimelineAxis.horizontal,
-                  alignment: TimelineAlign.center,
-                  isFirst: index == 0,
-                  isLast: index == deliverySteps.length - 1,
-                  beforeLineStyle: beforeLineStyle,
-                  afterLineStyle: afterLineStyle,
-                  indicatorStyle: IndicatorStyle(
-                    width: indicatorSize,
-                    height: indicatorSize,
-                    indicator: _IndicatorDelivery(status: status),
-                  ),
-                  startChild: _StartChildDelivery(index: index),
-                  endChild: _EndChildDelivery(
-                    text: step,
-                    current: index == order.completedStep,
-                  ),
-                );
-              },
-            ),
-          ),
-          Container(
-            constraints: const BoxConstraints(maxHeight: 200),
-            child: ListView(
-              scrollDirection: Axis.vertical,
-              shrinkWrap: true,
-              children: order.dishes.map((p) {
-                return dishesCards(p);
-              }).toList(),
-            ),
-          )
         ],
       ),
     );
@@ -303,125 +311,6 @@ class OrderState extends State<Order> {
     );
   }
 }
-
-// class _DeliveryTimeline extends StatefulWidget {
-//   final EaterOrder order;
-//   _DeliveryTimeline({Key key, @required this.order}) : super(key: key);
-
-//   @override
-//   _DeliveryTimelineState createState() => _DeliveryTimelineState();
-// }
-
-// class _DeliveryTimelineState extends State<_DeliveryTimeline> {
-//   ScrollController _scrollController;
-//   StepState pending = StepState.disabled;
-//   StepState cooking = StepState.disabled;
-//   StepState completed = StepState.disabled;
-
-//   bool complete = false;
-
-//   void statusUpdate(EaterOrder order) {
-//     switch (order.generalStatus) {
-//       case "pending":
-//         {
-//           setState(() => widget.order.completedStep = 0);
-//         }
-//         break;
-
-//       case "approved":
-//         {
-//           setState(() => widget.order.completedStep = 1);
-//         }
-//         break;
-
-//       case "rejected":
-//         {
-//           setState(() => widget.order.completedStep = 0);
-//         }
-//         break;
-
-//       case "cancelled":
-//         {
-//           setState(() => widget.order.completedStep = 1);
-//         }
-//         break;
-
-//       case "completed":
-//         {
-//           setState(() => widget.order.completedStep = 3);
-//         }
-//         break;
-
-//       default:
-//         {}
-//         break;
-//     }
-//   }
-
-//   @override
-//   void initState() {
-//     _scrollController = ScrollController();
-//     super.initState();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return SliverToBoxAdapter(
-//       child: Container(
-//         margin: const EdgeInsets.all(8),
-//         constraints: const BoxConstraints(maxHeight: 210),
-//         color: const Color(0xFF5D6173),
-//         child: ListView.builder(
-//           scrollDirection: Axis.horizontal,
-//           controller: _scrollController,
-//           itemCount: deliverySteps.length,
-//           itemBuilder: (BuildContext context, int index) {
-//             final step = deliverySteps[index];
-//             var indicatorSize = 30.0;
-//             var beforeLineStyle = LineStyle(
-//               color: Colors.white.withOpacity(0.8),
-//             );
-
-//             _DeliveryStatus status;
-//             LineStyle afterLineStyle;
-//             if (index < widget.order.completedStep) {
-//               status = _DeliveryStatus.done;
-//             } else if (index > widget.order.completedStep) {
-//               status = _DeliveryStatus.todo;
-//               indicatorSize = 20;
-//               beforeLineStyle = const LineStyle(color: Color(0xFF747888));
-//             } else if (widget.order.generalStatus == "rejected") {
-//               afterLineStyle = const LineStyle(color: Color(0xFF747888));
-//               status = _DeliveryStatus.rejected;
-//             } else {
-//               afterLineStyle = const LineStyle(color: Color(0xFF747888));
-//               status = _DeliveryStatus.doing;
-//             }
-
-//             return TimelineTile(
-//               axis: TimelineAxis.horizontal,
-//               alignment: TimelineAlign.center,
-//               isFirst: index == 0,
-//               isLast: index == deliverySteps.length - 1,
-//               beforeLineStyle: beforeLineStyle,
-//               afterLineStyle: afterLineStyle,
-//               indicatorStyle: IndicatorStyle(
-//                 width: indicatorSize,
-//                 height: indicatorSize,
-//                 indicator: _IndicatorDelivery(status: status),
-//               ),
-//               startChild: _StartChildDelivery(index: index),
-//               endChild: _EndChildDelivery(
-//                 text: step,
-//                 current: index == widget.order.completedStep,
-//               ),
-//             );
-//           },
-//         ),
-//       ),
-//     );
-//   }
-// }
 
 enum _DeliveryStatus { done, doing, todo, rejected }
 
@@ -482,10 +371,10 @@ class _IndicatorDelivery extends StatelessWidget {
         return Container(
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white,
+            color: Colors.green,
           ),
           child: const Center(
-            child: Icon(Icons.check, color: Color(0xFF5D6173)),
+            child: Icon(Icons.check, color: Colors.white),
           ),
         );
 
@@ -496,7 +385,7 @@ class _IndicatorDelivery extends StatelessWidget {
             color: Colors.red,
           ),
           child: const Center(
-            child: Icon(Icons.warning, color: Color(0xFF5D6173)),
+            child: Icon(Icons.warning, color: Colors.white),
           ),
         );
 
@@ -504,7 +393,7 @@ class _IndicatorDelivery extends StatelessWidget {
         return Container(
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: Color(0xFF2ACA8E),
+            color: Colors.green,
           ),
           child: const Center(
             child: SizedBox(

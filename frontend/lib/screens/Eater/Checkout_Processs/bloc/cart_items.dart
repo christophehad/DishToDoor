@@ -3,7 +3,6 @@ import 'dart:async';
 
 import 'package:dishtodoor/screens/Map/cookClass.dart';
 
-//TODO add cook name
 class CartTuple {
   final CookDish dish;
   final String cookFname;

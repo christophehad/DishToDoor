@@ -1,10 +1,16 @@
+import 'dart:convert';
+
 import 'package:dishtodoor/screens/add_generic_dish.dart';
 import 'package:flutter/material.dart';
-//import 'globals.dart' as globals;
+import 'auth/globals.dart' as globals;
 import 'placeholder_widget.dart';
 import 'Map/main_map.dart';
+import 'Map/cookless_map.dart';
 import 'package:dishtodoor/screens/Map/cookClass.dart';
 import 'Eater/Order_Tracking/orderTracking2.dart';
+import 'package:dishtodoor/config/config.dart';
+import 'Eater/Order_Tracking/orderClass.dart';
+import 'package:http/http.dart' as http;
 
 class PageNavigator extends StatefulWidget {
   final CookList cookList;
@@ -20,22 +26,69 @@ class _PageNavigator extends State<PageNavigator> {
   int _currentIndex = 0; //track the index of our currently selected tab
   //list of widgets that we want to render based on the currently selected tab
   List<Widget> _children = [];
+  EaterOrderList orderList;
+
+  //for order fetching
+  Future<void> orderFetching() async {
+    print("trying comm order");
+    final http.Response response = await http.get(
+      baseURL + '/eater/api/orders/get',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': "Bearer " + globals.token,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      dynamic decoded = jsonDecode(response.body);
+      print("Received: " + decoded.toString());
+      bool success = decoded['success'];
+      if (success) {
+        setState(() {
+          orderList = EaterOrderList.fromJson(decoded['orders']);
+        });
+        print("Successful!");
+      } else {
+        print("Error: " + decoded['error']);
+      }
+    } else {
+      print(response.statusCode);
+      print("An unkown error occured");
+    }
+  }
 
   @override
   void initState() {
+    orderFetching();
     _children = [
       AddGenericDish(),
-      MainMap(cookList: widget.cookList),
-      Order(),
+      //if no cooks around, another map is displayed
+      widget.cookList.cooksList != null
+          ? MainMap(cookList: widget.cookList)
+          : MainMap2(
+              cookList: widget.cookList,
+            ),
+      Order(orderList: orderList),
       PlaceholderWidget(Colors.green),
       PlaceholderWidget(Colors.blue)
     ];
+
     super.initState();
   }
 
   //takes in the tapped tab’s index and calls setState on our state class.
   //This will trigger the build method to be run again with the state that we pass in to it
-  void onTabTapped(int index) {
+  Future onTabTapped(int index) async {
+    //here I am checking if order's tab is pressed to update the info faster and avoid null error
+    if (index == 2) {
+      await orderFetching().then((value) {
+        setState(() {
+          _children[index] = Order(
+            orderList: orderList,
+          );
+        });
+      });
+    }
     setState(() {
       _currentIndex = index;
     });

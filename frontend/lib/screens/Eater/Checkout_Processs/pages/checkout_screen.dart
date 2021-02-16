@@ -119,9 +119,6 @@ class _CheckoutState extends State<Checkout> {
                       borderRadius: BorderRadius.circular(20)),
                   color: Colors.blueAccent,
                   onPressed: () {
-                    setState(() {
-                      datePicked = true;
-                    });
                     DatePicker.showDateTimePicker(context,
                         showTitleActions: true, onChanged: (date) {
                       print('change $date in time zone ' +
@@ -130,6 +127,7 @@ class _CheckoutState extends State<Checkout> {
                       print('confirm $date');
                       setState(() {
                         pickupDate = date;
+                        datePicked = true;
                       });
                     }, currentTime: DateTime.now());
                   },
@@ -193,7 +191,6 @@ class _CheckoutState extends State<Checkout> {
     );
   }
 
-//TODO: fix the API URL + alert boxes and errors
   Future<void> checkoutProcedure(BuildContext context, List<CartTuple> cartList,
       DateTime pickupDate) async {
     CartItems temp = CartItems();

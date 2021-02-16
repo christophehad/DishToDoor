@@ -1,5 +1,4 @@
 import 'package:dishtodoor/screens/Map/cookClass.dart';
-import 'package:dishtodoor/screens/Map/main_map.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
 import 'package:dishtodoor/screens/auth/cook_login_email.dart';
@@ -26,7 +25,7 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
 // get Location of user
 
   LatLng _finaluserlocation;
-  CookList cooks;
+  CookList cooks = CookList();
   Location _location = Location();
 
   Future<void> getLoc() async {
@@ -111,11 +110,12 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
               print("Successful!");
               print("Your token is" + globals.token);
 
-              locsharing()
-                  .then((value) => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => PageNavigator(
-                            cookList: cooks,
-                          ))));
+              locsharing().then((value) {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => PageNavigator(
+                          cookList: cooks,
+                        )));
+              });
             } else {
               print("Error: " + decoded['error']);
             }
