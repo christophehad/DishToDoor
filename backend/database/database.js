@@ -10,7 +10,7 @@ const cloudStorage = require('./cloud_storage');
 
 const dbConfig = {
     host: 'localhost', // insert the database url here
-    port: 50207, // 3306, for local
+    port: process.env.MYSQL_PORT || 50207, // 3306, for local
     user: 'azure', // 'root',
     password: '6#vWHD_$',// '',
     database: 'dishtodoor',
@@ -572,20 +572,20 @@ module.exports.orderGet_Eater = function orderGet_Eater(eater_id,status=null,don
                 'WHERE eater_dish_order.order_id=order_status.order_id AND eater_dish_order.eater_id = ? '+
                     'AND (order_status.general_status = ? OR ? IS NULL)',[eater_id,status,status], (err,rows) => {
                         if (err) return done(err);
-                        let orderByCook = {};
+                        let orderByID = {};
                         for (const row of rows) {
-                            let cook_id=row.cook_id;
+                            let order_id=row.order_id;
                             /** @type {schemes.DishTuple} */
                             let dish = {dish_id: row.dish_id, quantity: row.quantity};
-                            if (cook_id in orderByCook)
-                                orderByCook[cook_id].dishes.push(dish);
+                            if (order_id in orderByID)
+                                orderByID[order_id].dishes.push(dish);
                             else {
-                                orderByCook[cook_id] = schemes.order(
-                                    row.order_id, row.eater_id, cook_id, row.total_price, row.general_status, row.prepared_status, row.packaged_status,
+                                orderByID[order_id] = schemes.order(
+                                    order_id, row.eater_id, row.cook_id, row.total_price, row.general_status, row.prepared_status, row.packaged_status,
                                     row.message,row.date_scheduled_on,[dish]);
                             }
                         }
-                        let orderList = Object.values(orderByCook);
+                        let orderList = Object.values(orderByID);
                         return done(null,orderList);
                     })
 }
