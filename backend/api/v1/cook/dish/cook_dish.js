@@ -1,4 +1,5 @@
 // functions for adding, retrieving cook dishes
+const { DateTime } = require('luxon');
 const database = require('../../../../database/database');
 const { DEBUG, clientTimeZone } = require('../../api_config');
 
@@ -43,6 +44,19 @@ exports.add = function add(gendish_id, cook_id, custom_name, price, category, de
  */
 exports.getAll = function getAll(cook_id,done) {
     database.cookDishGetAll(cook_id, (err,cookdishes) => {
+        if (err) return done(err);
+        if (cookdishes.length == 0) return done(null,false,'no_dishes');
+        return done(null,cookdishes);
+    })
+}
+
+/**
+ * Get the available dishes the cook has today
+ * @param {cookDishCallback} done 
+ */
+exports.getAvailable = function getAvailable(cook_id,done) {
+    let today = DateTime.local().setZone(clientTimeZone).toSQLDate();
+    database.cookDishGetAvailable(cook_id, today, (err,cookdishes) => {
         if (err) return done(err);
         if (cookdishes.length == 0) return done(null,false,'no_dishes');
         return done(null,cookdishes);

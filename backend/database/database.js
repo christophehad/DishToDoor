@@ -404,32 +404,49 @@ module.exports.cookDishMakeUnavailable = function cookDishMakeUnavailable(cookdi
 }
 
 /**
+ * returns a list of the dishes for a cook matching the availability
+ * @param {Date} availability
+ * @param {schemes.cookDishSearchCallback} done
+ */
+function cookDishGet(cook_id,availability=null,done) {
+    con.query('SELECT dish_id FROM dishes WHERE cook_id = ? AND (dish_status = ? OR ? IS NULL)',[cook_id,availability,availability], (err,rows) => {
+        if (err) return done(err);
+        /** @type {schemes.CookDish[]} */
+        let cookdishes = [];
+        async.eachOf(rows, (row,index,inner_callback) => {
+            let dish_id = row.dish_id;
+            cookDishInfo(dish_id, (err,cookdish) => {
+                if (err) return inner_callback(err);
+                cookdishes.push(cookdish);
+                inner_callback();
+            })
+        }, (err) => {
+            if (err) return done(err);
+            return done(null,cookdishes);
+        })
+    })
+}
+
+/**
  * returns a list of the dishes for a cook (the name is the gendish_name if custom_name is null or custom_name else)
  * @param {schemes.cookDishSearchCallback} done 
  */
 module.exports.cookDishGetAll = function cookDishGetAll(cook_id,done) {
-    con.query('SELECT dishes.*, generic_dishes.gendish_name FROM dishes, generic_dishes '+
-                'WHERE dishes.gendish_id = generic_dishes.gendish_id AND dishes.cook_id = ?',[cook_id], (err,rows) => {
-                    if (err) return done(err);
-
-                    /** @type {schemes.CookDish[]} */
-                    let cookdishes = [];
-                    for (const row of rows) {
-                        let name = row.custom_name ? row.custom_name : row.gendish_name;
-                        cookdishes.push(schemes.cookDish(
-                            row.dish_id,row.gendish_id,row.cook_id,name,row.price,
-                            row.category,row.label,row.description,row.dish_pic
-                        ));
-                    }
-                    return done(null,cookdishes);
-                })
+    cookDishGet(cook_id,undefined,done);
+}
+/**
+ * returns a list of the dishes for a cook (the name is the gendish_name if custom_name is null or custom_name else)
+ * @param {schemes.cookDishSearchCallback} done 
+ */
+module.exports.cookDishGetAvailable = function cookDishGetAvailable(cook_id,date,done) {
+    cookDishGet(cook_id,date,done);
 }
 
 /**
  * returns the cookdish info
  * @param {schemes.cookDishInfoCallback} done
  */
-module.exports.cookDishInfo = function cookDishInfo(dish_id,done) {
+var cookDishInfo = module.exports.cookDishInfo = function (dish_id,done) {
     con.query('SELECT dishes.*, generic_dishes.gendish_name FROM dishes, generic_dishes '+
             'WHERE dishes.gendish_id = generic_dishes.gendish_id AND dishes.dish_id = ?',[dish_id],(err,rows) => {
                 if (err) return done(err);
