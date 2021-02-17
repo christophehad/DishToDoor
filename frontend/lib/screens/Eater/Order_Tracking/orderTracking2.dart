@@ -5,7 +5,6 @@ import 'package:timeline_tile/timeline_tile.dart';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:dishtodoor/screens/auth/globals.dart' as globals;
 import 'package:dishtodoor/config/config.dart';
 import 'orderClass.dart';
 
@@ -45,12 +44,14 @@ class OrderState extends State<Order> {
 
 //fetching order details
   Future<void> orderFetching() async {
+    String token = await storage.read(key: 'token');
+    print("token: " + token);
     print("trying comm");
     final http.Response response = await http.get(
       baseURL + '/eater/api/orders/get',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': "Bearer " + globals.token,
+        'Authorization': "Bearer " + token.toString(),
         //"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiaWF0IjoxNjEzMDQwOTgyfQ.5Pp6xPvfmqAeL09oWqX0sJugy3ryxsXdVfNSrHdv2TY",
       },
     );
