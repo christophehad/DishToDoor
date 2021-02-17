@@ -33,6 +33,17 @@ exports.search = function search(query,done) {
     })
 }
 
+/**
+ * get all the available gendishes
+ * @param {genDishCallback} done 
+ */
+exports.getAll = function getAll(done) {
+    database.genDishGetAll( (err,gendishes) => {
+        if (err) return done(err);
+        return done(null,gendishes);
+    })
+}
+
 
 exports.getCategories = function getCategories() {
     return dishCategories;

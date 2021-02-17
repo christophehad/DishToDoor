@@ -10,7 +10,7 @@ const cloudStorage = require('./cloud_storage');
 
 const dbConfig = {
     host: 'localhost', // insert the database url here
-    port: 50207, // 3306, for local
+    port: process.env.MYSQL_PORT || 50207, // 3306, for local
     user: 'azure', // 'root',
     password: '6#vWHD_$',// '',
     database: 'dishtodoor',
@@ -350,6 +350,23 @@ module.exports.genDishSearch = function genDishSearch(query,done) {
     })
 }
 
+/**
+ * get all the generic dishes
+ * @param {schemes.genDishSearchCallback} done 
+ */
+module.exports.genDishGetAll = function genDishGetAll(done) {
+    con.query('SELECT * FROM generic_dishes ORDER BY gendish_name',undefined, (err,rows) => {
+        if (err) return done(err);
+
+        /** @type {schemes.GenDish[]} */
+        let found_gen = [];
+        for (const row of rows) {
+            found_gen.push(schemes.genDish(row.gendish_id,row.gendish_name,row.category));
+        }
+        return done(null,found_gen);
+    })
+}
+
 
 /* Cook Dishes Functions */
 
@@ -387,32 +404,49 @@ module.exports.cookDishMakeUnavailable = function cookDishMakeUnavailable(cookdi
 }
 
 /**
+ * returns a list of the dishes for a cook matching the availability
+ * @param {Date} availability
+ * @param {schemes.cookDishSearchCallback} done
+ */
+function cookDishGet(cook_id,availability=null,done) {
+    con.query('SELECT dish_id FROM dishes WHERE cook_id = ? AND (dish_status = ? OR ? IS NULL)',[cook_id,availability,availability], (err,rows) => {
+        if (err) return done(err);
+        /** @type {schemes.CookDish[]} */
+        let cookdishes = [];
+        async.eachOf(rows, (row,index,inner_callback) => {
+            let dish_id = row.dish_id;
+            cookDishInfo(dish_id, (err,cookdish) => {
+                if (err) return inner_callback(err);
+                cookdishes.push(cookdish);
+                inner_callback();
+            })
+        }, (err) => {
+            if (err) return done(err);
+            return done(null,cookdishes);
+        })
+    })
+}
+
+/**
  * returns a list of the dishes for a cook (the name is the gendish_name if custom_name is null or custom_name else)
  * @param {schemes.cookDishSearchCallback} done 
  */
 module.exports.cookDishGetAll = function cookDishGetAll(cook_id,done) {
-    con.query('SELECT dishes.*, generic_dishes.gendish_name FROM dishes, generic_dishes '+
-                'WHERE dishes.gendish_id = generic_dishes.gendish_id AND dishes.cook_id = ?',[cook_id], (err,rows) => {
-                    if (err) return done(err);
-
-                    /** @type {schemes.CookDish[]} */
-                    let cookdishes = [];
-                    for (const row of rows) {
-                        let name = row.custom_name ? row.custom_name : row.gendish_name;
-                        cookdishes.push(schemes.cookDish(
-                            row.dish_id,row.gendish_id,row.cook_id,name,row.price,
-                            row.category,row.label,row.description,row.dish_pic
-                        ));
-                    }
-                    return done(null,cookdishes);
-                })
+    cookDishGet(cook_id,undefined,done);
+}
+/**
+ * returns a list of the dishes for a cook (the name is the gendish_name if custom_name is null or custom_name else)
+ * @param {schemes.cookDishSearchCallback} done 
+ */
+module.exports.cookDishGetAvailable = function cookDishGetAvailable(cook_id,date,done) {
+    cookDishGet(cook_id,date,done);
 }
 
 /**
  * returns the cookdish info
  * @param {schemes.cookDishInfoCallback} done
  */
-module.exports.cookDishInfo = function cookDishInfo(dish_id,done) {
+var cookDishInfo = module.exports.cookDishInfo = function (dish_id,done) {
     con.query('SELECT dishes.*, generic_dishes.gendish_name FROM dishes, generic_dishes '+
             'WHERE dishes.gendish_id = generic_dishes.gendish_id AND dishes.dish_id = ?',[dish_id],(err,rows) => {
                 if (err) return done(err);
@@ -572,20 +606,20 @@ module.exports.orderGet_Eater = function orderGet_Eater(eater_id,status=null,don
                 'WHERE eater_dish_order.order_id=order_status.order_id AND eater_dish_order.eater_id = ? '+
                     'AND (order_status.general_status = ? OR ? IS NULL)',[eater_id,status,status], (err,rows) => {
                         if (err) return done(err);
-                        let orderByCook = {};
+                        let orderByID = {};
                         for (const row of rows) {
-                            let cook_id=row.cook_id;
+                            let order_id=row.order_id;
                             /** @type {schemes.DishTuple} */
                             let dish = {dish_id: row.dish_id, quantity: row.quantity};
-                            if (cook_id in orderByCook)
-                                orderByCook[cook_id].dishes.push(dish);
+                            if (order_id in orderByID)
+                                orderByID[order_id].dishes.push(dish);
                             else {
-                                orderByCook[cook_id] = schemes.order(
-                                    row.order_id, row.eater_id, cook_id, row.total_price, row.general_status, row.prepared_status, row.packaged_status,
+                                orderByID[order_id] = schemes.order(
+                                    order_id, row.eater_id, row.cook_id, row.total_price, row.general_status, row.prepared_status, row.packaged_status,
                                     row.message,row.date_scheduled_on,[dish]);
                             }
                         }
-                        let orderList = Object.values(orderByCook);
+                        let orderList = Object.values(orderByID);
                         return done(null,orderList);
                     })
 }

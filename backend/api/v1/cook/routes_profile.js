@@ -11,7 +11,7 @@ const multer = require('multer');
 const fs = require('fs');
 const extension = require('mime-types').extension;
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => { cb(null, apiConfig.tmpPath + 'dish_pics/') },
+    destination: (req, file, cb) => { cb(null, apiConfig.tmpPath + 'cookprofile_pics/') },
     filename: (req, file, cb) => {
         const uniquePref = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniquePref + '.' + extension(file.mimetype));

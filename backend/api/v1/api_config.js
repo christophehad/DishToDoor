@@ -154,7 +154,7 @@ module.exports.orderDishAPI = function orderDishAPI(dish_id,name,quantity,price,
  * @returns {EaterOrderAPI}
  */
 module.exports.eaterOrderAPI = function eaterOrderAPI(order_id,cookprofile,total_price,gen_status,sched_time,dishes) {
-    let sched_timeAPI = datetimeAPI(sched_time);
+    let sched_timeAPI = sched_time? datetimeAPI(sched_time) : null; // if sched_time null keep it null
     return {
         order_id:order_id, cook:cookprofile, total_price:total_price, general_status:gen_status, scheduled_time:sched_timeAPI,
         dishes:dishes

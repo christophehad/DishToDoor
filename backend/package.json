@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon main.js -e js",
+    "dev": "nodemon -r dotenv/config main.js -e js",
     "start": "node main.js"
   },
   "repository": {
@@ -33,5 +33,8 @@
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0"
   }
 }
