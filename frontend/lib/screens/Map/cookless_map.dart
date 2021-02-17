@@ -1,4 +1,3 @@
-import 'package:dishtodoor/screens/Eater/cook_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -14,9 +13,9 @@ import 'package:dishtodoor/screens/Map/cookClass.dart';
 //This is an attempt at getting the current device location after asking user for permission
 //TODO: add support for ios for both API google maps and geolocator enabling
 
-class MainMap extends StatefulWidget {
+class MainMap2 extends StatefulWidget {
   final CookList cookList;
-  MainMap({Key key, @required this.cookList}) : super(key: key);
+  MainMap2({Key key, @required this.cookList}) : super(key: key);
   @override
   _MainMapState createState() => _MainMapState();
 }
@@ -31,7 +30,7 @@ class PointObject {
   PointObject({this.child, this.location, this.icon, this.cookPoint});
 }
 
-class _MainMapState extends State<MainMap> {
+class _MainMapState extends State<MainMap2> {
   //cook classes
   //CookList cooks;
 
@@ -46,8 +45,7 @@ class _MainMapState extends State<MainMap> {
   LatLng _initialcameraposition = LatLng(0, 0);
   GoogleMapController _controller;
   Location _location = Location();
-  bool isMapCreated = false;
-  Set<PointObject> _points = {}; //markers of cooks
+  bool isMapCreated = false; //markers of cooks
   StreamSubscription _mapIdleSubscription;
   InfoWidgetRoute _infoWidgetRoute;
   BitmapDescriptor sourceIcon; //to be modified later
@@ -148,111 +146,18 @@ class _MainMapState extends State<MainMap> {
             ),
             Container(
               padding: const EdgeInsets.only(left: 24.0, right: 24.0),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: widget.cookList.cooksList.map((p) {
-                    return cooksCards(p);
-                  }).toList()),
+              child: ListTile(
+                title: Text(
+                    "It looks like there are currently no cooks around you."),
+                subtitle:
+                    Text("visit this page in a few days and have a look!"),
+              ),
             ),
             SizedBox(
               height: 24,
             ),
           ],
         ));
-  }
-
-  String _checkIndex(List<CookDish> dish, int index) {
-    if (dish.length > index) {
-      return dish[index].name;
-    }
-    return "";
-  }
-
-  //List creation -- cooks cards
-  Widget cooksCards(CookMap cook) {
-    return Card(
-      child: Column(
-        children: [
-          ListTile(
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(cook.logo),
-            ),
-            title: Text(cook.firstName + "'s Kitchen"),
-            subtitle: Text(
-              "Distance " +
-                  cook.distance.toStringAsFixed(2) +
-                  "Km | " +
-                  _checkIndex(cook.dishes, 0) +
-                  ", " +
-                  _checkIndex(cook.dishes, 1) +
-                  ", " +
-                  _checkIndex(cook.dishes, 2),
-            ),
-          ),
-          TextButton(
-            child: const Text('Order Here'),
-            onPressed: () {
-              Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => CookPageEater(cook: cook)));
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-//Creation of the cook instances
-  void setPoints() {
-    //advanced with picture
-    for (var i in widget.cookList.cooksList) {
-      _points.add(PointObject(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                decoration: new BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: new DecorationImage(
-                    fit: BoxFit.fill,
-                    image: NetworkImage(i.logo),
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: InkWell(
-                child: Text(i.firstName + "'s Kitchen"),
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => CookPageEater(cook: i)));
-                },
-              ),
-            ),
-          ],
-        ),
-        location: i.getLocation(),
-        icon: sourceIcon, //see what to do with this
-        cookPoint: i,
-      ));
-    }
-  }
-
-//Creation of the markers and functionality
-  void setMapPins() {
-    // source pin
-    for (PointObject i in _points) {
-      _markers.add(Marker(
-        // This marker id can be anything that uniquely identifies each marker.
-        markerId: MarkerId(
-            i.location.latitude.toString() + i.location.longitude.toString()),
-        position: i.location,
-        onTap: () {
-          if (_pc.isPanelClosed) _onTap(i);
-        },
-        icon: i.icon,
-      ));
-    }
   }
 
 //Changes map type between custom-daylight and nightmode
@@ -271,59 +176,6 @@ class _MainMapState extends State<MainMap> {
     return await rootBundle.loadString(path);
   }
 
-  //Styling: create circle under mnarker
-  circleCreation() {
-    for (var i in _points) {
-      _circles.add(Circle(
-        circleId: CircleId(
-            i.location.latitude.toString() + i.location.longitude.toString()),
-        center: i.location,
-        radius: 10,
-        strokeWidth: 4,
-        strokeColor: Colors.black,
-      ));
-    }
-  }
-
-//define functionality on tap of marker
-  _onTap(PointObject point) async {
-    final RenderBox renderBox = context.findRenderObject();
-    Rect _itemRect = renderBox.localToGlobal(Offset.zero) & renderBox.size;
-
-    _infoWidgetRoute = InfoWidgetRoute(
-      child: point.child,
-      buildContext: context,
-      textStyle: const TextStyle(
-        fontSize: 14,
-        color: Colors.black,
-      ),
-      mapsWidgetSize: _itemRect,
-    );
-
-    await _controller.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: LatLng(
-            point.location.latitude - 0.0001,
-            point.location.longitude,
-          ),
-          zoom: 17,
-        ),
-      ),
-    );
-    await _controller.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: LatLng(
-            point.location.latitude,
-            point.location.longitude,
-          ),
-          zoom: 17,
-        ),
-      ),
-    );
-  }
-
   void setMapStyle(String mapStyle) {
     _controller.setMapStyle(mapStyle);
   }
@@ -336,9 +188,6 @@ class _MainMapState extends State<MainMap> {
       _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
     });
     isMapCreated = true;
-    setPoints();
-    setMapPins();
-    circleCreation();
     changeMapMode();
     setState(() {});
     _controller = _cntlr;

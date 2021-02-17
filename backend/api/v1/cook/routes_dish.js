@@ -57,6 +57,28 @@ router.get('/gen-dish/search', (req,res,next) => {
     })
 })
 
+router.get('/gen-dish/get', (req,res,next) => {
+    if (DEBUG) console.log(req.query);
+
+    if (Object.keys(req.query).length == 0) {
+        genDish.getAll((err, gendishes, message) => {
+            if (err) return next(err);
+
+            let toSend = successJSON();
+            toSend.gen_dishes = [];
+            for (const gendish of gendishes) {
+                toSend.gen_dishes.push(
+                    genDishAPI(gendish.id, gendish.name, gendish.category)
+                );
+            }
+            res.json(toSend);
+        })
+    }
+    else {
+        res.status(400);
+    }
+})
+
 // get the gendish categories
 router.get('/gen-dish/categories', (req,res,next) => {
     let genCategories = genDish.getCategories();
@@ -93,7 +115,7 @@ router.post('/cook-dish/add', upload.single('dish_pic'), (req,res,next) => {
 
 // get the cookdishes
 router.get('/cook-dish/get', (req, res, next) => {
-    if (DEBUG) console.log(req.body);
+    if (DEBUG) console.log(req.query);
 
     let cook_id = req.user;
     if (Object.keys(req.query).length == 0) {
@@ -116,7 +138,28 @@ router.get('/cook-dish/get', (req, res, next) => {
         })
     }
     else {
-        res.sendStatus(400);
+        let available = req.query.available == 'true';
+        if (available) {
+            cookDish.getAvailable(cook_id, (err, cookdishes, message) => {
+                if (err) return next(err);
+                if (!cookdishes) return res.json(failureJSON(message));
+
+                let toSend = successJSON();
+                /** @type {apiConfig.CookDishAPI[]} */
+                let cook_dishesAPI = [];
+                for (const cookdish of cookdishes) {
+                    cook_dishesAPI.push({
+                        dish_id: cookdish.dish_id, gendish_id: cookdish.gendish_id, name: cookdish.name,
+                        price: cookdish.price, category: cookdish.category, description: cookdish.description, dish_pic: cookdish.dish_pic
+                    });
+                }
+                toSend.cook_dishes = cook_dishesAPI;
+                res.json(toSend);
+            })
+        }
+        else {
+            res.sendStatus(400);
+        }
     }
 })
 

@@ -1,12 +1,11 @@
 import 'package:dishtodoor/screens/Map/cookClass.dart';
-import 'package:dishtodoor/screens/Map/main_map.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
 import 'package:dishtodoor/screens/auth/cook_login_email.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'globals.dart' as globals;
 
+import 'package:dishtodoor/screens/page_navigator_eater.dart';
 import 'package:dishtodoor/config/config.dart';
 import 'package:location/location.dart';
 
@@ -25,58 +24,61 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
 // get Location of user
 
   LatLng _finaluserlocation;
-  CookList cooks;
+  CookList cooks = CookList();
   Location _location = Location();
 
-  Future<void> getLoc() async {
-    var _loc = await _location.getLocation();
-    setState(() {
-      _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
-    });
-  }
+  // Future<void> getLoc() async {
+  //   var _loc = await _location.getLocation();
+  //   setState(() {
+  //     _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
+  //   });
+  // }
 
-  Future locsharing() async {
-    print("trying comm");
-    final http.Response response = await http.get(
-      baseURL +
-          '/eater/api/dish/around?lat=' +
-          _finaluserlocation.latitude.toString() +
-          '&lon=' +
-          _finaluserlocation.longitude.toString(),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': "Bearer " + globals.token,
-      },
-    );
-    if (response.statusCode == 200) {
-      // If the server did return a 200 CREATED response,
-      // then parse the JSON and send user to login screen
-      dynamic decoded = jsonDecode(response.body);
-      print("Received: " + decoded.toString());
-      bool success = decoded['success'];
-      print("success: " + success.toString());
-      print(decoded['cooks']);
-      if (success) {
-        cooks = CookList.fromJson(decoded['cooks']);
-        print(cooks.cooksList);
-        //_registerSuccessfulAlert();
-        print("Successful!");
-      } else {
-        //handle errors
-        print("Error: " + decoded['error']);
-        //_registerErrorAlert(decoded['error']);
-      }
-    } else {
-      // If the server did not return a 201 CREATED response,
-      // then throw an exception.
-      print("An unkown error occured");
-    }
-  }
+  // Future locsharing() async {
+  //   print("trying comm");
+  //   final http.Response response = await http.get(
+  //     baseURL +
+  //         '/eater/api/dish/around?lat=' +
+  //         _finaluserlocation.latitude.toString() +
+  //         '&lon=' +
+  //         _finaluserlocation.longitude.toString(),
+  //     headers: <String, String>{
+  //       'Content-Type': 'application/json; charset=UTF-8',
+  //       'Authorization': "Bearer " + await storage.read(key: "token"),
+  //     },
+  //   );
+  //   if (response.statusCode == 200) {
+  //     // If the server did return a 200 CREATED response,
+  //     // then parse the JSON and send user to login screen
+  //     dynamic decoded = jsonDecode(response.body);
+  //     print("Received: " + decoded.toString());
+  //     bool success = decoded['success'];
+  //     print("success: " + success.toString());
+  //     print(decoded['cooks']);
+  //     if (success) {
+  //       setState(() {
+  //         cooks = CookList.fromJson(decoded['cooks']);
+  //       });
+
+  //       print(cooks.cooksList);
+  //       //_registerSuccessfulAlert();
+  //       print("Successful!");
+  //     } else {
+  //       //handle errors
+  //       print("Error: " + decoded['error']);
+  //       //_registerErrorAlert(decoded['error']);
+  //     }
+  //   } else {
+  //     // If the server did not return a 201 CREATED response,
+  //     // then throw an exception.
+  //     print("An unkown error occured");
+  //   }
+  // }
 
   @override
   void initState() {
     super.initState();
-    getLoc();
+    //getLoc();
   }
 
   @override
@@ -100,17 +102,24 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
             dynamic decoded = jsonDecode(response.body);
             print("Received: " + decoded.toString());
             bool success = decoded['success'];
-            globals.token = decoded['token'];
             if (success) {
               //_registerSuccessfulAlert();
+              //secure storage of token
+              if (await storage.containsKey(key: 'email') == false) {
+                print("storing");
+                await storage.write(key: 'token', value: decoded['token']);
+                await storage.write(key: 'email', value: email.text);
+                await storage.write(key: 'pass', value: password.text);
+              }
               print("Successful!");
-              print("Your token is" + globals.token);
+              print("Your token is" + decoded['token']);
 
-              locsharing()
-                  .then((value) => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => MainMap(
-                            cookList: cooks,
-                          ))));
+              //locsharing().then((value) {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => PageNavigatorEater(
+                      //cookList: cooks,
+                      )));
+              //});
             } else {
               print("Error: " + decoded['error']);
             }

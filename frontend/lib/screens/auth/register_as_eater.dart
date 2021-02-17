@@ -145,6 +145,10 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
             print("Received: " + decoded.toString());
             bool success = decoded['success'];
             if (success) {
+              await storage.write(key: 'token', value: decoded['token']);
+              await storage.write(key: 'email', value: email.text);
+              await storage.write(key: 'pass', value: password.text);
+
               _registerSuccessfulAlert();
               print("Successful!");
             } else {

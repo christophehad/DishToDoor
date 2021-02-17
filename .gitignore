@@ -105,3 +105,6 @@ dist
 
 # Certificate files
 cert
+
+# VSCode folder
+.vscode

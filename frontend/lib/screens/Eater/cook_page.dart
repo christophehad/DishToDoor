@@ -81,13 +81,21 @@ class _CookPageEaterState extends State<CookPageEater> {
                   TextButton(
                     child: const Text("Add to cart"),
                     onPressed: () {
-                      bloc.addToCart(CartTuple(dish: dish, count: 1));
+                      bloc.addToCart(CartTuple(
+                          dish: dish,
+                          count: 1,
+                          cookFname: widget.cook.firstName,
+                          cookLname: widget.cook.lastName));
                     },
                   ),
                   TextButton(
                     child: const Text("Buy now"),
                     onPressed: () {
-                      bloc.addToCart(CartTuple(dish: dish, count: 1));
+                      bloc.addToCart(CartTuple(
+                          dish: dish,
+                          count: 1,
+                          cookFname: widget.cook.firstName,
+                          cookLname: widget.cook.lastName));
                       Navigator.of(context)
                           .push(MaterialPageRoute(builder: (_) => Checkout()));
                     },
@@ -138,18 +146,11 @@ class _CookPageEaterState extends State<CookPageEater> {
     }
   }
 
-//TODO need opening hours
   Widget _openNow(BuildContext context) {
     return RichText(
         text: TextSpan(
-            // set the default style for the children TextSpans
             style: Theme.of(context).textTheme.bodyText2.copyWith(fontSize: 13),
             children: [
-          // TextSpan(
-          //   text: "Opening time  ",
-          //   style: TextStyle(color: Colors.blueAccent),
-          // ),
-
           _openingCheck(widget.cook.opening, widget.cook.closing),
           TextSpan(
               text: widget.cook.opening.toLocal().hour.toString() +

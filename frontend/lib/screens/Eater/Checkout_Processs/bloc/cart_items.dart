@@ -5,12 +5,11 @@ import 'package:dishtodoor/screens/Map/cookClass.dart';
 
 class CartTuple {
   final CookDish dish;
+  final String cookFname;
+  final String cookLname;
   int count = 0;
 
-  CartTuple({
-    this.dish,
-    this.count,
-  });
+  CartTuple({this.dish, this.count, this.cookFname, this.cookLname});
 
   void increment() {
     count = count + 1;
