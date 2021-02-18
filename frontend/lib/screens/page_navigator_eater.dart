@@ -10,6 +10,7 @@ import 'Eater/Order_Tracking/orderTracking2.dart';
 import 'package:dishtodoor/config/config.dart';
 import 'Eater/Order_Tracking/orderClass.dart';
 import 'package:http/http.dart' as http;
+import 'Eater/Profile/profile_eater.dart';
 
 //Eater Page Navigator
 
@@ -43,7 +44,7 @@ class _PageNavigatorEater extends State<PageNavigatorEater> {
               cookList: cooks,
             ),
       Order(orderList: orderList),
-      PlaceholderWidget(Colors.green),
+      ProfileEater(),
     ];
 
     super.initState();
