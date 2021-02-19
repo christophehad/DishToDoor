@@ -1,5 +1,11 @@
+import 'dart:convert';
+
 import 'package:dishtodoor/screens/auth/login.dart';
+import 'package:dishtodoor/screens/page_navigator_eater.dart';
 import 'package:flutter/material.dart';
+import 'package:dishtodoor/config/config.dart';
+import 'dart:async';
+import 'package:http/http.dart' as http;
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -23,12 +29,53 @@ class _SplashScreenState extends State<SplashScreen>
     controller.forward().then((_) {
       navigationPage();
     });
+    _tokenCheck();
   }
 
   @override
   void dispose() {
     controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _tokenCheck() async {
+    if (await storage.containsKey(key: 'email') == false) {
+      print("not here");
+      return;
+    }
+    String resT = await storage.read(key: "token");
+    String resE = await storage.read(key: "email");
+    String resP = await storage.read(key: "pass");
+    print(resE);
+    print(resP);
+
+    final http.Response response = await http.post(
+        baseURL + '/eater/login-email',
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8'
+        },
+        body: jsonEncode(<String, String>{
+          "email": resE,
+          "password": resP,
+        }));
+
+    if (response.statusCode == 200) {
+      dynamic decoded = jsonDecode(response.body);
+      print("Received: " + decoded.toString());
+      bool success = decoded['success'];
+      await storage.delete(key: 'token');
+      await storage.write(key: 'token', value: decoded['token']);
+      if (success) {
+        //_registerSuccessfulAlert();
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => PageNavigatorEater()));
+        print("Successful!");
+      } else {
+        print("Error: " + decoded['error']);
+      }
+    } else {
+      print("An unkown error occured");
+    }
   }
 
   void navigationPage() {

@@ -1,7 +1,6 @@
 import 'package:intl_phone_field/intl_phone_field.dart'; //
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:dishtodoor/screens/page_navigator.dart';
 import 'package:dishtodoor/screens/auth/eater_login_email.dart';
 import 'register_as_eater.dart';
 
@@ -43,8 +42,8 @@ class _Login extends State<Login> {
       child: InkWell(
         onTap: () {
           //Add OTP page navigation
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => PageNavigator()));
+          // Navigator.of(context)
+          //     .push(MaterialPageRoute(builder: (_) => PageNavigator()));
           //.push(MaterialPageRoute(builder: (_) => MyHomePage()));
         },
         child: Container(

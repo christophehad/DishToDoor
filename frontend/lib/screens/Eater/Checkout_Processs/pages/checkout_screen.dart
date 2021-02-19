@@ -6,7 +6,6 @@ import 'package:dishtodoor/screens/Eater/Checkout_Processs/bloc/cart_items.dart'
 import 'package:flutter_svg/flutter_svg.dart';
 import 'size_config.dart';
 import 'package:http/http.dart' as http;
-import 'package:dishtodoor/screens/auth/globals.dart' as globals;
 import 'package:dishtodoor/config/config.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:dishtodoor/screens/splash.dart';
@@ -193,18 +192,18 @@ class _CheckoutState extends State<Checkout> {
 
   Future<void> checkoutProcedure(BuildContext context, List<CartTuple> cartList,
       DateTime pickupDate) async {
+    String token = await storage.read(key: 'token');
     CartItems temp = CartItems();
     temp.cartItems = cartList;
     temp.pickupDate = pickupDate;
     print(temp.pickupDate);
     final String requestBody = json.encoder.convert(temp);
     print(requestBody);
-    print(globals.token);
     final http.Response response = await http.post(
       baseURL + '/eater/api/dish/checkout',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': "Bearer " + globals.token,
+        'Authorization': "Bearer " + token.toString(),
       },
       body: requestBody,
     );

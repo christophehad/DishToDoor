@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 import 'globals.dart' as globals;
 import 'package:dishtodoor/config/config.dart';
 
+import 'package:dishtodoor/screens/page_navigator_cook.dart';
+
+//TODO safe storage for cook
 class CookLoginEmail extends StatefulWidget {
   @override
   _CookLoginEmail createState() => _CookLoginEmail();
@@ -45,8 +48,10 @@ class _CookLoginEmail extends State<CookLoginEmail> {
             globals.token = decoded['token'];
             if (success) {
               //_registerSuccessfulAlert();
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => PageNavigatorCook()));
               print("Successful!");
-              print("Your token is" + globals.token);
+              //print("Your token is" + globals.token);
             } else {
               print("Error: " + decoded['error']);
             }
