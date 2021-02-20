@@ -157,6 +157,7 @@ const OrderStatus = {
     approved: 'approved',
     rejected: 'rejected',
     cancelled: 'cancelled',
+    ready: 'ready',
     completed: 'completed'
 }
 exports.OrderStatus = Object.freeze(OrderStatus);
