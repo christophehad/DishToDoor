@@ -36,7 +36,7 @@ class OrderState extends State<Order> {
 
   @override
   void initState() {
-    orderList = widget.orderList;
+    orderList = widget.orderList == null ? widget.orderList : EaterOrderList();
     _scrollController = ScrollController();
     orderFetching();
     super.initState();
@@ -76,6 +76,81 @@ class OrderState extends State<Order> {
 
   @override
   Widget build(BuildContext context) {
+    if (orderList == null) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    } else if (orderList.eaterOrderList == null) {
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFF8F8F8),
+              Colors.white,
+            ],
+          ),
+        ),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            accentColor: const Color(0xFF35577D).withOpacity(0.2),
+          ),
+          child: SafeArea(
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              extendBodyBehindAppBar: true,
+              body: Center(
+                child: Column(
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Positioned(
+                          top: 45,
+                          left: 5,
+                          child: IconButton(
+                            color: Colors.black,
+                            icon: Icon(Icons.arrow_back),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text("Your Orders",
+                            style: TextStyle(
+                                fontSize: 23, fontWeight: FontWeight.bold)),
+                        SizedBox(width: MediaQuery.of(context).size.width / 2),
+                        IconButton(
+                          color: Colors.black,
+                          icon: Icon(Icons.refresh),
+                          onPressed: () {
+                            orderFetching();
+                          },
+                        ),
+                      ],
+                    ),
+                    Expanded(
+                      child: Expanded(
+                        child: Text(
+                          "It looks like you don't have any orders yet!",
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -131,15 +206,10 @@ class OrderState extends State<Order> {
                     ],
                   ),
                   Expanded(
-                    child: orderList.eaterOrderList != null
-                        ? CustomScrollView(
-                            slivers: orderList.eaterOrderList.map((p) {
-                            return deliveryTimeline(p);
-                          }).toList())
-                        : Text(
-                            "It looks like you don't have any orders yet!",
-                            style: TextStyle(fontSize: 20),
-                          ),
+                    child: CustomScrollView(
+                        slivers: orderList.eaterOrderList.map((p) {
+                      return deliveryTimeline(p);
+                    }).toList()),
                   )
                 ],
               ),
@@ -173,6 +243,12 @@ class OrderState extends State<Order> {
       case "cancelled":
         {
           setState(() => order.completedStep = 1);
+        }
+        break;
+
+      case "ready":
+        {
+          setState(() => order.completedStep = 2);
         }
         break;
 

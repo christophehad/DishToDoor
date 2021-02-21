@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:dishtodoor/config/config.dart';
 import 'package:geolocator/geolocator.dart';
 
-class ProfileEater extends StatefulWidget {
-  ProfileEater({Key key}) : super(key: key);
+class ProfileCook extends StatefulWidget {
+  ProfileCook({Key key}) : super(key: key);
   @override
-  _ProfileEaterState createState() => _ProfileEaterState();
+  _ProfileCookState createState() => _ProfileCookState();
 }
 
-class _ProfileEaterState extends State<ProfileEater> {
+class _ProfileCookState extends State<ProfileCook> {
   DateTime pickupDate;
   bool datePicked = false;
 
@@ -46,6 +46,18 @@ class _ProfileEaterState extends State<ProfileEater> {
                 },
               ),
             ),
+            Positioned(
+              top: 45,
+              right: 15,
+              child: IconButton(
+                color: Colors.black,
+                icon: Icon(Icons.zoom_in),
+                onPressed: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => Order()));
+                },
+              ),
+            )
           ],
         ),
       ),

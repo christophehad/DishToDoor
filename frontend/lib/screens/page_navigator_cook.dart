@@ -1,3 +1,4 @@
+import 'package:dishtodoor/screens/Cook/profile_cook.dart';
 import 'package:dishtodoor/screens/add_generic_dish.dart';
 import 'package:flutter/material.dart';
 import 'placeholder_widget.dart';
@@ -19,7 +20,7 @@ class _PageNavigatorCook extends State<PageNavigatorCook> {
     PlaceholderWidget(Colors.red),
     PlaceholderWidget(Colors.yellow),
     PlaceholderWidget(Colors.green),
-    PlaceholderWidget(Colors.blue)
+    ProfileCook(),
   ];
 
   @override
