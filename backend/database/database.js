@@ -323,6 +323,18 @@ module.exports.cookGetProfile = function cookGetProfile(cook_id,done) {
     })
 }
 
+/**
+ * @param {schemes.eaterProfileCallback} done 
+ */
+module.exports.eaterGetProfile = function eaterGetProfile(eater_id,done) {
+    con.query('SELECT eater.*,user_profile.* FROM eater,user_profile WHERE eater_id = ? AND id = eater_id',[eater_id], (err,rows) => {
+        if (err) return done(err);
+        let row = rows[0];
+        let eaterProfile = schemes.eaterProfile(row.eater_id,row.first_name,row.last_name);
+        return done(null,eaterProfile);
+    })
+}
+
 /* Generic Dishes Functions */
 
 // returns the gendish id
@@ -623,5 +635,67 @@ module.exports.orderGet_Eater = function orderGet_Eater(eater_id,status=null,don
                         return done(null,orderList);
                     })
 }
+
+/**
+ * returns a list of orders for a given cook
+ * @param {schemes.orderCallback} done 
+ */
+module.exports.orderGet_Cook = function orderGet_Cook(cook_id,status=null,done) {
+    con.query('SELECT eater_dish_order.*,order_status.* FROM eater_dish_order,order_status '+
+                'WHERE eater_dish_order.order_id=order_status.order_id AND order_status.cook_id = ? '+
+                    'AND (order_status.general_status = ? OR ? IS NULL)',[cook_id,status,status], (err,rows) => {
+                        if (err) return done(err);
+                        let orderByID = {};
+                        for (const row of rows) {
+                            let order_id=row.order_id;
+                            /** @type {schemes.DishTuple} */
+                            let dish = {dish_id: row.dish_id, quantity: row.quantity};
+                            if (order_id in orderByID)
+                                orderByID[order_id].dishes.push(dish);
+                            else {
+                                orderByID[order_id] = schemes.order(
+                                    order_id, row.eater_id, row.cook_id, row.total_price, row.general_status, row.prepared_status, row.packaged_status,
+                                    row.message,row.date_scheduled_on,[dish]);
+                            }
+                        }
+                        let orderList = Object.values(orderByID);
+                        return done(null,orderList);
+                    })
+}
+
+// returns true
+function orderSetStatus(order_id,status,done) {
+    con.query('UPDATE order_status SET general_status = ? WHERE order_id = ?',[status,order_id], (err,result) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
+}
+
+// approve order
+module.exports.orderApprove = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.approved,done);
+}
+
+// reject order
+module.exports.orderReject = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.rejected,done);
+}
+
+// cancel order
+module.exports.orderCancel = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.cancelled,done);
+}
+
+// ready order
+module.exports.orderReady = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.ready,done);
+}
+
+// complete order
+module.exports.orderComplete = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.completed,done);
+}
+
+
 
 module.exports.uploadCookDishPic = cloudStorage.uploadCookDishPic;
