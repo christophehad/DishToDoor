@@ -27,10 +27,12 @@ class _SplashScreenState extends State<SplashScreen>
       ..addListener(() {
         setState(() {});
       });
-    controller.forward().then((_) {
-      navigationPage();
+
+    _tokenCheck().then((value) {
+      controller.forward().then((_) {
+        navigationPage();
+      });
     });
-    _tokenCheck();
   }
 
   @override

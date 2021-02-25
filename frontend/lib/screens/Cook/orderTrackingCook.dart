@@ -85,11 +85,15 @@ class CookTrackOrderState extends State<CookTrackOrder> {
 
   @override
   Widget build(BuildContext context) {
-    if (orderList == null) {
+    if (orderList.isEmpty) {
+      print("orderList is null");
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
-    } else if (orderList[0].cookOrderList == null) {
+    } else if (orderList[0].cookOrderList == null &&
+        orderList[1].cookOrderList == null &&
+        orderList[2].cookOrderList == null) {
+      print("orderList[i] is null");
       //TODO: mod this
       return Container(
         decoration: const BoxDecoration(
@@ -161,6 +165,7 @@ class CookTrackOrderState extends State<CookTrackOrder> {
         ),
       );
     }
+    print("orderList:" + orderList.toString());
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
