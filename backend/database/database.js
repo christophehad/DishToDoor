@@ -10,7 +10,7 @@ const cloudStorage = require('./cloud_storage');
 
 const dbConfig = {
     host: 'localhost', // insert the database url here
-    port: process.env.MYSQL_PORT || 50207, // 3306, for local
+    port: process.env.MYSQL_PORT || process.env.WEBSITE_MYSQL_PORT || 50207, // 3306, for local
     user: 'azure', // 'root',
     password: '6#vWHD_$',// '',
     database: 'dishtodoor',
