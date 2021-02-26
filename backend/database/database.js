@@ -25,7 +25,7 @@ var con; // con
 function handleDisconnect() {
     con = mysql.createConnection(dbConfig);
     con.on('error', (err) => {
-        if (err.code == 'PROTOCOL_CONNECTION_LOST') {
+        if (err.code == 'PROTOCOL_CONNECTION_LOST' || err.code == 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
             console.log('MySQL connection lost. Reconnecting...');
             handleDisconnect();
         }
