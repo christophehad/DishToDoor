@@ -20,8 +20,15 @@ app.use(express.urlencoded({extended: true})); // for passport POST requests
 
 // dummy response for now
 app.get('/', (req,res) => {
-    database.tryConnection();
     res.send("Welcome to the DishToDoor backend!");
+})
+
+// check database connection
+app.get('/test', (req,res) => {
+    database.tryConnection((err,message) => {
+        if (err) return res.send(err);
+        res.send(message);
+    })
 })
 
 // load the cook components into the server

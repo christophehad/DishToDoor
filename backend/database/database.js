@@ -24,6 +24,15 @@ var con; // con
 // handling connection errors (after timeout for example)
 function handleDisconnect() {
     con = mysql.createConnection(dbConfig);
+    con.connect( (err) => {
+        if (err) {
+            console.log('Error connecting to database: ',err);
+            console.log('Retrying in 5s...');
+            setTimeout(handleDisconnect,5000);
+        }
+        else
+            console.log('Connected to the MySQL database!');
+    })
     con.on('error', (err) => {
         if (err.code == 'PROTOCOL_CONNECTION_LOST' || err.code == 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
             console.log('MySQL connection lost. Reconnecting...');
@@ -35,15 +44,17 @@ function handleDisconnect() {
 }
 handleDisconnect();
 
-module.exports.tryConnection = function tryConnection() {
+module.exports.tryConnection = function tryConnection(done) {
     con.connect( (err) => {
         if (err) {
-            if (err.code == 'PROTOCOL_ENQUEUE_HANDSHAKE_TWICE')
-                return console.log('MySQL already connected');
-            else
-                return console.log(err);
+            if (err.code == 'PROTOCOL_ENQUEUE_HANDSHAKE_TWICE') {
+                console.log('MySQL already connected'); return done(null, 'MySQL already connected');
+            }
+            else {
+                console.log(err); return done(err);
+            }
         }
-        console.log('Connected to the MySQL database!');
+        console.log('Connected to the MySQL database!'); return done(null, 'Connected to the MySQL database!');
     })
 }
 
