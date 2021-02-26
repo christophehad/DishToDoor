@@ -33,19 +33,20 @@ class _PageNavigatorEater extends State<PageNavigatorEater> {
 
   @override
   void initState() {
-    getLoc().then((value) => locsharing());
-    orderFetching();
-    _children = [
-      PlaceholderWidget(Colors.red),
-      //if no cooks around, another map is displayed
-      cooks.cooksList != null
-          ? MainMap(cookList: cooks)
-          : MainMap2(
-              cookList: cooks,
-            ),
-      Order(orderList: orderList),
-      ProfileEater(),
-    ];
+    getLoc().then((value) => locsharing().then((value) {
+          orderFetching();
+          _children = [
+            //PlaceholderWidget(Colors.red),
+            //if no cooks around, another map is displayed
+            cooks.cooksList != null
+                ? MainMap(cookList: cooks)
+                : MainMap2(
+                    cookList: cooks,
+                  ),
+            Order(orderList: orderList),
+            ProfileEater(),
+          ];
+        }));
 
     super.initState();
   }
@@ -107,7 +108,7 @@ class _PageNavigatorEater extends State<PageNavigatorEater> {
       // If the server did return a 200 CREATED response,
       // then parse the JSON and send user to login screen
       dynamic decoded = jsonDecode(response.body);
-      print("Received: " + decoded.toString());
+      debugPrint("Received: " + decoded.toString(), wrapWidth: 1024);
       bool success = decoded['success'];
       print("success: " + success.toString());
       print(decoded['cooks']);
@@ -116,7 +117,8 @@ class _PageNavigatorEater extends State<PageNavigatorEater> {
           cooks = CookList.fromJson(decoded['cooks']);
         });
 
-        print(cooks.cooksList);
+        debugPrint("debug print: " + cooks.cooksList.toString(),
+            wrapWidth: 1024);
         //_registerSuccessfulAlert();
         print("Successful!");
       } else {
@@ -135,7 +137,7 @@ class _PageNavigatorEater extends State<PageNavigatorEater> {
   //This will trigger the build method to be run again with the state that we pass in to it
   Future onTabTapped(int index) async {
     //here I am checking if order's tab is pressed to update the info faster and avoid null error
-    if (index == 2) {
+    if (index == 1) {
       await orderFetching().then((value) {
         setState(() {
           _children[index] = Order(
@@ -144,7 +146,7 @@ class _PageNavigatorEater extends State<PageNavigatorEater> {
         });
       });
     }
-    if (index == 1) {
+    if (index == 0) {
       await getLoc().then((value) {
         locsharing().then((value) => setState(() {
               _children[index] = cooks.cooksList != null
@@ -162,6 +164,11 @@ class _PageNavigatorEater extends State<PageNavigatorEater> {
 
   @override
   Widget build(BuildContext context) {
+    if (_children.isEmpty) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       //  appBar: AppBar(
       //    title: Text('My Flutter App'),
@@ -175,8 +182,8 @@ class _PageNavigatorEater extends State<PageNavigatorEater> {
         currentIndex:
             _currentIndex, //set the currentIndex of the bottom navigation bar to the current index held in our state’s _currentIndex property.
         items: [
-          new BottomNavigationBarItem(
-              icon: Icon(Icons.local_restaurant), label: 'Order'),
+          //new BottomNavigationBarItem(
+          //icon: Icon(Icons.local_restaurant), label: 'Order'),
           new BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
           new BottomNavigationBarItem(
               icon: Icon(Icons.calendar_today), label: 'Track'),

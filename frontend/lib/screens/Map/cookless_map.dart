@@ -184,9 +184,11 @@ class _MainMapState extends State<MainMap2> {
   void _onMapCreated(GoogleMapController _cntlr) async {
     print("creating map");
     var _loc = await _location.getLocation();
-    setState(() {
-      _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
-    });
+    if (this.mounted) {
+      setState(() {
+        _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
+      });
+    }
     isMapCreated = true;
     changeMapMode();
     setState(() {});

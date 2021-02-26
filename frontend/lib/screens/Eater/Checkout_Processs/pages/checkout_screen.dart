@@ -53,18 +53,6 @@ class _CheckoutState extends State<Checkout> {
               },
             ),
           ),
-          Positioned(
-            top: 45,
-            right: 15,
-            child: IconButton(
-              color: Colors.black,
-              icon: Icon(Icons.zoom_in),
-              onPressed: () {
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => Order()));
-              },
-            ),
-          )
         ],
       ),
     );

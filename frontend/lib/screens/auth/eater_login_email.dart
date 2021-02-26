@@ -110,6 +110,7 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
                 await storage.write(key: 'token', value: decoded['token']);
                 await storage.write(key: 'email', value: email.text);
                 await storage.write(key: 'pass', value: password.text);
+                await storage.write(key: 'type', value: 'eater');
               }
               print("Successful!");
               print("Your token is" + decoded['token']);

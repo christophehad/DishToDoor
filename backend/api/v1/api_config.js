@@ -118,6 +118,22 @@ module.exports.cookProfileAPI = function cookProfileAPI(f_name,l_name,logo,lat,l
 }
 
 /**
+ * Eater Profile API
+ * @typedef EaterProfileAPI
+ * @property {String} first_name
+ * @property {String} last_name
+*/
+
+/**
+ * @returns {EaterProfileAPI}
+ */
+module.exports.eaterProfileAPI = function(f_name,l_name) {
+    return {
+        first_name:f_name, last_name:l_name
+    }
+}
+
+/**
  * Order Dish API
  * @typedef {Object} OrderDishAPI
  * @property {Number} dish_id
@@ -135,6 +151,8 @@ module.exports.orderDishAPI = function orderDishAPI(dish_id,name,quantity,price,
         dish_id:dish_id, name:name, quantity:quantity, price:price, dish_pic:dish_pic
     }
 }
+
+module.exports.OrderStatus = require('../../database/schemes').OrderStatus;
 
 /**
  * API Order Eater
@@ -157,6 +175,31 @@ module.exports.eaterOrderAPI = function eaterOrderAPI(order_id,cookprofile,total
     let sched_timeAPI = sched_time? datetimeAPI(sched_time) : null; // if sched_time null keep it null
     return {
         order_id:order_id, cook:cookprofile, total_price:total_price, general_status:gen_status, scheduled_time:sched_timeAPI,
+        dishes:dishes
+    }
+}
+
+/**
+ * API Order Cook
+ * @typedef {Object} CookOrderAPI
+ * @property {Number} order_id
+ * @property {EaterProfileAPI} eater
+ * @property {Number} total_price
+ * @property {String} general_status
+ * @property {Date} scheduled_time
+ * @property {OrderDishAPI[]} dishes
+*/
+
+/**
+ * @param {Date} sched_time
+ * @param {EaterProfileAPI} eaterprofile 
+ * @param {OrderDishAPI[]} dishes
+ * @returns {CookOrderAPI}
+ */
+module.exports.cookOrderAPI = function (order_id,eaterprofile,total_price,gen_status,sched_time,dishes) {
+    let sched_timeAPI = sched_time? datetimeAPI(sched_time) : null; // if sched_time null keep it null
+    return {
+        order_id:order_id, eater:eaterprofile, total_price:total_price, general_status:gen_status, scheduled_time:sched_timeAPI,
         dishes:dishes
     }
 }
