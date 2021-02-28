@@ -33,6 +33,7 @@ class Order extends StatefulWidget {
 class OrderState extends State<Order> {
   EaterOrderList orderList = EaterOrderList();
   ScrollController _scrollController;
+  bool isOrderEmpty = false;
 
   @override
   void initState() {
@@ -63,24 +64,31 @@ class OrderState extends State<Order> {
       if (success) {
         setState(() {
           orderList = EaterOrderList.fromJson(decoded['orders']);
+          isOrderEmpty = false;
         });
         print("Successful!");
       } else {
         print("Error: " + decoded['error']);
+        setState(() {
+          isOrderEmpty = true;
+        });
       }
     } else {
       print(response.statusCode);
       print("An unkown error occured");
+      setState(() {
+        isOrderEmpty = true;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (orderList == null) {
+    if (orderList.eaterOrderList == null && isOrderEmpty == false) {
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
-    } else if (orderList.eaterOrderList == null) {
+    } else if (isOrderEmpty == true) {
       return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
