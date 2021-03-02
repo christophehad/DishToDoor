@@ -325,12 +325,27 @@ module.exports.cookGetOpenCloseTimes = function cookGetOpenCloseTimes(id, done) 
 /**
  * @param {schemes.cookProfileCallback} done 
  */
-module.exports.cookGetProfile = function cookGetProfile(cook_id,done) {
+var cookGetProfile = module.exports.cookGetProfile = function(cook_id,done) {
     con.query('SELECT cook.*,user_profile.* FROM cook,user_profile WHERE cook_id = ? AND id = cook_id',[cook_id], (err,rows) => {
         if (err) return done(err);
         let row = rows[0];
         let cookProfile = schemes.cookProfile(row.cook_id,row.first_name,row.last_name,row.cook_logo,row.lat,row.lon,row.opening_time,row.closing_time);
         return done(null,cookProfile);
+    })
+}
+
+/**
+ * @param {schemes.cookAccountCallback} done 
+ */
+module.exports.cookGetAccount = function(cook_id,done) {
+    con.query('SELECT user_account.*, cook.is_verified FROM user_account,cook WHERE cook_id = ? AND id = cook_id',[cook_id], (err,rows) => {
+        if (err) return done(err);
+        let row = rows[0];
+        cookGetProfile(cook_id, (err,cookprofile) => {
+            if (err) return done(err);
+            let cookAccount = schemes.cookAccount(cook_id,row.email,row.phone,row.is_verified,row._added,cookprofile);
+            return done(null,cookAccount);
+        })
     })
 }
 
