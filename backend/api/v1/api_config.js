@@ -124,7 +124,7 @@ var cookProfileAPI = module.exports.cookProfileAPI = function (f_name,l_name,log
  * @property {String} email
  * @property {String} phone
  * @property {Boolean} is_verified
- * @property {Date} date_added
+ * @property {String} date_added
  * @property {CookProfileAPI} profile
 */
 
