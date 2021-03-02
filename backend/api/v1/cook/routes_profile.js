@@ -5,6 +5,7 @@ const DEBUG = apiConfig.DEBUG;
 // to be returned in the HTTP requests
 const successJSON = apiConfig.successJSON;
 const failureJSON = apiConfig.failureJSON;
+const cookAccountAPI = apiConfig.cookAccountAPI;
 
 // module for uploading pics
 const multer = require('multer');
@@ -102,6 +103,19 @@ router.get('/profile/times/get',(req,res,next) => {
         if (!openclosing) return res.json(failureJSON(message));
         let toSend = successJSON();
         toSend.opening_time=openclosing[0], toSend.closing_time=openclosing[1];
+        res.json(toSend);
+    })
+})
+
+router.get('/profile/get',(req,res,next) => {
+    if (DEBUG) console.log(req.body);
+
+    let cook_id = req.user;
+    profile.getAccount(cook_id, (err,cook,message) => {
+        if (err) return next(err);
+        let cookAccount = cookAccountAPI(cook);
+        let toSend = successJSON();
+        toSend.cook = cookAccount;
         res.json(toSend);
     })
 })

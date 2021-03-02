@@ -108,6 +108,35 @@ exports.cookProfile = function(cook_id,f_name,l_name,logo,lat,lon,open,close) {
 */
 
 /**
+ * Cook Account Info
+ * @typedef CookAccount
+ * @property {Number} cook_id
+ * @property {String} email
+ * @property {String} phone
+ * @property {Boolean} is_verified
+ * @property {Date} date_added
+ * @property {CookProfile} profile
+*/
+
+/**
+ * @param {CookProfile} cookprofile 
+ * @returns {CookAccount}
+ */
+exports.cookAccount = function(cook_id,email,phone,is_ver,date,cookprofile) {
+    return {
+        cook_id:cook_id, email:email, phone:phone, is_verified:is_ver, date_added:date, profile:cookprofile
+    }
+}
+
+/**
+  * Cook Account Callback
+  * @callback cookAccountCallback
+  * @param {String} err
+  * @param {CookAccount} cook
+*/
+
+
+/**
  * Eater Profile Info
  * @typedef EaterProfile
  * @property {Number} eater_id

@@ -1,4 +1,5 @@
 const {DateTime} = require('luxon');
+const schemes = require('../../database/schemes');
 
 module.exports.DEBUG = true;
 module.exports.tmpPath = 'tmp/';
@@ -109,11 +110,35 @@ module.exports.cookMap = function cookMap(f_name,l_name,logo,lat,lon,distance,op
  * @param {String} close
  * @returns {CookProfileAPI}
  */
-module.exports.cookProfileAPI = function cookProfileAPI(f_name,l_name,logo,lat,lon,open,close) {
+var cookProfileAPI = module.exports.cookProfileAPI = function (f_name,l_name,logo,lat,lon,open,close) {
     let open_with_date = addDateISO(open), close_with_date = addDateISO(close);
     return {
         first_name:f_name, last_name:l_name, logo:logo, lat:lat, lon:lon, opening_time:open_with_date,
         closing_time:close_with_date
+    }
+}
+
+/**
+ * Cook Account API
+ * @typedef CookAccountAPI
+ * @property {String} email
+ * @property {String} phone
+ * @property {Boolean} is_verified
+ * @property {Date} date_added
+ * @property {CookProfileAPI} profile
+*/
+
+/**
+ * @param {schemes.CookAccount} cook
+ * @returns {CookAccountAPI}
+ */
+module.exports.cookAccountAPI = function (cook) {
+    let date_api = datetimeAPI(cook.date_added);
+    let is_verified_api = cook.is_verified == true;
+    let cookprofile = cookProfileAPI(cook.profile.first_name,cook.profile.last_name,cook.profile.logo,
+                                        cook.profile.lat,cook.profile.lon,cook.profile.opening_time,cook.profile.closing_time);
+    return {
+        email:cook.email,phone:cook.phone,is_verified:is_verified_api,date_added:date_api,profile:cookprofile
     }
 }
 
