@@ -122,6 +122,7 @@ class _SplashScreenState extends State<SplashScreen>
           print("Error: " + decoded['error']);
         }
       } else {
+        print("Error: " + response.statusCode.toString());
         print("An unkown error occured");
       }
     }

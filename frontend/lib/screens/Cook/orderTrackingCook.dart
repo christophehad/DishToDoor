@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:timeline_tile/timeline_tile.dart';
-
+import 'package:intl/intl.dart';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -32,13 +32,12 @@ class CookTrackOrder extends StatefulWidget {
 
 class CookTrackOrderState extends State<CookTrackOrder> {
   List<CookOrderList> orderList = List<CookOrderList>();
-  ScrollController _scrollController;
+  Color doneButton = Colors.grey;
 
   @override
   void initState() {
     //orderList =
     //    widget.orderList == null ? widget.orderList : List<CookOrderList>();
-    _scrollController = ScrollController();
     orderFetching();
     super.initState();
   }
@@ -117,22 +116,22 @@ class CookTrackOrderState extends State<CookTrackOrder> {
               body: Center(
                 child: Column(
                   children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Positioned(
-                          top: 45,
-                          left: 5,
-                          child: IconButton(
-                            color: Colors.black,
-                            icon: Icon(Icons.arrow_back),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.start,
+                    //   children: [
+                    //     Positioned(
+                    //       top: 45,
+                    //       left: 5,
+                    //       child: IconButton(
+                    //         color: Colors.black,
+                    //         icon: Icon(Icons.arrow_back),
+                    //         onPressed: () {
+                    //           Navigator.pop(context);
+                    //         },
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -289,7 +288,7 @@ class CookTrackOrderState extends State<CookTrackOrder> {
               "Pending Orders",
               style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700),
             ),
-            trailing: SizedBox(),
+            trailing: numberOfOrders(status[0]),
             children: [
               ListView(
                 scrollDirection: Axis.vertical,
@@ -310,7 +309,7 @@ class CookTrackOrderState extends State<CookTrackOrder> {
               "Current Orders",
               style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700),
             ),
-            trailing: SizedBox(),
+            trailing: numberOfOrders(status[1]),
             children: [
               ListView(
                 scrollDirection: Axis.vertical,
@@ -328,17 +327,17 @@ class CookTrackOrderState extends State<CookTrackOrder> {
           child: ExpansionTile(
             backgroundColor: Colors.white,
             title: Text(
-              "Completed Orders",
+              "Past Orders",
               style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700),
             ),
-            trailing: SizedBox(),
+            trailing: numberOfOrders(status[2]),
             children: [
               ListView(
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
                 physics: ClampingScrollPhysics(),
                 children: status[2].cookOrderList.map((p) {
-                  return completedTimeline(p);
+                  return pastTimeline(p);
                 }).toList(),
               ),
             ],
@@ -362,11 +361,23 @@ class CookTrackOrderState extends State<CookTrackOrder> {
             child: ExpansionTile(
               backgroundColor: Colors.white,
               title: Text(
-                "Order " + order.orderId.toString(),
+                "Order " +
+                    order.orderId.toString() +
+                    " - " +
+                    order.eater.firstName +
+                    " " +
+                    order.eater.lastName,
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
               ),
-              subtitle:
-                  Text(order.eater.firstName + " " + order.eater.lastName),
+              subtitle: Text(
+                "pickup time: " +
+                    DateFormat('kk:mm').format(order.scheduledTime) +
+                    "\n" +
+                    "total: " +
+                    order.totalPrice.toString() +
+                    " LBP",
+                style: TextStyle(fontSize: 15),
+              ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -444,7 +455,7 @@ class CookTrackOrderState extends State<CookTrackOrder> {
     );
   }
 
-  Widget completedTimeline(CookOrder order) {
+  Widget pastTimeline(CookOrder order) {
     statusUpdate(order);
     return Card(
       child: Column(
@@ -456,7 +467,10 @@ class CookTrackOrderState extends State<CookTrackOrder> {
             child: ExpansionTile(
               backgroundColor: Colors.white,
               title: Text(
-                "Order " + order.orderId.toString(),
+                "Order " +
+                    order.orderId.toString() +
+                    " - " +
+                    order.generalStatus.toString(),
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
               ),
               subtitle:
@@ -494,17 +508,23 @@ class CookTrackOrderState extends State<CookTrackOrder> {
                   ListTile(
                     dense: true,
                     title: Text(
-                      "Order " + order.orderId.toString(),
+                      "Order " +
+                          order.orderId.toString() +
+                          " - " +
+                          order.eater.firstName +
+                          " " +
+                          order.eater.lastName,
                       style:
                           TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
                     ),
                     subtitle: Text(
-                        order.eater.firstName + " " + order.eater.lastName),
-                    trailing: TextButton(
-                      child: Text("Call " + order.eater.firstName),
-                      onPressed: () {
-                        //call cook
-                      },
+                      "pickup time: " +
+                          DateFormat('kk:mm').format(order.scheduledTime) +
+                          "\n" +
+                          "total: " +
+                          order.totalPrice.toString() +
+                          " LBP",
+                      style: TextStyle(fontSize: 15),
                     ),
                   ),
                   Row(
@@ -528,7 +548,7 @@ class CookTrackOrderState extends State<CookTrackOrder> {
                       ),
                       TextButton(
                         child:
-                            Text("Done", style: TextStyle(color: Colors.grey)),
+                            Text("Done", style: TextStyle(color: doneButton)),
                         onPressed: () async {
                           await _completeAlert(order);
                         },
@@ -536,6 +556,12 @@ class CookTrackOrderState extends State<CookTrackOrder> {
                     ],
                   ),
                 ],
+              ),
+              trailing: InkWell(
+                child: Icon(Icons.call_rounded, color: Colors.blue),
+                onTap: () {
+                  //call eater
+                },
               ),
               children: [
                 Container(
@@ -608,131 +634,30 @@ class CookTrackOrderState extends State<CookTrackOrder> {
         ],
       ),
     );
-    // SliverToBoxAdapter(
-    //   child: Column(
-    //     children: [
-    //       Card(
-    //         child: Column(
-    //           children: [
-    //             Column(
-    //               children: [
-    //                 ListTile(
-    //                   dense: true,
-    //                   title: Text(
-    //                     "Order " + order.orderId.toString(),
-    //                     style: TextStyle(
-    //                         fontSize: 17, fontWeight: FontWeight.w700),
-    //                   ),
-    //                   subtitle: Text(
-    //                       order.eater.firstName + " " + order.eater.lastName),
-    //                   trailing: TextButton(
-    //                     child: Text("Call " + order.eater.firstName),
-    //                     onPressed: () {
-    //                       //call cook
-    //                     },
-    //                   ),
-    //                 ),
-    //                 Row(
-    //                   mainAxisAlignment: MainAxisAlignment.end,
-    //                   children: [
-    //                     TextButton(
-    //                       child: Text(
-    //                         "Cancel",
-    //                         style: TextStyle(color: Colors.red),
-    //                       ),
-    //                       onPressed: () async {
-    //                         await _cancelAlert(order);
-    //                       },
-    //                     ),
-    //                     TextButton(
-    //                       child: Text("Ready",
-    //                           style: TextStyle(color: Colors.green)),
-    //                       onPressed: () async {
-    //                         await readyOrder(order);
-    //                       },
-    //                     ),
-    //                     TextButton(
-    //                       child: Text("Done",
-    //                           style: TextStyle(color: Colors.grey)),
-    //                       onPressed: () async {
-    //                         await _completeAlert(order);
-    //                       },
-    //                     ),
-    //                   ],
-    //                 ),
-    //               ],
-    //             ),
-    //             Container(
-    //               margin: const EdgeInsets.all(8),
-    //               constraints: const BoxConstraints(maxHeight: 180),
-    //               child: ListView.builder(
-    //                 scrollDirection: Axis.horizontal,
-    //                 controller: _scrollController,
-    //                 itemCount: deliverySteps.length,
-    //                 itemBuilder: (BuildContext context, int index) {
-    //                   final step = deliverySteps[index];
-    //                   var indicatorSize = 30.0;
-    //                   var beforeLineStyle = LineStyle(
-    //                     color: Colors.green.withOpacity(0.8),
-    //                   );
+  }
 
-    //                   _DeliveryStatus status;
-    //                   LineStyle afterLineStyle;
-    //                   if (index < order.completedStep) {
-    //                     status = _DeliveryStatus.done;
-    //                   } else if (index > order.completedStep) {
-    //                     status = _DeliveryStatus.todo;
-    //                     indicatorSize = 20;
-    //                     beforeLineStyle =
-    //                         const LineStyle(color: Color(0xFF747888));
-    //                   } else if (order.generalStatus == "rejected" ||
-    //                       order.generalStatus == "cancelled") {
-    //                     afterLineStyle =
-    //                         const LineStyle(color: Color(0xFF747888));
-    //                     status = _DeliveryStatus.rejected;
-    //                   } else {
-    //                     afterLineStyle =
-    //                         const LineStyle(color: Color(0xFF747888));
-    //                     status = _DeliveryStatus.doing;
-    //                   }
-
-    //                   return TimelineTile(
-    //                     axis: TimelineAxis.horizontal,
-    //                     alignment: TimelineAlign.center,
-    //                     isFirst: index == 0,
-    //                     isLast: index == deliverySteps.length - 1,
-    //                     beforeLineStyle: beforeLineStyle,
-    //                     afterLineStyle: afterLineStyle,
-    //                     indicatorStyle: IndicatorStyle(
-    //                       width: indicatorSize,
-    //                       height: indicatorSize,
-    //                       indicator: _IndicatorDelivery(status: status),
-    //                     ),
-    //                     startChild: _StartChildDelivery(index: index),
-    //                     endChild: _EndChildDelivery(
-    //                       text: step,
-    //                       current: index == order.completedStep,
-    //                     ),
-    //                   );
-    //                 },
-    //               ),
-    //             ),
-    //             Container(
-    //               constraints: const BoxConstraints(maxHeight: 200),
-    //               child: ListView(
-    //                 scrollDirection: Axis.vertical,
-    //                 shrinkWrap: true,
-    //                 children: order.dishes.map((p) {
-    //                   return dishesCards(p);
-    //                 }).toList(),
-    //               ),
-    //             ),
-    //           ],
-    //         ),
-    //       ),
-    //     ],
-    //   ),
-    // );
+  Widget numberOfOrders(CookOrderList status) {
+    return Container(
+      width: 30,
+      height: 30,
+      child: Center(
+        child: Text(
+          status.cookOrderList.length.toString(),
+          style: TextStyle(
+            fontSize: 15.0,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(width: 1),
+        borderRadius: BorderRadius.all(
+          Radius.circular(30),
+        ),
+        color: Colors.white,
+      ),
+    );
   }
 
   //List creation -- cooks cards
@@ -888,6 +813,9 @@ class CookTrackOrderState extends State<CookTrackOrder> {
   }
 
   Future<bool> readyOrder(CookOrder order) async {
+    setState(() {
+      doneButton = Colors.blue;
+    });
     String token = await storage.read(key: 'token');
     print("token: " + token);
     print("trying comm readyOrder");
