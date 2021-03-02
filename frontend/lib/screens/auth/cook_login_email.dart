@@ -62,7 +62,7 @@ class _CookLoginEmail extends State<CookLoginEmail> {
                       key: 'location',
                       value: (cookLocation.cookLocation.latitude.toString() +
                           ',' +
-                          cookLocation.cookLocation.latitude.toString()));
+                          cookLocation.cookLocation.longitude.toString()));
                 });
               }
               // if(gotLocation == false){

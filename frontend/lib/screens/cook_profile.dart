@@ -1,112 +1,191 @@
-// import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:dishtodoor/config/config.dart';
+import 'package:dishtodoor/screens/auth/login.dart';
 
-// class ProfileCook2 extends StatefulWidget {
-//   ProfileCook2({Key key}) : super(key: key);
-//   @override
-//   _ProfileCookState2 createState() => _ProfileCookState2();
-// }
+void main() => runApp(OrderApp());
 
-// class _ProfileCookState2 extends State<ProfileCook2> {
-//   DateTime pickupDate;
-//   bool datePicked = false;
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.teal[200],
-//       body:SafeArea(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: <Widget>[
-//              CircleAvatar(
-//                radius: 50,
-//                backgroundImage:NetworkImage(cook.logo),//check here
-//              ),
-//              Text(,//get name
-//              style: TextStyle(
-//                fontSize: 40.0,
-//                color: Colors.white,
-//                fontWeight: FontWeight.bold
-//                ),
-//              ),
-//               SizedBox(
-//               height: 20,
-//               width: 200,
-//               child: Divider(
-//                 color: Colors.teal.shade700,
-//                 ),
-//                 ),
-//                Card(
-//                 color: Colors.white,
-//                 margin: EdgeInsets.symmetric(vertical: 10.0,horizontal: 25.0),
-//                 child: ListTile(
-//                   leading: Icon(
-//                    Icons.phone,
-//                    color: Colors.teal,
-//                   )
-//                   title:Text(
-//                     //add phone number
-//                     style: TextStyle(
-//                        fontSize: 20.0,
-//                        color: Colors.teal,
-//                     )
-//                   )
-//                 )
-//               ),
-//               Card(
-//                 color: Colors.white,
-//                 margin: EdgeInsets.symmetric(vertical: 10.0,horizontal: 25.0),
-//                 child: ListTile(
-//                   leading: Icon(
-//                    Icons.email,
-//                    color: Colors.teal,
-//                   )
-//                   title:Text(
-//                     //add email
-//                     style: TextStyle(
-//                        fontSize: 20.0,
-//                        color: Colors.teal,
-//                     )
-//                   )
-//                 )
-//               ),
-//               Card(
-//                 color: Colors.white,
-//                 margin: EdgeInsets.symmetric(vertical: 10.0,horizontal: 25.0),
-//                 child: ListTile(
-//                   leading: Icon(
-//                    Icons.location_city,
-//                    color: Colors.teal,
-//                   )
-//                   title:Text(
-//                     //add location
-//                     style: TextStyle(
-//                        fontSize: 20.0,
-//                        color: Colors.teal,
-//                     )
-//                   )
-//                 )
-//               ),
-//                 Card(
-//                 color: Colors.white,
-//                 margin: EdgeInsets.symmetric(vertical: 10.0,horizontal: 25.0),
-//                 child: ListTile(
-//                   leading: Icon(
-//                    Icons.check,
-//                    color: Colors.teal,
-//                   )
-//                   title:Text(
-//                     //add verified since
-//                     style: TextStyle(
-//                        fontSize: 20.0,
-//                        color: Colors.teal,
-//                     )
-//                   )
-//                 )
-//               )
-//           ],
-//           )
+class OrderApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Horizontal Timeline',
+      home: ProfileCook2(),
+    );
+  }
+}
 
-//       ),
-//     );
-//   }
-// }
+//TODO logout button
+//TODO reset location
+class ProfileCook2 extends StatefulWidget {
+  ProfileCook2({Key key}) : super(key: key);
+  @override
+  _ProfileCookState2 createState() => _ProfileCookState2();
+}
+
+class _ProfileCookState2 extends State<ProfileCook2> {
+  DateTime pickupDate;
+  bool datePicked = false;
+
+  Future<void> _changeLocationAlert() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Are you sure you want to change your location?'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('This action is permanent and irreversible.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Yes'),
+              onPressed: () async {
+                await _setLocation();
+                return Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _setLocation() async {
+    storage.delete(key: 'location');
+    cookLocation.sendLoc().then((value) async {
+      await storage.write(
+          key: 'location',
+          value: (cookLocation.cookLocation.latitude.toString() +
+              ',' +
+              cookLocation.cookLocation.longitude.toString()));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.teal[200],
+      body: SafeArea(
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          CircleAvatar(
+            radius: 50,
+            backgroundImage: NetworkImage(
+                "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"), //check here
+          ),
+          Text(
+            "Fadi", //get name
+            style: TextStyle(
+                fontSize: 40.0,
+                color: Colors.white,
+                fontWeight: FontWeight.bold),
+          ),
+          SizedBox(
+            height: 20,
+            width: 200,
+            child: Divider(
+              color: Colors.teal.shade700,
+            ),
+          ),
+          Card(
+              color: Colors.white,
+              margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
+              child: ListTile(
+                  leading: Icon(
+                    Icons.phone,
+                    color: Colors.teal,
+                  ),
+                  title: Text("03333333",
+                      //add phone number
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        color: Colors.teal,
+                      )))),
+          Card(
+              color: Colors.white,
+              margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
+              child: ListTile(
+                  leading: Icon(
+                    Icons.email,
+                    color: Colors.teal,
+                  ),
+                  title: Text("fadi@email.com",
+                      //add email
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        color: Colors.teal,
+                      )))),
+          Card(
+              color: Colors.white,
+              margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
+              child: ListTile(
+                  leading: Icon(
+                    Icons.location_city,
+                    color: Colors.teal,
+                  ),
+                  onTap: () {
+                    _changeLocationAlert();
+                  },
+                  title: Text("Beirut, Lebanon",
+                      //add location
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        color: Colors.teal,
+                      )))),
+          Card(
+            color: Colors.white,
+            margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
+            child: ListTile(
+              leading: Icon(
+                Icons.check,
+                color: Colors.teal,
+              ),
+              title: Text(
+                "verified since Mai 2020",
+                //add verified since
+                style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.teal,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            height: MediaQuery.of(context).size.height / 10,
+          ),
+          Card(
+            color: Colors.white,
+            margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
+            child: ListTile(
+              leading: Icon(
+                Icons.logout,
+                color: Colors.teal,
+              ),
+              onTap: () {
+                storage.deleteAll();
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => Login(
+                        //cookList: cooks,
+                        )));
+              },
+              title: Text(
+                "Logout",
+                //add verified since
+                style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.teal,
+                ),
+              ),
+            ),
+          ),
+        ],
+      )),
+    );
+  }
+}
