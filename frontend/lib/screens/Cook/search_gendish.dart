@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/screens/auth/globals.dart' as globals;
 import 'package:dishtodoor/config/config.dart';
-import 'package:dishtodoor/screens/dishClass.dart';
+import 'package:dishtodoor/screens/Cook/dishClass.dart';
+import 'package:dishtodoor/screens/Cook/add_generic_dish.dart';
+import 'dart:async';
 
 class GenDishSearchBar extends StatefulWidget {
   @override
@@ -14,10 +16,56 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
   String query;
   GenDishList genDishes;
 
+  @override
+  void initState() {
+    print('LaunchState initState start');
+    displayGenDish();
+    super.initState();
+  }
+
   Future getGenDish() async {
     print("Trying comm");
     final http.Response response = await http.get(
       baseURL + '/cook/api/gen-dish/search?query=' + query,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': "Bearer " + globals.token
+      },
+    );
+    String error = "";
+    if (response.statusCode == 200) {
+      // If the server did return a 200 CREATED response,
+      // then parse the JSON
+      dynamic decoded = jsonDecode(response.body);
+      print("Received: " + decoded.toString());
+      bool success = decoded['success'];
+      print("success: " + success.toString());
+      print(decoded['gen_dishes']);
+      if (success) {
+        setState(() {
+          genDishes = GenDishList.fromJson(decoded['gen_dishes']);
+          error = "";
+        });
+        print(genDishes.genDishList);
+        print("Successful!");
+      } else {
+        //handle errors
+        print("Error: " + decoded['error']);
+        if (decoded['error'] == "missing_query") {
+          displayGenDish();
+        }
+      }
+    } else {
+      // If the server did not return a 201 CREATED response,
+      // then throw an exception.
+      print("An unkown error occured");
+    }
+  }
+
+  Future displayGenDish() async {
+    print("Trying comm");
+    final http.Response response = await http.get(
+      baseURL + '/cook/api/gen-dish/get',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': "Bearer " + globals.token
@@ -35,15 +83,11 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
         setState(() {
           genDishes = GenDishList.fromJson(decoded['gen_dishes']);
         });
-
         print(genDishes.genDishList);
-        //_registerSuccessfulAlert();
         print("Successful!");
-        //showList2();
       } else {
         //handle errors
         print("Error: " + decoded['error']);
-        //_registerErrorAlert(decoded['error']);
       }
     } else {
       // If the server did not return a 201 CREATED response,
@@ -53,7 +97,6 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
   }
 
   Widget searchField() {
-    //search input field
     return Container(
         child: TextField(
       autofocus: true,
@@ -63,36 +106,65 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
         hintText: "Search Dishes",
         enabledBorder: UnderlineInputBorder(
           borderSide: BorderSide(color: Colors.white, width: 2),
-        ), //under line border, set OutlineInputBorder() for all side border
+        ),
         focusedBorder: UnderlineInputBorder(
           borderSide: BorderSide(color: Colors.white, width: 2),
-        ), // focused border color
-      ), //decoration for search input field
+        ),
+      ),
       onChanged: (value) {
-        query = value; //update the value of query
+        query = value;
         getGenDish();
-        //start to get suggestion
       },
     ));
   }
 
-  //List creation -- cooks cards
+  //List creation
   Widget genDishCards(GenDish genDish) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Card(
-          child: Column(
-            children: [
-              ListTile(
-                //trailing: Text(dish.price.toString() + "LBP"),
-                title: Text(genDish.name),
-                //subtitle: Text(dish.description),
-              ),
-            ],
+        InkWell(
+          child: Card(
+            child: ListTile(
+              title: Text(genDish.name),
+            ),
           ),
+          onTap: () {
+            Navigator.pop(context, genDish.name + "." + genDish.id.toString());
+          },
         ),
       ],
+    );
+  }
+
+  Widget addButton() {
+    return Positioned(
+      left: 0,
+      bottom: 0,
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => AddGenDish() //cookList: cooks,
+                  ));
+        },
+        child: Container(
+          width: 230,
+          height: 50,
+          child: Center(
+              child: new Text("Add Generic dish",
+                  style: const TextStyle(color: Colors.white, fontSize: 20.0))),
+          decoration: BoxDecoration(
+              color: Colors.blue,
+              boxShadow: [
+                BoxShadow(
+                  color: Color.fromRGBO(0, 0, 0, 0.2),
+                  offset: Offset(0, 5),
+                  blurRadius: 10.0,
+                )
+              ],
+              borderRadius: BorderRadius.circular(10)),
+        ),
+      ),
     );
   }
 
@@ -116,7 +188,8 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
                             children: genDishes.genDishList.map((p) {
                           return genDishCards(p);
                         }).toList()),
-                      ])
+                      ]),
+                  addButton()
                 ],
               )),
           Positioned(

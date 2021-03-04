@@ -1,27 +1,41 @@
+import 'package:dishtodoor/screens/Cook/search_gendish.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:dishtodoor/screens/auth/globals.dart' as globals;
+import 'package:dishtodoor/config/config.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:path/path.dart' as p;
 
-class AddGenericDish extends StatefulWidget {
+class AddCookDish extends StatefulWidget {
   @override
-  _AddGenericDish createState() => _AddGenericDish();
+  _AddCookDish createState() => _AddCookDish();
 }
 
-class _AddGenericDish extends State<AddGenericDish> {
-  TextEditingController email = TextEditingController(text: "");
-  TextEditingController password = TextEditingController(text: "");
+class _AddCookDish extends State<AddCookDish> {
+  String genDishName = "Search";
+  String genDishId;
+  TextEditingController customName = TextEditingController(text: "");
+  TextEditingController price = TextEditingController(text: "");
+  TextEditingController descriptionText = TextEditingController(text: "");
 
-  String dropdownvalue_cat = 'Platter';
-  String dropdownvalue_servings = '1-2 persons';
+  String dropDownValueCat = 'Platter';
+  String dropDownValueServings = '1-2 persons';
 
   File _image;
+  String _imageString;
   final picker = ImagePicker();
 
   Future getImageCamera() async {
     final pickedFile = await picker.getImage(source: ImageSource.camera);
     setState(() {
       if (pickedFile != null) {
-        _image = File(pickedFile.path);
+        setState(() {
+          _image = File(pickedFile.path);
+        });
+        //_imageString = base64Encode(_image.readAsBytesSync());
       } else {
         print('No image selected.');
       }
@@ -32,7 +46,11 @@ class _AddGenericDish extends State<AddGenericDish> {
     final pickedFile = await picker.getImage(source: ImageSource.gallery);
     setState(() {
       if (pickedFile != null) {
-        _image = File(pickedFile.path);
+        setState(() {
+          _image = File(pickedFile.path);
+        });
+
+        //_imageString = base64Encode(_image.readAsBytesSync());
       } else {
         print('No image selected.');
       }
@@ -41,7 +59,6 @@ class _AddGenericDish extends State<AddGenericDish> {
 
   @override
   Widget build(BuildContext context) {
-    //search input field
     Widget addMealText = Column(children: <Widget>[
       SizedBox(height: 60),
       Padding(
@@ -61,24 +78,21 @@ class _AddGenericDish extends State<AddGenericDish> {
     Widget mealName =
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
       Column(children: <Widget>[
-        //SizedBox(height: 90),
-        // Padding(
-        //     padding: const EdgeInsets.all(5),
-        //     child: Container(child: showImage(), height: 150, width: 150)),
         Center(
+          //if no image, display 'No image selected'
           child: _image == null
-              ? Text('No image selected.')
+              ? Text('No image selected')
               : Image.file(_image, height: 150, width: 150),
         ),
         RaisedButton(
           color: Colors.blueAccent,
           onPressed: getImageGallery,
-          child: Text("Pick from gallery"),
+          child: Text("Pick from Gallery"),
         ),
         RaisedButton(
           color: Colors.blue,
           onPressed: getImageCamera,
-          child: Text("Pick from camera"),
+          child: Text("Pick from Camera"),
         ),
       ]),
       Column(children: <Widget>[
@@ -90,7 +104,6 @@ class _AddGenericDish extends State<AddGenericDish> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Base dish',
-                  //textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18.0,
@@ -103,19 +116,18 @@ class _AddGenericDish extends State<AddGenericDish> {
               child: TextField(
                 style: TextStyle(color: Colors.grey, fontSize: 18),
                 decoration: InputDecoration(
-                  //hintStyle: TextStyle(color: Colors.grey, fontSize: 18),
-                  hintText: "Search",
+                  hintText: genDishName,
                   suffixIcon: Icon(Icons.search),
-                  // enabledBorder: UnderlineInputBorder(
-                  //   borderSide: BorderSide(color: Colors.grey, width: 2),
-                  // ), //under line border, set OutlineInputBorder() for all side border
-                  // focusedBorder: UnderlineInputBorder(
-                  //   borderSide: BorderSide(color: Colors.grey, width: 2),
-                  // ), // focused border color
-                ), //decoration for search input field
-                onChanged: (value) {
-                  //query = value; //update the value of query
-                  //getSuggestion(); //start to get suggestion
+                ),
+                onTap: () async {
+                  final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => GenDishSearchBar()));
+                  setState(() {
+                    genDishName = result.substring(0, result.indexOf('.'));
+                    genDishId = result.substring(result.indexOf('.') + 1);
+                  });
                 },
               ))
         ]),
@@ -138,7 +150,7 @@ class _AddGenericDish extends State<AddGenericDish> {
             width: 200,
             child: TextField(
               decoration: InputDecoration(hintText: '(Optional)'),
-              //controller: email,
+              controller: customName,
               style: TextStyle(color: Colors.grey, fontSize: 18),
             ),
           )
@@ -163,7 +175,7 @@ class _AddGenericDish extends State<AddGenericDish> {
           Container(
               alignment: Alignment.centerLeft,
               child: DropdownButton<String>(
-                value: dropdownvalue_cat,
+                value: dropDownValueCat,
                 dropdownColor: Colors.grey[200],
                 isDense: true,
                 icon: Icon(Icons.arrow_downward),
@@ -176,7 +188,7 @@ class _AddGenericDish extends State<AddGenericDish> {
                 ),
                 onChanged: (String newValue) {
                   setState(() {
-                    dropdownvalue_cat = newValue;
+                    dropDownValueCat = newValue;
                   });
                 },
                 items: <String>['Platter', 'Salad', 'Sandwich', 'Dessert']
@@ -206,7 +218,7 @@ class _AddGenericDish extends State<AddGenericDish> {
           Container(
               alignment: Alignment.centerLeft,
               child: DropdownButton<String>(
-                value: dropdownvalue_servings,
+                value: dropDownValueServings,
                 dropdownColor: Colors.grey[200],
                 isDense: true,
                 icon: Icon(Icons.arrow_downward),
@@ -219,7 +231,7 @@ class _AddGenericDish extends State<AddGenericDish> {
                 ),
                 onChanged: (String newValue) {
                   setState(() {
-                    dropdownvalue_servings = newValue;
+                    dropDownValueServings = newValue;
                   });
                 },
                 items: <String>[
@@ -256,7 +268,7 @@ class _AddGenericDish extends State<AddGenericDish> {
                   width: 150,
                   child: TextField(
                     decoration: InputDecoration(hintText: 'Enter your price'),
-                    //controller: email,
+                    controller: price,
                     style: TextStyle(fontSize: 16.0),
                   ))),
         ]));
@@ -281,7 +293,7 @@ class _AddGenericDish extends State<AddGenericDish> {
             maxLines: null,
             decoration:
                 InputDecoration(hintText: 'What is special about your dish?'),
-            //controller: email,
+            controller: descriptionText,
             style: TextStyle(fontSize: 16.0),
           ),
         ]));
@@ -290,10 +302,77 @@ class _AddGenericDish extends State<AddGenericDish> {
       left: MediaQuery.of(context).size.width / 4,
       bottom: 0,
       child: InkWell(
-        onTap: () {
-          //Add OTP page navigation
-          // Navigator.of(context)
-          //     .push(MaterialPageRoute(builder: (_) => PageNavigator()));
+        onTap: () async {
+          // final http.Response response = await http.post(
+          //   baseURL + '/cook/api/cook-dish/add',
+          //   headers: <String, String>{
+          //     'Content-Type': 'multipart/form-data',
+          //     'Authorization': "Bearer " + globals.token
+          //   },
+          //   body: jsonEncode(<String, String>{
+          //     'custom_name': customName.text,
+          //     'gendish_id': genDishId,
+          //     'price': price.text,
+          //     'category': dropDownValueCat,
+          //     'description': descriptionText.text,
+          //     'dish_pic': _imageString,
+          //     //MODIFY by adding relevant COOK parts
+          //   }),
+          // );
+          var request = http.MultipartRequest(
+            'POST',
+            Uri.parse(baseURL + '/cook/api/cook-dish/add'),
+          );
+          Map<String, String> headers = {
+            "Authorization": "Bearer " + globals.token,
+            "Content-type": "multipart/form-data"
+          };
+          request.files.add(http.MultipartFile(
+              'dish_pic', _image.readAsBytes().asStream(), _image.lengthSync(),
+              filename: _image.path, contentType: MediaType('image', 'jpeg')));
+          request.headers.addAll(headers);
+          request.fields.addAll({
+            'custom_name': customName.text,
+            'gendish_id': genDishId,
+            'price': price.text,
+            'category': dropDownValueCat,
+            'description': descriptionText.text
+          });
+          print("request: " + request.toString());
+          var response = await request.send();
+          if (response.statusCode == 200) {
+            // If the server did return a 200 CREATED response,
+            // then parse the JSON and send user to login screen
+            dynamic responseString = await response.stream.bytesToString();
+            //dynamic decoded = jsonDecode(response.body);
+            print("Received: " + responseString);
+            print(_image.path);
+            bool success = responseString['success'];
+            if (success) {
+              //_registerSuccessfulAlert();
+              print("Successful!");
+            } else {
+              //handle errors
+              print("Error: " + responseString['error']);
+              //_registerErrorAlert(decoded['error']);
+            }
+          } else {
+            // If the server did not return a 201 CREATED response,
+            // then throw an exception.
+            print("An unkown error occured");
+            // print(customName.text +
+            //     " " +
+            //     genDishId +
+            //     " " +
+            //     price.text +
+            //     " " +
+            //     dropDownValueCat +
+            //     " " +
+            //     descriptionText.text +
+            //     " " +
+            //     _imageString);
+            print(_image.path);
+          }
         },
         child: Container(
           width: MediaQuery.of(context).size.width / 2,
