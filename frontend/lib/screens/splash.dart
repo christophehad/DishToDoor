@@ -108,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen>
                   key: 'location',
                   value: (cookLocation.cookLocation.latitude.toString() +
                       ',' +
-                      cookLocation.cookLocation.latitude.toString()));
+                      cookLocation.cookLocation.longitude.toString()));
             });
           }
           // if(gotLocation == false){

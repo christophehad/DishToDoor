@@ -1,9 +1,10 @@
+import 'package:dishtodoor/screens/Cook/add_cook_dish.dart';
 import 'package:dishtodoor/screens/Cook/profile_cook.dart';
-import 'package:dishtodoor/screens/add_generic_dish.dart';
+//import 'package:dishtodoor/screens/add_generic_dish.dart';
 import 'package:flutter/material.dart';
 import 'placeholder_widget.dart';
 import 'Cook/orderTrackingCook.dart';
-
+import 'cook_profile.dart';
 //Eater Page Navigator
 
 class PageNavigatorCook extends StatefulWidget {
@@ -16,12 +17,12 @@ class _PageNavigatorCook extends State<PageNavigatorCook> {
   int _currentIndex = 0; //track the index of our currently selected tab
   //list of widgets that we want to render based on the currently selected tab
   List<Widget> _children = [
-    AddGenericDish(),
+    AddCookDish(),
     //if no cooks around, another map is displayed
     PlaceholderWidget(Colors.red),
     CookTrackOrder(),
     PlaceholderWidget(Colors.green),
-    ProfileCook(),
+    ProfileCook2(),
   ];
 
   @override

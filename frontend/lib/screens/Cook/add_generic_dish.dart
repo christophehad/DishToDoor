@@ -1,27 +1,26 @@
+import 'package:dishtodoor/screens/Map/cookClass.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
+import 'package:dishtodoor/screens/auth/cook_login_email.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+import 'package:dishtodoor/screens/page_navigator_eater.dart';
 import 'package:dishtodoor/config/config.dart';
+import 'package:location/location.dart';
+import 'package:dishtodoor/screens/Cook/add_cook_dish.dart';
+import 'package:dishtodoor/screens/auth/globals.dart' as globals;
 
-import 'package:dishtodoor/screens/page_navigator_cook.dart';
-
-//TODO safe storage for cook
-class CookLoginEmail extends StatefulWidget {
+class AddGenDish extends StatefulWidget {
   @override
-  _CookLoginEmail createState() => _CookLoginEmail();
+  _AddGenDish createState() => _AddGenDish();
 }
 
-class _CookLoginEmail extends State<CookLoginEmail> {
-  TextEditingController email = TextEditingController(text: "");
+class _AddGenDish extends State<AddGenDish> {
+  TextEditingController genDishName = TextEditingController(text: "");
 
-  TextEditingController password = TextEditingController(text: "");
-
-//Getting location before hand
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  //TextEditingController dropDownValueCat = TextEditingController(text: "");
+  String dropDownValueCat = 'Platter';
 
   @override
   Widget build(BuildContext context) {
@@ -30,15 +29,16 @@ class _CookLoginEmail extends State<CookLoginEmail> {
       bottom: 0,
       child: InkWell(
         onTap: () async {
-          final http.Response response = await http.post(
-              baseURL + '/cook/login-email',
-              headers: <String, String>{
-                'Content-Type': 'application/json; charset=UTF-8'
-              },
-              body: jsonEncode(<String, String>{
-                "email": email.text,
-                "password": password.text,
-              }));
+          final http.Response response =
+              await http.post(baseURL + '/cook/api/gen-dish/add',
+                  headers: <String, String>{
+                    "Authorization": "Bearer " + globals.token,
+                    'Content-Type': 'application/json; charset=UTF-8'
+                  },
+                  body: jsonEncode(<String, String>{
+                    "name": genDishName.text,
+                    "category": dropDownValueCat,
+                  }));
 
           if (response.statusCode == 200) {
             dynamic decoded = jsonDecode(response.body);
@@ -46,34 +46,19 @@ class _CookLoginEmail extends State<CookLoginEmail> {
             bool success = decoded['success'];
             if (success) {
               //_registerSuccessfulAlert();
-              //add cook info
-              if (await storage.containsKey(key: 'email') == false) {
-                print("storing");
-                await storage.write(key: 'token', value: decoded['token']);
-                await storage.write(key: 'email', value: email.text);
-                await storage.write(key: 'pass', value: password.text);
-                await storage.write(key: 'type', value: 'cook');
-              }
-              //add cook location only if hasn't been previously stored
-              bool locAvailable = await storage.containsKey(key: 'location');
-              if (locAvailable == false) {
-                cookLocation.sendLoc().then((value) async {
-                  await storage.write(
-                      key: 'location',
-                      value: (cookLocation.cookLocation.latitude.toString() +
-                          ',' +
-                          cookLocation.cookLocation.longitude.toString()));
-                });
-              }
-              // if(gotLocation == false){
+              //secure storage of token
 
-              // }
-              Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (_) => PageNavigatorCook()));
               print("Successful!");
-              //print("Your token is" + globals.token);
+
+              //locsharing().then((value) {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => AddCookDish() //cookList: cooks,
+                  ));
+              //});
             } else {
               print("Error: " + decoded['error']);
+              print("Error: " + genDishName.text);
+              print("Error: " + dropDownValueCat);
             }
           } else {
             print("An unkown error occured");
@@ -83,7 +68,7 @@ class _CookLoginEmail extends State<CookLoginEmail> {
           width: MediaQuery.of(context).size.width / 2,
           height: 52,
           child: Center(
-              child: new Text("Login",
+              child: new Text("Add Dish",
                   style: const TextStyle(
                       color: const Color(0xfffefefe),
                       fontWeight: FontWeight.w600,
@@ -125,22 +110,44 @@ class _CookLoginEmail extends State<CookLoginEmail> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: TextField(
                       decoration: InputDecoration(
-                          hintText: 'Email', suffixIcon: Icon(Icons.email)),
-                      controller: email,
+                        hintText: 'Dish name',
+                        //suffixIcon: Icon(Icons.email)
+                      ),
+                      controller: genDishName,
                       style: TextStyle(fontSize: 16.0),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: TextField(
-                      decoration: InputDecoration(
-                          hintText: 'Password',
-                          suffixIcon: Icon(Icons.visibility_off)),
-                      controller: password,
-                      style: TextStyle(fontSize: 16.0),
-                      obscureText: true,
-                    ),
-                  ),
+                  Container(
+                      alignment: Alignment.centerLeft,
+                      child: DropdownButton<String>(
+                        value: dropDownValueCat,
+                        dropdownColor: Colors.grey[200],
+                        isDense: true,
+                        icon: Icon(Icons.arrow_downward),
+                        iconSize: 24,
+                        elevation: 16,
+                        style: TextStyle(color: Colors.deepPurple),
+                        underline: Container(
+                          height: 2,
+                          color: Colors.deepPurpleAccent,
+                        ),
+                        onChanged: (String newValue) {
+                          setState(() {
+                            dropDownValueCat = newValue;
+                          });
+                        },
+                        items: <String>[
+                          'Platter',
+                          'Salad',
+                          'Sandwich',
+                          'Dessert'
+                        ].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      )),
                 ],
               ),
             ),
@@ -150,18 +157,6 @@ class _CookLoginEmail extends State<CookLoginEmail> {
       )
     ]);
 
-    Widget forgotPassword = Align(
-        alignment: Alignment.centerRight,
-        child: Column(children: <Widget>[
-          SizedBox(height: 20),
-          Padding(
-              padding: const EdgeInsets.only(right: 32),
-              child: Text(
-                'Forgot Password ?',
-                style: TextStyle(fontSize: 16.0, color: Colors.black),
-              ))
-        ]));
-
     return Scaffold(
         backgroundColor: Colors.blue[100],
         body: Stack(children: <Widget>[
@@ -169,7 +164,7 @@ class _CookLoginEmail extends State<CookLoginEmail> {
               padding: EdgeInsets.only(left: 28.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[loginForm, forgotPassword],
+                children: <Widget>[loginForm],
               )),
           Positioned(
               top: 35,
