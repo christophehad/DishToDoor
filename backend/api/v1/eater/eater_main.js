@@ -7,6 +7,9 @@ const passportJWT = require('./auth/jwt');
  */
 module.exports = function (app) {
 
+    // Load account routes
+    const routesAccount = require('./routes_account');
+
     // Load auth routes
     const routesAuth = require('./routes_auth');
     const some_api_routes = express.Router();
@@ -20,6 +23,7 @@ module.exports = function (app) {
 
     app.use('/eater', routesAuth);
     app.use('/eater/api', passportJWT.authenticate('jwt-eater', { session: false }), some_api_routes);
+    app.use('/eater/api', passportJWT.authenticate('jwt-eater', { session: false }), routesAccount);
     app.use('/eater/api', passportJWT.authenticate('jwt-eater', { session: false }), routesDish);
 
     // Add eater API calls
