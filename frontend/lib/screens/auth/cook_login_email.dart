@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'globals.dart' as globals;
 import 'package:dishtodoor/config/config.dart';
 
 import 'package:dishtodoor/screens/page_navigator_cook.dart';
@@ -45,9 +44,30 @@ class _CookLoginEmail extends State<CookLoginEmail> {
             dynamic decoded = jsonDecode(response.body);
             print("Received: " + decoded.toString());
             bool success = decoded['success'];
-            globals.token = decoded['token'];
             if (success) {
               //_registerSuccessfulAlert();
+              //add cook info
+              if (await storage.containsKey(key: 'email') == false) {
+                print("storing");
+                await storage.write(key: 'token', value: decoded['token']);
+                await storage.write(key: 'email', value: email.text);
+                await storage.write(key: 'pass', value: password.text);
+                await storage.write(key: 'type', value: 'cook');
+              }
+              //add cook location only if hasn't been previously stored
+              bool locAvailable = await storage.containsKey(key: 'location');
+              if (locAvailable == false) {
+                cookLocation.sendLoc().then((value) async {
+                  await storage.write(
+                      key: 'location',
+                      value: (cookLocation.cookLocation.latitude.toString() +
+                          ',' +
+                          cookLocation.cookLocation.longitude.toString()));
+                });
+              }
+              // if(gotLocation == false){
+
+              // }
               Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => PageNavigatorCook()));
               print("Successful!");

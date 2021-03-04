@@ -39,3 +39,21 @@ exports.openCloseTimeGet = function openCloseTimeGet(cook_id,done) {
         return done(null,openclosing);
     })
 }
+
+/**
+ * Callback for passing cook account
+ * @callback cookAccountCallback
+ * @param {String} err
+ * @param {database.schemes.CookAccount} [cook]
+ * @param {String} [message]
+*/
+
+/**
+ * @param {cookAccountCallback} done 
+ */
+exports.getAccount = function(cook_id,done) {
+    database.cookGetAccount(cook_id, (err,cookaccount) => {
+        if (err) return done(err);
+        return done(null,cookaccount);
+    })
+}

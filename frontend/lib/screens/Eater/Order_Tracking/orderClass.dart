@@ -90,11 +90,9 @@ class CookProfile {
     String defaultLogo =
         "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500";
 
-    if (json['dish_pic'] == null) {
-      defaultLogo =
-          "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500";
+    if (json['logo'] == null) {
     } else {
-      defaultLogo = json['dish_pic'];
+      defaultLogo = json['logo'];
     }
 
     return CookProfile(

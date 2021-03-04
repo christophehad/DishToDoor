@@ -10,7 +10,7 @@ const cloudStorage = require('./cloud_storage');
 
 const dbConfig = {
     host: 'localhost', // insert the database url here
-    port: process.env.MYSQL_PORT || 50207, // 3306, for local
+    port: process.env.MYSQL_PORT || process.env.WEBSITE_MYSQL_PORT || 50207, // 3306, for local
     user: 'azure', // 'root',
     password: '6#vWHD_$',// '',
     database: 'dishtodoor',
@@ -24,8 +24,17 @@ var con; // con
 // handling connection errors (after timeout for example)
 function handleDisconnect() {
     con = mysql.createConnection(dbConfig);
+    con.connect( (err) => {
+        if (err) {
+            console.log('Error connecting to database: ',err);
+            console.log('Retrying in 5s...');
+            setTimeout(handleDisconnect,5000);
+        }
+        else
+            console.log('Connected to the MySQL database!');
+    })
     con.on('error', (err) => {
-        if (err.code == 'PROTOCOL_CONNECTION_LOST') {
+        if (err.code == 'PROTOCOL_CONNECTION_LOST' || err.code == 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
             console.log('MySQL connection lost. Reconnecting...');
             handleDisconnect();
         }
@@ -35,15 +44,17 @@ function handleDisconnect() {
 }
 handleDisconnect();
 
-module.exports.tryConnection = function tryConnection() {
+module.exports.tryConnection = function tryConnection(done) {
     con.connect( (err) => {
         if (err) {
-            if (err.code == 'PROTOCOL_ENQUEUE_HANDSHAKE_TWICE')
-                return console.log('MySQL already connected');
-            else
-                return console.log(err);
+            if (err.code == 'PROTOCOL_ENQUEUE_HANDSHAKE_TWICE') {
+                console.log('MySQL already connected'); return done(null, 'MySQL already connected');
+            }
+            else {
+                console.log(err); return done(err);
+            }
         }
-        console.log('Connected to the MySQL database!');
+        console.log('Connected to the MySQL database!'); return done(null, 'Connected to the MySQL database!');
     })
 }
 
@@ -314,12 +325,39 @@ module.exports.cookGetOpenCloseTimes = function cookGetOpenCloseTimes(id, done) 
 /**
  * @param {schemes.cookProfileCallback} done 
  */
-module.exports.cookGetProfile = function cookGetProfile(cook_id,done) {
+var cookGetProfile = module.exports.cookGetProfile = function(cook_id,done) {
     con.query('SELECT cook.*,user_profile.* FROM cook,user_profile WHERE cook_id = ? AND id = cook_id',[cook_id], (err,rows) => {
         if (err) return done(err);
         let row = rows[0];
         let cookProfile = schemes.cookProfile(row.cook_id,row.first_name,row.last_name,row.cook_logo,row.lat,row.lon,row.opening_time,row.closing_time);
         return done(null,cookProfile);
+    })
+}
+
+/**
+ * @param {schemes.cookAccountCallback} done 
+ */
+module.exports.cookGetAccount = function(cook_id,done) {
+    con.query('SELECT user_account.*, cook.is_verified FROM user_account,cook WHERE cook_id = ? AND id = cook_id',[cook_id], (err,rows) => {
+        if (err) return done(err);
+        let row = rows[0];
+        cookGetProfile(cook_id, (err,cookprofile) => {
+            if (err) return done(err);
+            let cookAccount = schemes.cookAccount(cook_id,row.email,row.phone,row.is_verified,row._added,cookprofile);
+            return done(null,cookAccount);
+        })
+    })
+}
+
+/**
+ * @param {schemes.eaterProfileCallback} done 
+ */
+module.exports.eaterGetProfile = function eaterGetProfile(eater_id,done) {
+    con.query('SELECT eater.*,user_profile.* FROM eater,user_profile WHERE eater_id = ? AND id = eater_id',[eater_id], (err,rows) => {
+        if (err) return done(err);
+        let row = rows[0];
+        let eaterProfile = schemes.eaterProfile(row.eater_id,row.first_name,row.last_name);
+        return done(null,eaterProfile);
     })
 }
 
@@ -623,5 +661,67 @@ module.exports.orderGet_Eater = function orderGet_Eater(eater_id,status=null,don
                         return done(null,orderList);
                     })
 }
+
+/**
+ * returns a list of orders for a given cook
+ * @param {schemes.orderCallback} done 
+ */
+module.exports.orderGet_Cook = function orderGet_Cook(cook_id,status=null,done) {
+    con.query('SELECT eater_dish_order.*,order_status.* FROM eater_dish_order,order_status '+
+                'WHERE eater_dish_order.order_id=order_status.order_id AND order_status.cook_id = ? '+
+                    'AND (order_status.general_status = ? OR ? IS NULL)',[cook_id,status,status], (err,rows) => {
+                        if (err) return done(err);
+                        let orderByID = {};
+                        for (const row of rows) {
+                            let order_id=row.order_id;
+                            /** @type {schemes.DishTuple} */
+                            let dish = {dish_id: row.dish_id, quantity: row.quantity};
+                            if (order_id in orderByID)
+                                orderByID[order_id].dishes.push(dish);
+                            else {
+                                orderByID[order_id] = schemes.order(
+                                    order_id, row.eater_id, row.cook_id, row.total_price, row.general_status, row.prepared_status, row.packaged_status,
+                                    row.message,row.date_scheduled_on,[dish]);
+                            }
+                        }
+                        let orderList = Object.values(orderByID);
+                        return done(null,orderList);
+                    })
+}
+
+// returns true
+function orderSetStatus(order_id,status,done) {
+    con.query('UPDATE order_status SET general_status = ? WHERE order_id = ?',[status,order_id], (err,result) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
+}
+
+// approve order
+module.exports.orderApprove = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.approved,done);
+}
+
+// reject order
+module.exports.orderReject = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.rejected,done);
+}
+
+// cancel order
+module.exports.orderCancel = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.cancelled,done);
+}
+
+// ready order
+module.exports.orderReady = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.ready,done);
+}
+
+// complete order
+module.exports.orderComplete = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.completed,done);
+}
+
+
 
 module.exports.uploadCookDishPic = cloudStorage.uploadCookDishPic;

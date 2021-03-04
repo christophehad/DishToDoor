@@ -1,4 +1,5 @@
 const {DateTime} = require('luxon');
+const schemes = require('../../database/schemes');
 
 module.exports.DEBUG = true;
 module.exports.tmpPath = 'tmp/';
@@ -109,11 +110,51 @@ module.exports.cookMap = function cookMap(f_name,l_name,logo,lat,lon,distance,op
  * @param {String} close
  * @returns {CookProfileAPI}
  */
-module.exports.cookProfileAPI = function cookProfileAPI(f_name,l_name,logo,lat,lon,open,close) {
+var cookProfileAPI = module.exports.cookProfileAPI = function (f_name,l_name,logo,lat,lon,open,close) {
     let open_with_date = addDateISO(open), close_with_date = addDateISO(close);
     return {
         first_name:f_name, last_name:l_name, logo:logo, lat:lat, lon:lon, opening_time:open_with_date,
         closing_time:close_with_date
+    }
+}
+
+/**
+ * Cook Account API
+ * @typedef CookAccountAPI
+ * @property {String} email
+ * @property {String} phone
+ * @property {Boolean} is_verified
+ * @property {String} date_added
+ * @property {CookProfileAPI} profile
+*/
+
+/**
+ * @param {schemes.CookAccount} cook
+ * @returns {CookAccountAPI}
+ */
+module.exports.cookAccountAPI = function (cook) {
+    let date_api = datetimeAPI(cook.date_added);
+    let is_verified_api = cook.is_verified == true;
+    let cookprofile = cookProfileAPI(cook.profile.first_name,cook.profile.last_name,cook.profile.logo,
+                                        cook.profile.lat,cook.profile.lon,cook.profile.opening_time,cook.profile.closing_time);
+    return {
+        email:cook.email,phone:cook.phone,is_verified:is_verified_api,date_added:date_api,profile:cookprofile
+    }
+}
+
+/**
+ * Eater Profile API
+ * @typedef EaterProfileAPI
+ * @property {String} first_name
+ * @property {String} last_name
+*/
+
+/**
+ * @returns {EaterProfileAPI}
+ */
+module.exports.eaterProfileAPI = function(f_name,l_name) {
+    return {
+        first_name:f_name, last_name:l_name
     }
 }
 
@@ -136,6 +177,8 @@ module.exports.orderDishAPI = function orderDishAPI(dish_id,name,quantity,price,
     }
 }
 
+module.exports.OrderStatus = require('../../database/schemes').OrderStatus;
+
 /**
  * API Order Eater
  * @typedef {Object} EaterOrderAPI
@@ -157,6 +200,31 @@ module.exports.eaterOrderAPI = function eaterOrderAPI(order_id,cookprofile,total
     let sched_timeAPI = sched_time? datetimeAPI(sched_time) : null; // if sched_time null keep it null
     return {
         order_id:order_id, cook:cookprofile, total_price:total_price, general_status:gen_status, scheduled_time:sched_timeAPI,
+        dishes:dishes
+    }
+}
+
+/**
+ * API Order Cook
+ * @typedef {Object} CookOrderAPI
+ * @property {Number} order_id
+ * @property {EaterProfileAPI} eater
+ * @property {Number} total_price
+ * @property {String} general_status
+ * @property {Date} scheduled_time
+ * @property {OrderDishAPI[]} dishes
+*/
+
+/**
+ * @param {Date} sched_time
+ * @param {EaterProfileAPI} eaterprofile 
+ * @param {OrderDishAPI[]} dishes
+ * @returns {CookOrderAPI}
+ */
+module.exports.cookOrderAPI = function (order_id,eaterprofile,total_price,gen_status,sched_time,dishes) {
+    let sched_timeAPI = sched_time? datetimeAPI(sched_time) : null; // if sched_time null keep it null
+    return {
+        order_id:order_id, eater:eaterprofile, total_price:total_price, general_status:gen_status, scheduled_time:sched_timeAPI,
         dishes:dishes
     }
 }

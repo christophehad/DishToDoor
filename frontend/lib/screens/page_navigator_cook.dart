@@ -1,7 +1,10 @@
 import 'package:dishtodoor/screens/Cook/add_cook_dish.dart';
+import 'package:dishtodoor/screens/Cook/profile_cook.dart';
+//import 'package:dishtodoor/screens/add_generic_dish.dart';
 import 'package:flutter/material.dart';
 import 'placeholder_widget.dart';
-
+import 'Cook/orderTrackingCook.dart';
+import 'cook_profile.dart';
 //Eater Page Navigator
 
 class PageNavigatorCook extends StatefulWidget {
@@ -17,9 +20,9 @@ class _PageNavigatorCook extends State<PageNavigatorCook> {
     AddCookDish(),
     //if no cooks around, another map is displayed
     PlaceholderWidget(Colors.red),
-    PlaceholderWidget(Colors.yellow),
+    CookTrackOrder(),
     PlaceholderWidget(Colors.green),
-    PlaceholderWidget(Colors.blue)
+    ProfileCook2(),
   ];
 
   @override

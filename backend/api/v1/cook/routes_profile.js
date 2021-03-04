@@ -5,13 +5,14 @@ const DEBUG = apiConfig.DEBUG;
 // to be returned in the HTTP requests
 const successJSON = apiConfig.successJSON;
 const failureJSON = apiConfig.failureJSON;
+const cookAccountAPI = apiConfig.cookAccountAPI;
 
 // module for uploading pics
 const multer = require('multer');
 const fs = require('fs');
 const extension = require('mime-types').extension;
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => { cb(null, apiConfig.tmpPath + 'cookprofile_pics/') },
+    destination: (req, file, cb) => { cb(null, apiConfig.tmpPath) },
     filename: (req, file, cb) => {
         const uniquePref = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniquePref + '.' + extension(file.mimetype));
@@ -102,6 +103,19 @@ router.get('/profile/times/get',(req,res,next) => {
         if (!openclosing) return res.json(failureJSON(message));
         let toSend = successJSON();
         toSend.opening_time=openclosing[0], toSend.closing_time=openclosing[1];
+        res.json(toSend);
+    })
+})
+
+router.get('/profile/get',(req,res,next) => {
+    if (DEBUG) console.log(req.body);
+
+    let cook_id = req.user;
+    profile.getAccount(cook_id, (err,cook,message) => {
+        if (err) return next(err);
+        let cookAccount = cookAccountAPI(cook);
+        let toSend = successJSON();
+        toSend.cook = cookAccount;
         res.json(toSend);
     })
 })

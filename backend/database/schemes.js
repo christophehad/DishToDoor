@@ -108,6 +108,59 @@ exports.cookProfile = function(cook_id,f_name,l_name,logo,lat,lon,open,close) {
 */
 
 /**
+ * Cook Account Info
+ * @typedef CookAccount
+ * @property {Number} cook_id
+ * @property {String} email
+ * @property {String} phone
+ * @property {Boolean} is_verified
+ * @property {Date} date_added
+ * @property {CookProfile} profile
+*/
+
+/**
+ * @param {CookProfile} cookprofile 
+ * @returns {CookAccount}
+ */
+exports.cookAccount = function(cook_id,email,phone,is_ver,date,cookprofile) {
+    return {
+        cook_id:cook_id, email:email, phone:phone, is_verified:is_ver, date_added:date, profile:cookprofile
+    }
+}
+
+/**
+  * Cook Account Callback
+  * @callback cookAccountCallback
+  * @param {String} err
+  * @param {CookAccount} cook
+*/
+
+
+/**
+ * Eater Profile Info
+ * @typedef EaterProfile
+ * @property {Number} eater_id
+ * @property {String} first_name
+ * @property {String} last_name
+*/
+
+/**
+ * @returns {EaterProfile}
+ */
+exports.eaterProfile = function (eater_id, f_name, l_name) {
+    return {
+        eater_id: eater_id, first_name: f_name, last_name: l_name
+    }
+}
+
+/**
+  * Eater Profile Callback
+  * @callback eaterProfileCallback
+  * @param {String} err
+  * @param {EaterProfile} eater
+*/
+
+/**
  * @param {CookDish[]} dishes
  * @returns {CookMap}
  */
@@ -157,6 +210,7 @@ const OrderStatus = {
     approved: 'approved',
     rejected: 'rejected',
     cancelled: 'cancelled',
+    ready: 'ready',
     completed: 'completed'
 }
 exports.OrderStatus = Object.freeze(OrderStatus);

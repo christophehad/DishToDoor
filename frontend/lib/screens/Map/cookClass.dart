@@ -69,7 +69,7 @@ class CookMap {
       logo: defaultLogo,
       lat: json['lat'],
       lon: json['lon'],
-      distance: json['distance'],
+      distance: json['distance'] * 1.0,
       opening: DateTime.parse(json['opening_time']),
       closing: DateTime.parse(json['closing_time']),
       dishes: dishesList,
