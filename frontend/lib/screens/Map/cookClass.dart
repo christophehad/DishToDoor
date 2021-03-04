@@ -18,6 +18,21 @@ class CookList {
   }
 }
 
+class DishList {
+  List<CookDish> dishList = List<CookDish>();
+
+  DishList({
+    this.dishList,
+  });
+
+  factory DishList.fromJson(List<dynamic> json) {
+    List<CookDish> dishes = new List<CookDish>();
+    dishes = json.map<CookDish>((i) => CookDish.fromJson(i)).toList();
+
+    return new DishList(dishList: dishes);
+  }
+}
+
 // DateTime dateFormatting(String s) {
 //   final formatter = DateFormat.Hms();
 //   return formatter.parse(s);
@@ -86,6 +101,7 @@ class CookDish {
   final String category;
   final String description;
   final String dishPic;
+  bool available = false;
 
   CookDish(
       {this.dishID,
