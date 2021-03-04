@@ -397,6 +397,20 @@ CREATE TABLE `user_account` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `user_device`
+--
+
+CREATE TABLE `user_device` (
+  `device_index` int(11) NOT NULL,
+  `id` int(11) NOT NULL,
+  `platform` enum('android','ios') NOT NULL DEFAULT 'android',
+  `token` varchar(2083) COLLATE utf8_unicode_ci NOT NULL,
+  `_added` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `user_profile`
 --
 
@@ -603,6 +617,13 @@ ALTER TABLE `user_account`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `user_device`
+--
+ALTER TABLE `user_device`
+  ADD PRIMARY KEY (`device_index`),
+  ADD KEY `id` (`id`);
+
+--
 -- Indexes for table `user_profile`
 --
 ALTER TABLE `user_profile`
@@ -671,6 +692,12 @@ ALTER TABLE `order_status`
 --
 ALTER TABLE `user_account`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `user_device`
+--
+ALTER TABLE `user_device`
+  MODIFY `device_index` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -819,6 +846,11 @@ ALTER TABLE `generic_dish_ingredients`
 ALTER TABLE `order_status`
   ADD CONSTRAINT `order_status_ibfk_1` FOREIGN KEY (`cook_id`) REFERENCES `cook` (`cook_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `order_status_ibfk_2` FOREIGN KEY (`delivery_id`) REFERENCES `delivery_service` (`delivery_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+--
+-- Constraints for table `user_device`
+--
+ALTER TABLE `user_device`
+  ADD CONSTRAINT `user_device_ibfk_1` FOREIGN KEY (`id`) REFERENCES `user_account` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
