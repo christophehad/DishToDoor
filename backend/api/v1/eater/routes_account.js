@@ -31,4 +31,17 @@ router.get('/device/delete', (req,res,next) => {
     })
 })
 
+router.get('/profile/get', (req,res,next) => {
+    if (DEBUG) console.log(req.query);
+
+    let eater_id=req.user;
+    account.getAccount(eater_id, (err,eater) => {
+        if (err) return next(err);
+        let eaterAccount = apiConfig.eaterAccountAPI(eater);
+        let toSend = successJSON();
+        toSend.eater = eaterAccount;
+        res.json(toSend);
+    })
+})
+
 module.exports = router;

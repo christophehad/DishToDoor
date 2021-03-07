@@ -398,12 +398,27 @@ module.exports.cookGetAccount = function(cook_id,done) {
 /**
  * @param {schemes.eaterProfileCallback} done 
  */
-module.exports.eaterGetProfile = function eaterGetProfile(eater_id,done) {
+var eaterGetProfile = module.exports.eaterGetProfile = function(eater_id,done) {
     con.query('SELECT eater.*,user_profile.* FROM eater,user_profile WHERE eater_id = ? AND id = eater_id',[eater_id], (err,rows) => {
         if (err) return done(err);
         let row = rows[0];
         let eaterProfile = schemes.eaterProfile(row.eater_id,row.first_name,row.last_name);
         return done(null,eaterProfile);
+    })
+}
+
+/**
+ * @param {schemes.eaterAccountCallback} done 
+ */
+module.exports.eaterGetAccount = function(eater_id,done) {
+    con.query('SELECT user_account.*, eater.pickup_radius FROM user_account, eater WHERE eater_id = ? AND id = eater_id',[eater_id], (err,rows) => {
+        if (err) return done(err);
+        let row = rows[0];
+        eaterGetProfile(eater_id, (err, eaterprofile) => {
+            if (err) return done(err);
+            let eaterAccount = schemes.eaterAccount(eater_id,row.email,row.phone,row.pickup_radius,row._added,eaterprofile);
+            return done(null,eaterAccount);
+        })
     })
 }
 

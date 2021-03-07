@@ -152,9 +152,30 @@ module.exports.cookAccountAPI = function (cook) {
 /**
  * @returns {EaterProfileAPI}
  */
-module.exports.eaterProfileAPI = function(f_name,l_name) {
+var eaterProfileAPI = module.exports.eaterProfileAPI = function(f_name,l_name) {
     return {
         first_name:f_name, last_name:l_name
+    }
+}
+
+/**
+ * Eater Account API
+ * @typedef EaterAccountAPI
+ * @property {String} email
+ * @property {String} phone
+ * @property {String} date_added
+ * @property {EaterProfileAPI} profile
+*/
+
+/**
+ * @param {schemes.EaterAccount} eater 
+ * @returns {EaterAccountAPI}
+ */
+module.exports.eaterAccountAPI = function(eater) {
+    let date_api = datetimeAPI(eater.date_added);
+    let eater_profile_api = eaterProfileAPI(eater.profile.first_name,eater.profile.last_name);
+    return {
+        email:eater.email, phone:eater.phone, date_added:date_api, profile: eater_profile_api
     }
 }
 

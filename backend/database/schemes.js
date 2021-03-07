@@ -161,6 +161,35 @@ exports.eaterProfile = function (eater_id, f_name, l_name) {
 */
 
 /**
+ * Eater Account Info
+ * @typedef EaterAccount
+ * @property {Number} eater_id
+ * @property {String} email
+ * @property {String} phone
+ * @property {Number} pickup_radius
+ * @property {Date} date_added
+ * @property {EaterProfile} profile
+*/
+
+/**
+ * @param {EaterProfile} eaterprofile 
+ * @returns {EaterAccount}
+ */
+exports.eaterAccount = function (eater_id, email, phone, pickup, date, eaterprofile) {
+    return {
+        eater_id: eater_id, email: email, phone: phone, pickup_radius:pickup, date_added: date, profile: eaterprofile
+    }
+}
+
+/**
+  * Eater Account Callback
+  * @callback eaterAccountCallback
+  * @param {String} err
+  * @param {EaterAccount} eater
+*/
+
+
+/**
  * @param {CookDish[]} dishes
  * @returns {CookMap}
  */
