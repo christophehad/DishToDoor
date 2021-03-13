@@ -15,6 +15,9 @@ module.exports = function(app) {
         console.log('Created tmp Path at ' + apiConfig.tmpPath);
     }
 
+    // Load account routes
+    const routesAccount = require('./routes_account');
+
     // Load auth routes
     const routesAuth = require('./routes_auth');
     const some_api_routes = express.Router();
@@ -34,6 +37,7 @@ module.exports = function(app) {
 
     app.use('/cook',routesAuth);
     app.use('/cook/api',passportJWT.authenticate('jwt-cook', { session: false }), some_api_routes);
+    app.use('/cook/api',passportJWT.authenticate('jwt-cook', {session: false}),routesAccount);
     app.use('/cook/api',passportJWT.authenticate('jwt-cook', {session: false}),routesDish);
     app.use('/cook/api',passportJWT.authenticate('jwt-cook', {session: false}),routesProfile);
     app.use('/cook/api',passportJWT.authenticate('jwt-cook', {session: false}),routesOrders);

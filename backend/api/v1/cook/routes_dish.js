@@ -29,7 +29,7 @@ const cookDish = require('./dish/cook_dish');
 router.post('/gen-dish/add', (req,res,next) => {
     if (DEBUG) console.log(req.body);
 
-    let name=req.body.gendish_name, category=req.body.gendish_category;
+    let name=req.body.name, category=req.body.category;
     genDish.add(name,category, (err,gendish_id,message) => {
         if (err) return next(err);
         if (!gendish_id) return res.json(failureJSON(message));

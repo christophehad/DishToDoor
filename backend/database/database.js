@@ -104,6 +104,52 @@ module.exports.eaterEmailExists = function eaterEmailExists(email,done) {
     return emailExists(email,'EATER',done);
 }
 
+// returns true if a user has already registered a device
+function deviceRegisteredUser(id,done) {
+    con.query('SELECT * FROM user_device WHERE id = ?',[id], (err, rows) => {
+        if (err) return done(err);
+        return done(null, rows.length > 0);
+    })
+}
+
+// returns token if a user has already registered a device; else false
+module.exports.deviceGetToken = function(id,done) {
+    con.query('SELECT token FROM user_device WHERE id = ?',[id], (err, rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null,false);
+        return done(null, rows[0].token);
+    })
+}
+
+// returns true if device was registered
+module.exports.userRegisterDevice = function(id,platform='android',token,done) {
+    deviceRegisteredUser(id, (err,hasDevice) => {
+        if (err) return done(err);
+        if (hasDevice) {
+            // update the token
+            con.query('UPDATE user_device SET token = ? WHERE id = ?',[token,id], (err,result) => {
+                if (err) return done(err);
+                return done(null,true);
+            })
+        }
+        else {
+            // insert a new row
+            con.query('INSERT into user_device (id,token) values (?,?)',[id,token], (err,result) => {
+                if (err) return done(err);
+                return done(null,true);
+            })
+        }
+    })
+}
+
+// delete device(s) associated with user
+module.exports.deviceDeleteToken = function(id,done) {
+    con.query('DELETE FROM user_device WHERE id = ?',[id], (err,result) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
+}
+
 // returns the cook ID
 module.exports.cookRegisterPhone = function cookRegisterPhone(phone,pass,fname,lname,isVerified=false, done) {
     // create account
@@ -352,12 +398,27 @@ module.exports.cookGetAccount = function(cook_id,done) {
 /**
  * @param {schemes.eaterProfileCallback} done 
  */
-module.exports.eaterGetProfile = function eaterGetProfile(eater_id,done) {
+var eaterGetProfile = module.exports.eaterGetProfile = function(eater_id,done) {
     con.query('SELECT eater.*,user_profile.* FROM eater,user_profile WHERE eater_id = ? AND id = eater_id',[eater_id], (err,rows) => {
         if (err) return done(err);
         let row = rows[0];
         let eaterProfile = schemes.eaterProfile(row.eater_id,row.first_name,row.last_name);
         return done(null,eaterProfile);
+    })
+}
+
+/**
+ * @param {schemes.eaterAccountCallback} done 
+ */
+module.exports.eaterGetAccount = function(eater_id,done) {
+    con.query('SELECT user_account.*, eater.pickup_radius FROM user_account, eater WHERE eater_id = ? AND id = eater_id',[eater_id], (err,rows) => {
+        if (err) return done(err);
+        let row = rows[0];
+        eaterGetProfile(eater_id, (err, eaterprofile) => {
+            if (err) return done(err);
+            let eaterAccount = schemes.eaterAccount(eater_id,row.email,row.phone,row.pickup_radius,row._added,eaterprofile);
+            return done(null,eaterAccount);
+        })
     })
 }
 
