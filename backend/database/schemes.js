@@ -283,3 +283,10 @@ exports.order = function(order_id,eater_id,cook_id,total,general_status,prepared
   * @param {String} err
   * @param {Order[]} orders
 */
+
+/**
+  * Order Info Callback
+  * @callback orderInfoCallback
+  * @param {String} err
+  * @param {Order} order
+*/

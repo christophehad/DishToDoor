@@ -199,10 +199,13 @@ class _ProfileCookState2 extends State<ProfileCook2> {
               ),
               onTap: () {
                 storage.deleteAll();
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => Login(
-                        //cookList: cooks,
-                        )));
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => Login(),
+                  ),
+                  (route) => false,
+                );
               },
               title: Text(
                 "Logout",

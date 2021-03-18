@@ -123,6 +123,9 @@ class _PageNavigatorEater extends State<PageNavigatorEater> {
         print("Successful!");
       } else {
         //handle errors
+        setState(() {
+          cooks = CookList();
+        });
         print("Error: " + decoded['error']);
         //_registerErrorAlert(decoded['error']);
       }

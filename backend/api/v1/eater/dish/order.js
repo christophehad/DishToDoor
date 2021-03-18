@@ -1,4 +1,5 @@
 const database = require('../../../../database/database');
+const notification = require('../../common/notification');
 const apiConfig = require('../../api_config');
 const async = require('async');
 
@@ -52,8 +53,11 @@ exports.checkout = function checkout(eater_id,datetime,dishes,total,done) {
             })
         }, (err) => {
             if (err) return done(err);
-            return done(null,true);
-            // should alert the cooks of orders
+            // alert the cooks of orders
+            for (const [cook_id,dishes] of Object.entries(cookDishes)) {
+                notification.cookNewOrder(cook_id);
+            }
+            return done(null,true); 
         })
     })
 }

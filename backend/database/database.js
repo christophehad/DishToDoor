@@ -750,6 +750,31 @@ module.exports.orderGet_Cook = function orderGet_Cook(cook_id,status=null,done) 
                     })
 }
 
+/**
+ * @param {schemes.orderInfoCallback} done 
+ */
+var orderInfo = module.exports.orderInfo = function(order_id,done) {
+    con.query('SELECT eater_dish_order.*,order_status.* FROM eater_dish_order,order_status ' +
+        'WHERE eater_dish_order.order_id=order_status.order_id AND order_status.order_id = ?',
+        [order_id], (err, rows) => {
+            if (err) return done(err);
+            let orderByID = {};
+            for (const row of rows) {
+                /** @type {schemes.DishTuple} */
+                let dish = { dish_id: row.dish_id, quantity: row.quantity };
+                if (order_id in orderByID)
+                    orderByID[order_id].dishes.push(dish);
+                else {
+                    orderByID[order_id] = schemes.order(
+                        order_id, row.eater_id, row.cook_id, row.total_price, row.general_status, row.prepared_status, row.packaged_status,
+                        row.message, row.date_scheduled_on, [dish]);
+                }
+            }
+            let order = orderByID[order_id];
+            return done(null, order);
+        })
+}
+
 // returns true
 function orderSetStatus(order_id,status,done) {
     con.query('UPDATE order_status SET general_status = ? WHERE order_id = ?',[status,order_id], (err,result) => {
