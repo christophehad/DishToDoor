@@ -1,6 +1,9 @@
 const database = require('../../../../database/database');
+const notification = require('../../common/notification');
 const apiConfig = require('../../api_config');
+const DEBUG = apiConfig.DEBUG;
 const async = require('async');
+
 
 /**
  * @typedef {Object} OrderWrapper
@@ -56,24 +59,64 @@ exports.getOrdersAll = function getOrdersAll(cook_id, done) {
 exports.approve = function(order_id,done) {
     if (!order_id) return done(null, false, 'missing_fields');
     database.orderApprove(order_id,done);
+    database.orderInfo(order_id,(err,order) => {
+        if (err) {
+            if (DEBUG) console.log(err);
+        }
+        else {
+            notification.eaterOrderApproved(order.eater_id);
+        }
+    })
 }
 
 exports.reject = function(order_id,done) {
     if (!order_id) return done(null, false, 'missing_fields');
     database.orderReject(order_id,done);
+    database.orderInfo(order_id, (err, order) => {
+        if (err) {
+            if (DEBUG) console.log(err);
+        }
+        else {
+            notification.eaterOrderRejected(order.eater_id);
+        }
+    })
 }
 
 exports.cancel = function(order_id,done) {
     if (!order_id) return done(null, false, 'missing_fields');
     database.orderCancel(order_id,done);
+    database.orderInfo(order_id, (err, order) => {
+        if (err) {
+            if (DEBUG) console.log(err);
+        }
+        else {
+            notification.eaterOrderCancelled(order.eater_id);
+        }
+    })
 }
 
 exports.ready = function(order_id,done) {
     if (!order_id) return done(null, false, 'missing_fields');
     database.orderReady(order_id,done);
+    database.orderInfo(order_id, (err, order) => {
+        if (err) {
+            if (DEBUG) console.log(err);
+        }
+        else {
+            notification.eaterOrderReadyPickup(order.eater_id);
+        }
+    })
 }
 
 exports.complete = function(order_id,done) {
     if (!order_id) return done(null, false, 'missing_fields');
     database.orderComplete(order_id,done);
+    database.orderInfo(order_id, (err, order) => {
+        if (err) {
+            if (DEBUG) console.log(err);
+        }
+        else {
+            notification.eaterOrderComplete(order.eater_id);
+        }
+    })
 }
