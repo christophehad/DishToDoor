@@ -1,8 +1,6 @@
-import 'package:dishtodoor/screens/Eater/Order_Tracking/orderTracking2.dart';
 import 'package:dishtodoor/screens/auth/login.dart';
 import 'package:flutter/material.dart';
 import 'package:dishtodoor/config/config.dart';
-import 'package:geolocator/geolocator.dart';
 
 class ProfileEater extends StatefulWidget {
   ProfileEater({Key key}) : super(key: key);
@@ -28,10 +26,13 @@ class _ProfileEaterState extends State<ProfileEater> {
                 child: Text("Logout"),
                 onTap: () {
                   storage.deleteAll();
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => Login(
-                          //cookList: cooks,
-                          )));
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => Login(),
+                    ),
+                    (route) => false,
+                  );
                 },
               ),
             ),
