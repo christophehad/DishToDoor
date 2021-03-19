@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:dishtodoor/config/config.dart';
 import 'package:dishtodoor/screens/auth/login.dart';
+import 'dart:async';
+import 'package:http/http.dart' as http;
 
 void main() => runApp(OrderApp());
 
@@ -26,6 +30,32 @@ class ProfileCook2 extends StatefulWidget {
 class _ProfileCookState2 extends State<ProfileCook2> {
   DateTime pickupDate;
   bool datePicked = false;
+
+  //delete notification token from backend
+  Future<void> logoutNotif() async {
+    String token = await storage.read(key: 'token');
+    final http.Response response = await http.get(
+      baseURL + '/cook/api/device/delete',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': "Bearer " + token.toString(),
+      },
+    );
+
+    if (response.statusCode == 200) {
+      dynamic decoded = jsonDecode(response.body);
+      print("Received: " + decoded.toString());
+      bool success = decoded['success'];
+      if (success) {
+        print("Successfuly deleted notification token - cook!");
+      } else {
+        print("Error deleting notif token - cook: ");
+      }
+    } else {
+      print(response.statusCode);
+      print("An unkown error occured while deleting token - cook");
+    }
+  }
 
   Future<void> _changeLocationAlert() async {
     return showDialog<void>(
