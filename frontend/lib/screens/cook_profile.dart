@@ -96,6 +96,36 @@ class _ProfileCookState2 extends State<ProfileCook2> {
     });
   }
 
+  //for cook name fetching
+  Future<void> cookNameFetching() async {
+    print("trying comm order");
+    String token = await storage.read(key: 'token');
+    final http.Response response = await http.get(
+      baseURL + '/eater/api/orders/get',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': "Bearer " + token.toString(),
+      },
+    );
+
+    if (response.statusCode == 200) {
+      dynamic decoded = jsonDecode(response.body);
+      print("Received: " + decoded.toString());
+      bool success = decoded['success'];
+      if (success) {
+        setState(() {
+          orderList = EaterOrderList.fromJson(decoded['orders']);
+        });
+        print("Successful!");
+      } else {
+        print("Error: " + decoded['error']);
+      }
+    } else {
+      print(response.statusCode);
+      print("An unkown error occured");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
