@@ -1,8 +1,11 @@
+import 'package:dishtodoor/screens/cook_profile_information.dart';
 import 'package:flutter/material.dart';
 import 'package:dishtodoor/config/config.dart';
 import 'package:dishtodoor/screens/auth/login.dart';
 
 void main() => runApp(OrderApp());
+
+final CookProfileInformation cook_profile;
 
 class OrderApp extends StatelessWidget {
   @override
@@ -71,9 +74,8 @@ class _ProfileCookState2 extends State<ProfileCook2> {
     print("trying comm order");
     String token = await storage.read(key: 'token');
     final http.Response response = await http.get(
-      baseURL + '/eater/api/orders/get',
+      baseURL + '/cook/api/profile/get',
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': "Bearer " + token.toString(),
       },
     );
@@ -84,7 +86,7 @@ class _ProfileCookState2 extends State<ProfileCook2> {
       bool success = decoded['success'];
       if (success) {
         setState(() {
-          orderList = EaterOrderList.fromJson(decoded['orders']);
+          cook_profile = CookProfileInformation().fromJson(decoded['orders']);
         });
         print("Successful!");
       } else {
