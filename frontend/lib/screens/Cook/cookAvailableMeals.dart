@@ -185,22 +185,6 @@ class CookManageDishesState extends State<CookManageDishes> {
           child: Column(
             children: <Widget>[
               Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Positioned(
-                    top: 45,
-                    left: 5,
-                    child: IconButton(
-                      color: Colors.black,
-                      icon: Icon(Icons.arrow_back),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Text("Your Dishes",
