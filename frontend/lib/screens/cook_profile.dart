@@ -1,3 +1,4 @@
+import 'package:dishtodoor/screens/Eater/Order_Tracking/orderClass.dart';
 import 'package:dishtodoor/screens/cook_profile_information.dart';
 
 import 'dart:convert';
@@ -8,8 +9,6 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 void main() => runApp(OrderApp());
-
-final CookProfileInformation cook_profile;
 
 class OrderApp extends StatelessWidget {
   @override
@@ -25,7 +24,8 @@ class OrderApp extends StatelessWidget {
 //TODO logout button
 //TODO reset location
 class ProfileCook2 extends StatefulWidget {
-  ProfileCook2({Key key}) : super(key: key);
+  final CookProfileInformation cookProfileInformation;
+  ProfileCook2({Key key, this.cookProfileInformation}) : super(key: key);
   @override
   _ProfileCookState2 createState() => _ProfileCookState2();
 }
@@ -33,6 +33,7 @@ class ProfileCook2 extends StatefulWidget {
 class _ProfileCookState2 extends State<ProfileCook2> {
   DateTime pickupDate;
   bool datePicked = false;
+  CookProfileInformation cookProfileInformation = CookProfileInformation();
 
   //delete notification token from backend
   Future<void> logoutNotif() async {
@@ -100,7 +101,7 @@ class _ProfileCookState2 extends State<ProfileCook2> {
   }
 
   //for cook name fetching
-  Future<void> cookNameFetching() async {
+  Future<void> CookProfileInformationFetching() async {
     print("trying comm order");
     String token = await storage.read(key: 'token');
     final http.Response response = await http.get(
@@ -116,7 +117,8 @@ class _ProfileCookState2 extends State<ProfileCook2> {
       bool success = decoded['success'];
       if (success) {
         setState(() {
-          cook_profile = CookProfileInformation().fromJson(decoded['orders']);
+          cookProfileInformation =
+              CookProfileInformation.fromJson(decoded['orders']);
         });
         print("Successful!");
       } else {
@@ -138,11 +140,13 @@ class _ProfileCookState2 extends State<ProfileCook2> {
         children: <Widget>[
           CircleAvatar(
             radius: 50,
-            backgroundImage: NetworkImage(
-                "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"), //check here
+            backgroundImage:
+                NetworkImage(cookProfileInformation.cookProfile.logo),
+            //"https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"), //check here
           ),
           Text(
-            "Fadi", //get name
+            cookProfileInformation.cookProfile.firstName +
+                cookProfileInformation.cookProfile.lastName, //get name
             style: TextStyle(
                 fontSize: 40.0,
                 color: Colors.white,
@@ -163,7 +167,7 @@ class _ProfileCookState2 extends State<ProfileCook2> {
                     Icons.phone,
                     color: Colors.teal,
                   ),
-                  title: Text("03333333",
+                  title: Text(cookProfileInformation.phone,
                       //add phone number
                       style: TextStyle(
                         fontSize: 20.0,
@@ -177,7 +181,7 @@ class _ProfileCookState2 extends State<ProfileCook2> {
                     Icons.email,
                     color: Colors.teal,
                   ),
-                  title: Text("fadi@email.com",
+                  title: Text(cookProfileInformation.email,
                       //add email
                       style: TextStyle(
                         fontSize: 20.0,
@@ -194,7 +198,11 @@ class _ProfileCookState2 extends State<ProfileCook2> {
                   onTap: () {
                     _changeLocationAlert();
                   },
-                  title: Text("Beirut, Lebanon",
+                  title: Text(
+                      "Lat: " +
+                          cookProfileInformation.cookProfile.lat.toString() +
+                          " Lon: " +
+                          cookProfileInformation.cookProfile.lon.toString(),
                       //add location
                       style: TextStyle(
                         fontSize: 20.0,
@@ -209,7 +217,7 @@ class _ProfileCookState2 extends State<ProfileCook2> {
                 color: Colors.teal,
               ),
               title: Text(
-                "verified since Mai 2020",
+                "Added since " + cookProfileInformation.date_added,
                 //add verified since
                 style: TextStyle(
                   fontSize: 20.0,
@@ -241,7 +249,6 @@ class _ProfileCookState2 extends State<ProfileCook2> {
               },
               title: Text(
                 "Logout",
-                //add verified since
                 style: TextStyle(
                   fontSize: 20.0,
                   color: Colors.teal,
