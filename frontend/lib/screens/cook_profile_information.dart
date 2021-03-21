@@ -15,23 +15,13 @@ class CookProfileInformation {
       this.cookProfile});
 
   factory CookProfileInformation.fromJson(Map<String, dynamic> json) {
-    String defaultLogo =
-        "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500";
-
-    if (json['cookProfile.logo'] == null) {
-      defaultLogo =
-          "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500";
-    } else {
-      defaultLogo = json['cookProfile.logo'];
-    }
-
 //what put for dishPic
     return CookProfileInformation(
       email: json['email'],
       phone: json['phone'],
       is_verified: json['is_verified'],
       date_added: json['date_added'],
-      cookProfile: json['cookProfile'],
+      cookProfile: CookProfile.fromJson(json['profile']),
       // dishPic: defaultLogo,
     );
   }

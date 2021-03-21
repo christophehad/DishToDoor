@@ -1,4 +1,3 @@
-import 'package:dishtodoor/screens/Eater/Order_Tracking/orderClass.dart';
 import 'package:dishtodoor/screens/cook_profile_information.dart';
 
 import 'dart:convert';
@@ -33,7 +32,14 @@ class ProfileCook2 extends StatefulWidget {
 class _ProfileCookState2 extends State<ProfileCook2> {
   DateTime pickupDate;
   bool datePicked = false;
-  CookProfileInformation cookProfileInformation = CookProfileInformation();
+  CookProfileInformation cookProfileInformation;
+  bool isCookEmpty = false;
+
+  @override
+  void initState() {
+    cookProfileInformationFetching();
+    super.initState();
+  }
 
   //delete notification token from backend
   Future<void> logoutNotif() async {
@@ -101,7 +107,7 @@ class _ProfileCookState2 extends State<ProfileCook2> {
   }
 
   //for cook name fetching
-  Future<void> CookProfileInformationFetching() async {
+  Future<void> cookProfileInformationFetching() async {
     print("trying comm order");
     String token = await storage.read(key: 'token');
     final http.Response response = await http.get(
@@ -118,20 +124,26 @@ class _ProfileCookState2 extends State<ProfileCook2> {
       if (success) {
         setState(() {
           cookProfileInformation =
-              CookProfileInformation.fromJson(decoded['orders']);
+              CookProfileInformation.fromJson(decoded['cook']);
+          isCookEmpty = true;
         });
         print("Successful!");
       } else {
         print("Error: " + decoded['error']);
+        isCookEmpty = false;
       }
     } else {
       print(response.statusCode);
+      isCookEmpty = false;
       print("An unkown error occured");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (cookProfileInformation == null && isCookEmpty == false) {
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       backgroundColor: Colors.teal[200],
       body: SafeArea(
