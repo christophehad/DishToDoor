@@ -368,6 +368,14 @@ module.exports.cookGetOpenCloseTimes = function cookGetOpenCloseTimes(id, done) 
     })
 }
 
+// update the user's first name and last name
+module.exports.userUpdateNames = function (user_id,f_name,l_name,done) {
+    con.query('UPDATE user_profile SET first_name = ?, last_name = ? WHERE id = ?',[f_name,l_name,user_id], (err,result) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
+}
+
 /**
  * @param {schemes.cookProfileCallback} done 
  */

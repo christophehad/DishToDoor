@@ -1,4 +1,5 @@
 const database = require('../../../../database/database');
+const account = require('../../common/account');
 
 exports.profilePicSet = function profilePicSet(cook_id,pic_name,pic_path,done) {
     database.cookSetPic(cook_id,pic_name,pic_path, (err,added) => {
@@ -57,3 +58,5 @@ exports.getAccount = function(cook_id,done) {
         return done(null,cookaccount);
     })
 }
+
+exports.updateName = account.updateName;

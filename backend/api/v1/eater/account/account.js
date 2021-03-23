@@ -22,3 +22,5 @@ exports.getAccount = function(eater_id,done) {
         return done(null,eater);
     })
 }
+
+exports.updateName = common.updateName;

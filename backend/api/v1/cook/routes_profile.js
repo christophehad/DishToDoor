@@ -120,4 +120,15 @@ router.get('/profile/get',(req,res,next) => {
     })
 })
 
+router.post('/profile/name/set',(req,res,next) => {
+    if (DEBUG) console.log(req.body);
+
+    let cook_id = req.user, f_name=req.body.first_name, l_name=req.body.last_name;
+    profile.updateName(cook_id,f_name,l_name, (err,updated,message) => {
+        if (err) return next(err);
+        if (!updated) return res.json(failureJSON(message));
+        res.json(successJSON());
+    })
+})
+
 module.exports = router;
