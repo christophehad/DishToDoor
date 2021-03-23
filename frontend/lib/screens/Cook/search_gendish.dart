@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:dishtodoor/screens/auth/globals.dart' as globals;
 import 'package:dishtodoor/config/config.dart';
 import 'package:dishtodoor/screens/Cook/dishClass.dart';
 import 'package:dishtodoor/screens/Cook/add_generic_dish.dart';
@@ -25,11 +24,12 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
 
   Future getGenDish() async {
     print("Trying comm");
+    String token = await storage.read(key: "token");
     final http.Response response = await http.get(
       baseURL + '/cook/api/gen-dish/search?query=' + query,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': "Bearer " + globals.token
+        'Authorization': "Bearer " + token.toString()
       },
     );
     String error = "";
@@ -58,17 +58,18 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
     } else {
       // If the server did not return a 201 CREATED response,
       // then throw an exception.
-      print("An unkown error occured");
+      print("An unkown error occured getgenDish");
     }
   }
 
   Future displayGenDish() async {
     print("Trying comm");
+    String token = await storage.read(key: "token");
     final http.Response response = await http.get(
       baseURL + '/cook/api/gen-dish/get',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': "Bearer " + globals.token
+        'Authorization': "Bearer " + token.toString()
       },
     );
     if (response.statusCode == 200) {
@@ -92,7 +93,7 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
     } else {
       // If the server did not return a 201 CREATED response,
       // then throw an exception.
-      print("An unkown error occured");
+      print("An unkown error occured displaygenDish");
     }
   }
 
@@ -170,6 +171,11 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    if (genDishes == null) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
         backgroundColor: Colors.blue[100],
         body: Stack(children: <Widget>[

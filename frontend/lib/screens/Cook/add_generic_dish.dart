@@ -1,15 +1,8 @@
-import 'package:dishtodoor/screens/Map/cookClass.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
-import 'package:dishtodoor/screens/auth/cook_login_email.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
-import 'package:dishtodoor/screens/page_navigator_eater.dart';
 import 'package:dishtodoor/config/config.dart';
-import 'package:location/location.dart';
 import 'package:dishtodoor/screens/Cook/add_cook_dish.dart';
-import 'package:dishtodoor/screens/auth/globals.dart' as globals;
 
 class AddGenDish extends StatefulWidget {
   @override
@@ -29,10 +22,11 @@ class _AddGenDish extends State<AddGenDish> {
       bottom: 0,
       child: InkWell(
         onTap: () async {
+          String token = await storage.read(key: "token");
           final http.Response response =
               await http.post(baseURL + '/cook/api/gen-dish/add',
                   headers: <String, String>{
-                    "Authorization": "Bearer " + globals.token,
+                    "Authorization": "Bearer " + token.toString(),
                     'Content-Type': 'application/json; charset=UTF-8'
                   },
                   body: jsonEncode(<String, String>{
@@ -61,7 +55,7 @@ class _AddGenDish extends State<AddGenDish> {
               print("Error: " + dropDownValueCat);
             }
           } else {
-            print("An unkown error occured");
+            print("An unkown error occured adding dish");
           }
         },
         child: Container(

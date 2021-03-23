@@ -4,46 +4,6 @@ import 'package:dishtodoor/screens/Map/cookClass.dart';
 import 'package:dishtodoor/screens/Eater/Checkout_Processs/bloc/cart_items.dart';
 import 'package:dishtodoor/screens/Eater/Checkout_Processs/pages/checkout_screen.dart';
 
-void main() => runApp(MyApp());
-
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      initialRoute: "/",
-      routes: {
-        "/": (context) => CookPageEater(
-              cook: CookMap(
-                  firstName: "fadi",
-                  lastName: "z",
-                  distance: 20,
-                  lat: 33.7,
-                  lon: 33.05,
-                  logo:
-                      "https://www.lark.com/wp-content/uploads/2020/01/Blog_thumb-46.jpg",
-                  dishes: [
-                    CookDish(
-                        category: "Salad",
-                        description: "Delicious salad",
-                        dishID: 4,
-                        dishPic:
-                            "https://christophehad.blob.core.windows.net/dishtodoor/cookpic2.jpeg",
-                        gendishID: 1,
-                        name: "TestSalad",
-                        price: 10000)
-                  ]),
-            ),
-      },
-    );
-  }
-}
-
 class CookPageEater extends StatefulWidget {
   final CookMap cook;
   CookPageEater({Key key, @required this.cook}) : super(key: key);

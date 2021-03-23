@@ -2,12 +2,10 @@ import 'package:dishtodoor/screens/Cook/search_gendish.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/screens/auth/globals.dart' as globals;
 import 'package:dishtodoor/config/config.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:path/path.dart' as p;
 
 class AddCookDish extends StatefulWidget {
   @override
@@ -124,10 +122,12 @@ class _AddCookDish extends State<AddCookDish> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => GenDishSearchBar()));
-                  setState(() {
-                    genDishName = result.substring(0, result.indexOf('.'));
-                    genDishId = result.substring(result.indexOf('.') + 1);
-                  });
+                  if (result != null) {
+                    setState(() {
+                      genDishName = result.substring(0, result.indexOf('.'));
+                      genDishId = result.substring(result.indexOf('.') + 1);
+                    });
+                  }
                 },
               ))
         ]),
@@ -417,16 +417,6 @@ class _AddCookDish extends State<AddCookDish> {
           //     onPressed: getImage,
           //     child: Text("PICK FROM CAMERA")),
         ]),
-        Positioned(
-            top: 35,
-            left: 5,
-            child: IconButton(
-              color: Colors.white,
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ))
       ]),
       // floatingActionButton: FloatingActionButton(
       //     onPressed: getImage,

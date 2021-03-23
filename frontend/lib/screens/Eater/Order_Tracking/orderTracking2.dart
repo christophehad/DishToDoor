@@ -37,7 +37,6 @@ class OrderState extends State<Order> {
 
   @override
   void initState() {
-    orderList = widget.orderList == null ? widget.orderList : EaterOrderList();
     _scrollController = ScrollController();
     orderFetching();
     super.initState();

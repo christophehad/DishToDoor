@@ -7,7 +7,8 @@ import 'package:dishtodoor/screens/Cook/cookAvailableMeals.dart';
 //Eater Page Navigator
 
 class PageNavigatorCook extends StatefulWidget {
-  PageNavigatorCook({Key key}) : super(key: key);
+  int indexInput;
+  PageNavigatorCook({Key key, this.indexInput}) : super(key: key);
   @override
   _PageNavigatorCook createState() => _PageNavigatorCook();
 }
@@ -26,7 +27,20 @@ class _PageNavigatorCook extends State<PageNavigatorCook> {
 
   @override
   void initState() {
+    _indexCheck();
     super.initState();
+  }
+
+  //this function is called when an index is passed to page navigaotr
+  //usually from notification system
+  void _indexCheck() {
+    print("index:" + widget.indexInput.toString());
+    if (widget.indexInput != null) {
+      setState(() {
+        _currentIndex = widget.indexInput;
+      });
+      print("current index: " + _currentIndex.toString());
+    }
   }
 
   //takes in the tapped tab’s index and calls setState on our state class.
