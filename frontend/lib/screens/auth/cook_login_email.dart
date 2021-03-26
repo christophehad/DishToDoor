@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dishtodoor/screens/auth/register_as_cook.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
@@ -16,11 +17,52 @@ class _CookLoginEmail extends State<CookLoginEmail> {
 
   TextEditingController password = TextEditingController(text: "");
 
-//Getting location before hand
-
   @override
   void initState() {
     super.initState();
+  }
+
+  //Error Alert
+  Future<void> _registerErrorAlert(String e) async {
+    String _errorDisp = "";
+    if (e == "no_cook_email") {
+      _errorDisp =
+          "You don't seem to have an account with us, please signup first!";
+    } else if (e == "wrong_password") {
+      _errorDisp = "Wrong Password";
+    } else {
+      _errorDisp = "An unkown error occured, please try again later.";
+    }
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(_errorDisp),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.done_rounded),
+              onPressed: () {
+                if (e == "no_eater_email") {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => RegisterCookPage()));
+                } else if (e == "wrong_password") {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -74,6 +116,7 @@ class _CookLoginEmail extends State<CookLoginEmail> {
               //print("Your token is" + globals.token);
             } else {
               print("Error: " + decoded['error']);
+              _registerErrorAlert(decoded['error']);
             }
           } else {
             print("An unkown error occured");

@@ -1,5 +1,4 @@
-import 'package:dishtodoor/screens/Map/cookClass.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:dishtodoor/screens/auth/register_as_eater.dart';
 import 'dart:convert';
 import 'package:dishtodoor/screens/auth/cook_login_email.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +6,6 @@ import 'package:http/http.dart' as http;
 
 import 'package:dishtodoor/screens/page_navigator_eater.dart';
 import 'package:dishtodoor/config/config.dart';
-import 'package:location/location.dart';
 
 class EaterLoginEmail extends StatefulWidget {
   @override
@@ -19,66 +17,52 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
 
   TextEditingController password = TextEditingController(text: "");
 
-  //Getting location before hand
-//TODO move to page before map later
-// get Location of user
-
-  LatLng _finaluserlocation;
-  CookList cooks = CookList();
-  Location _location = Location();
-
-  // Future<void> getLoc() async {
-  //   var _loc = await _location.getLocation();
-  //   setState(() {
-  //     _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
-  //   });
-  // }
-
-  // Future locsharing() async {
-  //   print("trying comm");
-  //   final http.Response response = await http.get(
-  //     baseURL +
-  //         '/eater/api/dish/around?lat=' +
-  //         _finaluserlocation.latitude.toString() +
-  //         '&lon=' +
-  //         _finaluserlocation.longitude.toString(),
-  //     headers: <String, String>{
-  //       'Content-Type': 'application/json; charset=UTF-8',
-  //       'Authorization': "Bearer " + await storage.read(key: "token"),
-  //     },
-  //   );
-  //   if (response.statusCode == 200) {
-  //     // If the server did return a 200 CREATED response,
-  //     // then parse the JSON and send user to login screen
-  //     dynamic decoded = jsonDecode(response.body);
-  //     print("Received: " + decoded.toString());
-  //     bool success = decoded['success'];
-  //     print("success: " + success.toString());
-  //     print(decoded['cooks']);
-  //     if (success) {
-  //       setState(() {
-  //         cooks = CookList.fromJson(decoded['cooks']);
-  //       });
-
-  //       print(cooks.cooksList);
-  //       //_registerSuccessfulAlert();
-  //       print("Successful!");
-  //     } else {
-  //       //handle errors
-  //       print("Error: " + decoded['error']);
-  //       //_registerErrorAlert(decoded['error']);
-  //     }
-  //   } else {
-  //     // If the server did not return a 201 CREATED response,
-  //     // then throw an exception.
-  //     print("An unkown error occured");
-  //   }
-  // }
-
   @override
   void initState() {
     super.initState();
-    //getLoc();
+  }
+
+//Error Alert
+  Future<void> _registerErrorAlert(String e) async {
+    String _errorDisp = "";
+    if (e == "no_eater_email") {
+      _errorDisp =
+          "You don't seem to have an account with us, please signup first!";
+    } else if (e == "wrong_password") {
+      _errorDisp = "Wrong Password";
+    } else {
+      _errorDisp = "An unkown error occured, please try again later.";
+    }
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(_errorDisp),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.done_rounded),
+              onPressed: () {
+                if (e == "no_eater_email") {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => RegisterEaterPage()));
+                } else if (e == "wrong_password") {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -123,6 +107,7 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
               //});
             } else {
               print("Error: " + decoded['error']);
+              _registerErrorAlert(decoded['error']);
             }
           } else {
             print("An unkown error occured");
