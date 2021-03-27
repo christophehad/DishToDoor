@@ -216,24 +216,27 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
     );
 
     return Scaffold(
-        backgroundColor: Colors.blue[100],
-        body: Stack(children: <Widget>[
-          Padding(
-              padding: EdgeInsets.only(left: 28.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[loginForm, forgotPassword, socialRegister],
-              )),
-          Positioned(
-              top: 35,
-              left: 5,
-              child: IconButton(
-                color: Colors.white,
-                icon: Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ))
-        ]));
+      backgroundColor: Colors.blue[100],
+      body: SafeArea(
+        child: Stack(
+          children: <Widget>[
+            Padding(
+                padding: EdgeInsets.only(left: 28.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[loginForm, forgotPassword, socialRegister],
+                )),
+            Positioned(
+                child: IconButton(
+              color: Colors.white,
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ))
+          ],
+        ),
+      ),
+    );
   }
 }

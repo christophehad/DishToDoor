@@ -225,20 +225,22 @@ class _Login extends State<Login> {
 
     return Scaffold(
       backgroundColor: Colors.blue[100],
-      body: Padding(
-        padding: const EdgeInsets.only(left: 20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            loginText,
-            logo,
-            phoneNumber,
-            emailLogin,
-            divider,
-            signInWithText,
-            socialBtnRow,
-            signupBtn
-          ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              loginText,
+              logo,
+              phoneNumber,
+              emailLogin,
+              SizedBox(
+                height: MediaQuery.of(context).size.height / 4,
+              ),
+              signupBtn
+            ],
+          ),
         ),
       ),
     );

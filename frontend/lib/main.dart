@@ -201,8 +201,6 @@ class _MyApp extends State<MyApp> {
         bool success = decoded['success'];
         if (success) {
           print("Successful cook notification adding");
-          //print("Your token is" + globals.token);
-
         } else {
           print("Error cook notification adding: " + decoded['error']);
         }

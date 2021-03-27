@@ -113,7 +113,6 @@ class _CookLoginEmail extends State<CookLoginEmail> {
               Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => PageNavigatorCook()));
               print("Successful!");
-              //print("Your token is" + globals.token);
             } else {
               print("Error: " + decoded['error']);
               _registerErrorAlert(decoded['error']);
@@ -206,24 +205,28 @@ class _CookLoginEmail extends State<CookLoginEmail> {
         ]));
 
     return Scaffold(
-        backgroundColor: Colors.blue[100],
-        body: Stack(children: <Widget>[
-          Padding(
-              padding: EdgeInsets.only(left: 28.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[loginForm, forgotPassword],
-              )),
-          Positioned(
-              top: 35,
-              left: 5,
+      backgroundColor: Colors.blue[100],
+      body: SafeArea(
+        child: Stack(
+          children: <Widget>[
+            Padding(
+                padding: EdgeInsets.only(left: 28.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[loginForm, forgotPassword],
+                )),
+            Positioned(
               child: IconButton(
                 color: Colors.white,
                 icon: Icon(Icons.arrow_back),
                 onPressed: () {
                   Navigator.pop(context);
                 },
-              ))
-        ]));
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

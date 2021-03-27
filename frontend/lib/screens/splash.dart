@@ -117,7 +117,6 @@ class _SplashScreenState extends State<SplashScreen>
           Navigator.of(context)
               .push(MaterialPageRoute(builder: (_) => PageNavigatorCook()));
           print("Successful!");
-          //print("Your token is" + globals.token);
         } else {
           print("Error: " + decoded['error']);
         }
