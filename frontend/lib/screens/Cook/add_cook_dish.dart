@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:dishtodoor/screens/auth/globals.dart' as globals;
 import 'package:dishtodoor/config/config.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -319,12 +318,13 @@ class _AddCookDish extends State<AddCookDish> {
           //     //MODIFY by adding relevant COOK parts
           //   }),
           // );
+          String token = await storage.read(key: 'token');
           var request = http.MultipartRequest(
             'POST',
             Uri.parse(baseURL + '/cook/api/cook-dish/add'),
           );
           Map<String, String> headers = {
-            "Authorization": "Bearer " + globals.token,
+            "Authorization": "Bearer " + token.toString(),
             "Content-type": "multipart/form-data"
           };
           request.files.add(http.MultipartFile(

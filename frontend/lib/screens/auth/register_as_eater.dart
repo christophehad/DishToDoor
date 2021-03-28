@@ -305,7 +305,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
             ),
           ),
           Positioned(
-            top: 35,
+            top: 45,
             left: 5,
             child: IconButton(
               color: Colors.white,
