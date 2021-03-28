@@ -128,10 +128,10 @@ router.get('/cook-dish/get', (req, res, next) => {
             /** @type {apiConfig.CookDishAPI[]} */
             let cook_dishesAPI = [];
             for (const cookdish of cookdishes) {
-                cook_dishesAPI.push({
-                    dish_id: cookdish.dish_id, gendish_id: cookdish.gendish_id, name: cookdish.name,
-                    price: cookdish.price, category: cookdish.category, description: cookdish.description, dish_pic: cookdish.dish_pic
-                });
+                cook_dishesAPI.push(apiConfig.cookDish(
+                    cookdish.dish_id, cookdish.gendish_id, cookdish.name, cookdish.price, cookdish.category,
+                    cookdish.description, cookdish.dish_pic, cookdish.avg_rating, cookdish.ratings
+                ));
             }
             toSend.cook_dishes = cook_dishesAPI;
             res.json(toSend);
@@ -148,10 +148,10 @@ router.get('/cook-dish/get', (req, res, next) => {
                 /** @type {apiConfig.CookDishAPI[]} */
                 let cook_dishesAPI = [];
                 for (const cookdish of cookdishes) {
-                    cook_dishesAPI.push({
-                        dish_id: cookdish.dish_id, gendish_id: cookdish.gendish_id, name: cookdish.name,
-                        price: cookdish.price, category: cookdish.category, description: cookdish.description, dish_pic: cookdish.dish_pic
-                    });
+                    cook_dishesAPI.push(apiConfig.cookDish(
+                        cookdish.dish_id, cookdish.gendish_id, cookdish.name, cookdish.price, cookdish.category,
+                        cookdish.description, cookdish.dish_pic, cookdish.avg_rating, cookdish.ratings
+                    ));
                 }
                 toSend.cook_dishes = cook_dishesAPI;
                 res.json(toSend);

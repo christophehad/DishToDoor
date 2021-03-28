@@ -205,7 +205,7 @@ CREATE TABLE `dish_rating` (
   `rating_id` int(11) NOT NULL,
   `eater_id` int(11) NOT NULL,
   `dish_id` int(11) NOT NULL,
-  `rating` int(11) NOT NULL,
+  `rating` decimal(4,2) NOT NULL,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

@@ -25,6 +25,23 @@ exports.genDish = function (id,name,category) {
 }
 
 /**
+ * @typedef {Object} DishRating
+ * @property {EaterProfile} eater
+ * @property {Number} rating
+ * @property {Date} date
+*/
+
+/**
+ * @param {EaterProfile} eater
+ * @returns {DishRating}
+ */
+exports.dishRating = function(eater,rating,date) {
+    return {
+        eater:eater, rating:rating, date:date
+    }
+}
+
+/**
  * @typedef {Object} CookDish
  * @property {Number} dish_id
  * @property {Number} gendish_id
@@ -35,16 +52,19 @@ exports.genDish = function (id,name,category) {
  * @property {String} label
  * @property {String} description
  * @property {String} dish_pic
+ * @property {Number} avg_rating
+ * @property {DishRating[]} ratings
  */
 
  /**
   * Generate a CookDish
+  * @param {DishRating[]} ratings
   * @returns {CookDish}
   */
- exports.cookDish = function (dish_id,gendish_id,cook_id,name,price,category,label,description,dish_pic) {
+ exports.cookDish = function (dish_id,gendish_id,cook_id,name,price,category,label,description,dish_pic,avg_rating,ratings) {
      return {
          dish_id: dish_id, gendish_id: gendish_id, cook_id: cook_id, name: name, price: price, category: category,
-         label: label, description: description, dish_pic: dish_pic
+         label: label, description: description, dish_pic: dish_pic, avg_rating:avg_rating, ratings
      }
  }
 

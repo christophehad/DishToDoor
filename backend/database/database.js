@@ -554,18 +554,47 @@ module.exports.cookDishGetAvailable = function cookDishGetAvailable(cook_id,date
  * @param {schemes.cookDishInfoCallback} done
  */
 var cookDishInfo = module.exports.cookDishInfo = function (dish_id,done) {
-    con.query('SELECT dishes.*, generic_dishes.gendish_name FROM dishes, generic_dishes '+
+    con.query('SELECT dish_rating.*, dishes.*, generic_dishes.gendish_name FROM (dishes, generic_dishes) '+
+            'LEFT JOIN dish_rating ON dish_rating.dish_id = dishes.dish_id ' +
             'WHERE dishes.gendish_id = generic_dishes.gendish_id AND dishes.dish_id = ?',[dish_id],(err,rows) => {
                 if (err) return done(err);
                 
-                let row = rows[0];
-                let name = row.custom_name ? row.custom_name : row.gendish_name;
-                let cookdish = schemes.cookDish(
-                    row.dish_id, row.gendish_id, row.cook_id, name, row.price,
-                    row.category, row.label, row.description, row.dish_pic
-                );
-                return done(null, cookdish);
+                let ratings = [], avg_rating = 0;
+                async.eachOf(rows, function(row,index,inner_callback) {
+                    if (row.rating) {
+                        eaterGetProfile(row.eater_id, (err,eater) => {
+                            if (err) return inner_callback(err);
+                            ratings.push(schemes.dishRating(eater,row.rating,row._added));
+                            avg_rating += row.rating;
+                            inner_callback();
+                        })
+                    }
+                    else
+                        inner_callback();
+                }, function (err) {
+                    if (err) return done(err);
+                    let row = rows[0];
+                    let name = row.custom_name ? row.custom_name : row.gendish_name;
+                    if (ratings.length == 0) {
+                        ratings = null, avg_rating = null;
+                    }
+                    else
+                        avg_rating = avg_rating / ratings.length;
+                    let cookdish = schemes.cookDish(
+                        row.dish_id, row.gendish_id, row.cook_id, name, row.price,
+                        row.category, row.label, row.description, row.dish_pic, avg_rating, ratings
+                    );
+                    return done(null, cookdish);
+                });
             });
+}
+
+
+module.exports.cookDishRate = function (eater_id,dish_id,rating,done) {
+    con.query('INSERT into dish_rating (eater_id,dish_id,rating) values (?,?,?)',[eater_id,dish_id,rating],(err,result) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
 }
 
 /* Map Functions */
@@ -578,14 +607,14 @@ module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_
     con.query('SELECT *,distance FROM ('+
                 'SELECT cook.cook_logo,cook.lat,cook.lon,cook.opening_time,cook.closing_time,profile.first_name,profile.last_name,'+
                         'eater.pickup_radius, '+
-                        'dishes.*, generic_dishes.gendish_name, '+
+                        'dishes.*, '+
                         'p.distance_unit '+
                             '* DEGREES(ACOS(LEAST(1.0, COS(RADIANS(p.lat)) '+
                             '* COS(RADIANS(cook.lat)) '+
                             '* COS(RADIANS(p.lon - cook.lon)) '+
                             '+ SIN(RADIANS(p.lat)) '+
                             '* SIN(RADIANS(cook.lat))))) AS distance '+
-                'FROM cook, user_profile as profile, dishes, generic_dishes, eater '+
+                'FROM cook, user_profile as profile, dishes, eater '+
                 'JOIN (SELECT ? AS lat, ? AS lon, 111.045 AS distance_unit, ? AS status) AS p ON 1=1 '+ // 111.045 km/degree
                 'WHERE eater.eater_id = ? '+
                     'AND cook.lat BETWEEN p.lat - (eater.pickup_radius / p.distance_unit) '+
@@ -593,7 +622,7 @@ module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_
                     'AND cook.lon BETWEEN p.lon - (eater.pickup_radius / (p.distance_unit * COS(RADIANS(p.lat)))) '+
                                     'AND p.lon + (eater.pickup_radius / (p.distance_unit * COS(RADIANS(p.lat)))) '+
                     'AND cook.cook_id = profile.id '+
-                    'AND dishes.gendish_id = generic_dishes.gendish_id AND dishes.cook_id = cook.cook_id '+
+                    'AND dishes.cook_id = cook.cook_id '+
                     'AND (dishes.dish_status = p.status OR p.status IS NULL) '+
                 ') AS d '+
                 'WHERE distance <= pickup_radius '  // can add LIMIT x
@@ -601,22 +630,25 @@ module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_
                     if (err) return done(err);
                     if (rows.length == 0) return done(null,false);
                     let cookDetails = {};
-                    for (const row of rows) {
+                    async.eachOf(rows,function(row,index,inner_callback){
                         let cook_id = row.cook_id;
-                        let dishname = row.custom_name ? row.custom_name : row.gendish_name;
-                        let curDish = schemes.cookDish(row.dish_id, row.gendish_id, row.cook_id, dishname, row.price,
-                            row.category, row.label, row.description, row.dish_pic);
-                        if (cook_id in cookDetails) { // just add meal
-                            cookDetails[cook_id].dishes.push(curDish);
-                        }
-                        else {
-                            cookDetails[cook_id] = schemes.cookMap(
-                                cook_id,row.first_name,row.last_name,
-                                row.cook_logo,row.lat,row.lon,row.distance,row.opening_time,row.closing_time,[curDish]);
-                        }
-                    }
-                    let cookList = Object.values(cookDetails);
-                    return done(null,cookList);
+                        cookDishInfo(row.dish_id,(err,curDish) => {
+                            if (err) return inner_callback(err);
+                            if (cook_id in cookDetails) { // just add meal
+                                cookDetails[cook_id].dishes.push(curDish);
+                            }
+                            else {
+                                cookDetails[cook_id] = schemes.cookMap(
+                                    cook_id, row.first_name, row.last_name,
+                                    row.cook_logo, row.lat, row.lon, row.distance, row.opening_time, row.closing_time, [curDish]);
+                            }
+                            inner_callback();
+                        })
+                    },function(err) {
+                        if (err) return done(err);
+                        let cookList = Object.values(cookDetails);
+                        return done(null, cookList);
+                    })
                 });
 }
 

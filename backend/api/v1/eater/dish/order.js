@@ -112,3 +112,12 @@ exports.getOrdersAll = function getOrdersAll(eater_id,done) {
         })
     })
 }
+
+exports.rateDish = function(eater_id,dish_id,rating,done) {
+    if (!dish_id || !rating) return done(null,false,'missing_fields');
+    if (rating < 0 || rating > 5) return done(null,false,'wrong_rating');
+    database.cookDishRate(eater_id,dish_id,rating, (err,success) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
+}

@@ -34,6 +34,25 @@ module.exports.genDish = function genDish(id,name,category) {
 module.exports.gendishCategories = ['appetizer','main dish', 'dessert', 'salad'];
 
 /**
+ * @typedef {Object} DishRatingAPI
+ * @property {EaterProfileAPI} eater
+ * @property {Number} rating
+ * @property {Date} date
+*/
+
+/**
+ * @param {schemes.DishRating} dishrating
+ * @returns {DishRatingAPI}
+ */
+function dishRatingAPI(dishrating) {
+    let eater_api = eaterProfileAPI(dishrating.eater.first_name,dishrating.eater.last_name);
+    let date_api = datetimeAPI(dishrating.date);
+    return {
+        eater:eater_api, date:date_api, rating:dishrating.rating
+    }
+}
+
+/**
  * API CookDish
  * @typedef {Object} CookDishAPI
  * @property {Number} dish_id
@@ -43,15 +62,25 @@ module.exports.gendishCategories = ['appetizer','main dish', 'dessert', 'salad']
  * @property {String} category
  * @property {String} description
  * @property {String} dish_pic
+ * @property {Number} avg_rating
+ * @property {DishRatingAPI[]} ratings
 */
 
 /**
+ * @param {schemes.DishRating[]}
  * @returns {CookDishAPI}
  */
-module.exports.cookDish = function cookDish(dish_id,gendish_id,name,price,category,description,dish_pic) {
+module.exports.cookDish = function cookDish(dish_id,gendish_id,name,price,category,description,dish_pic,avg_rating,ratings) {
+    let ratingsAPI = null;
+    if (ratings !== null) {
+        ratingsAPI = [];
+        for (const rating of ratings) {
+            ratingsAPI.push(dishRatingAPI(rating));
+        }
+    }
     return {
         dish_id:dish_id, gendish_id:gendish_id, name:name, price: price, category: category, 
-        description:description, dish_pic:dish_pic
+        description:description, dish_pic:dish_pic, avg_rating:avg_rating, ratings: ratingsAPI
 }}
 
 /**

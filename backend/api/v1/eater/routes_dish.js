@@ -34,7 +34,7 @@ router.get('/dish/around',(req,res,next) => {
             let dishes = [];
             for (const dish of cook.dishes) {
                 dishes.push(cookDishAPI(dish.dish_id,dish.gendish_id,dish.name,dish.price,dish.category,
-                                        dish.category,dish.dish_pic));
+                                        dish.category,dish.dish_pic,dish.avg_rating,dish.ratings));
             }
             cooks_with_dishesAPI.push(cookMapAPI(cook.first_name,cook.last_name,cook.logo,
                                                 cook.lat,cook.lon,cook.distance,
@@ -87,6 +87,17 @@ router.get('/orders/get',(req,res,next) => {
     else {
         res.sendStatus(400);
     }
+})
+
+router.post('/dish/rate',(req,res,next) => {
+    if (DEBUG) console.log(req.body);
+
+    let eater_id=req.user, dish_id=req.body.dish_id, rating=req.body.rating;
+    order.rateDish(eater_id,dish_id,rating,(err,success,message) => {
+        if (err) return next(err);
+        if (!success) return res.json(failureJSON());
+        res.json(successJSON());
+    })
 })
 
 module.exports = router;
