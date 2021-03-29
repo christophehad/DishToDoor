@@ -216,14 +216,16 @@ module.exports.eaterAccountAPI = function(eater) {
  * @property {Number} quantity
  * @property {Number} price
  * @property {String} dish_pic
+ * @property {Boolean} rated
 */
 
 /**
  * @returns {OrderDishAPI}
  */
-module.exports.orderDishAPI = function orderDishAPI(dish_id,name,quantity,price,dish_pic) {
+module.exports.orderDishAPI = function orderDishAPI(dish_id,name,quantity,price,dish_pic,rated=false) {
+    let rated_api = rated == true;
     return {
-        dish_id:dish_id, name:name, quantity:quantity, price:price, dish_pic:dish_pic
+        dish_id:dish_id, name:name, quantity:quantity, price:price, dish_pic:dish_pic, rated:rated_api
     }
 }
 

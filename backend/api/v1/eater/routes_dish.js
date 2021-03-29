@@ -92,10 +92,10 @@ router.get('/orders/get',(req,res,next) => {
 router.post('/dish/rate',(req,res,next) => {
     if (DEBUG) console.log(req.body);
 
-    let eater_id=req.user, dish_id=req.body.dish_id, rating=req.body.rating;
-    order.rateDish(eater_id,dish_id,rating,(err,success,message) => {
+    let eater_id=req.user, dish_id=req.body.dish_id, rating=req.body.rating, order_id=req.body.order_id;
+    order.rateDish(eater_id,dish_id,order_id,rating,(err,success,message) => {
         if (err) return next(err);
-        if (!success) return res.json(failureJSON());
+        if (!success) return res.json(failureJSON(message));
         res.json(successJSON());
     })
 })
