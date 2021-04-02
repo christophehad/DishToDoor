@@ -1,24 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
 import 'package:dishtodoor/screens/Cook/orderClassCook.dart';
 import 'package:dishtodoor/screens/Map/cookClass.dart';
-
-void main() => runApp(OrderApp());
-
-class OrderApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Horizontal Timeline',
-      home: CookManageDishes(),
-    );
-  }
-}
+import 'package:intl/intl.dart';
 
 const deliverySteps = ['Pending', 'Cooking', 'Ready'];
 
@@ -35,12 +24,12 @@ class CookManageDishesState extends State<CookManageDishes> {
 
   Color doneButton = Colors.green;
   Color removeButton = Colors.red;
+  DateTime openingTime;
+  DateTime closingTime;
 
   @override
   void initState() {
     super.initState();
-    //allDishes =
-    //    widget.allDishes == null ? widget.allDishes : List<CookOrderList>();
     getDishes();
     getAvaliableDishes();
   }
@@ -55,7 +44,6 @@ class CookManageDishesState extends State<CookManageDishes> {
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': "Bearer " + token.toString(),
-        //"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiaWF0IjoxNjEzMDQwOTgyfQ.5Pp6xPvfmqAeL09oWqX0sJugy3ryxsXdVfNSrHdv2TY",
       },
     );
 
@@ -86,7 +74,6 @@ class CookManageDishesState extends State<CookManageDishes> {
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': "Bearer " + token.toString(),
-        //"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiaWF0IjoxNjEzMDQwOTgyfQ.5Pp6xPvfmqAeL09oWqX0sJugy3ryxsXdVfNSrHdv2TY",
       },
     );
 
@@ -211,6 +198,120 @@ class CookManageDishesState extends State<CookManageDishes> {
     );
   }
 
+  void _showPicker(context) async {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext bc) {
+          return SafeArea(
+            child: Container(
+              child: new Wrap(
+                children: <Widget>[
+                  new ListTile(
+                      title: new Text('Opening Time'),
+                      trailing: new Text(openingTime != null
+                          ? openingTime.hour.toString() +
+                              ":" +
+                              openingTime.minute.toString()
+                          : ""),
+                      onTap: () async {
+                        await setOpeningTime();
+                        if (openingTime != null && closingTime != null) {
+                          await sendOperatingHours();
+                        }
+                        Navigator.of(context).pop();
+                      }),
+                  new ListTile(
+                    title: new Text('Closing Time'),
+                    trailing: new Text(closingTime != null
+                        ? closingTime.hour.toString() +
+                            ":" +
+                            closingTime.minute.toString()
+                        : ""),
+                    onTap: () async {
+                      await setClosingTime();
+                      if (openingTime != null && closingTime != null) {
+                        await sendOperatingHours();
+                      }
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  Future<void> sendOperatingHours() async {
+    print("sending hours");
+    String token = await storage.read(key: 'token');
+    final format = DateFormat('HH:mm:ss');
+    String openingTimeParsed = format.format(openingTime);
+    String closingTimeParsed = format.format(closingTime);
+    print("opening time: " + openingTimeParsed);
+    print("closing time: " + closingTimeParsed);
+    final http.Response response = await http.post(
+      baseURL + '/cook/api/profile/times/set',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': "Bearer " + token.toString(),
+      },
+      body: jsonEncode(<String, String>{
+        'opening_time': openingTimeParsed,
+        'closing_time': closingTimeParsed,
+      }),
+    );
+    if (response.statusCode == 200) {
+      // If the server did return a 200 CREATED response,
+      // then parse the JSON and send user to login screen
+      dynamic decoded = jsonDecode(response.body);
+      print("Received: " + decoded.toString());
+      bool success = decoded['success'];
+      if (success) {
+        print("Successful! opening time setting");
+      } else {
+        //handle errors
+        print("Error: opening time setting" + decoded['error']);
+      }
+    } else {
+      print("unknown error: opening time setting");
+    }
+  }
+
+  Future setOpeningTime() async {
+    return DatePicker.showDateTimePicker(
+      context,
+      showTitleActions: true,
+      onChanged: (date) {
+        print('change $date in time zone ' +
+            date.timeZoneOffset.inHours.toString());
+      },
+      onConfirm: (date) {
+        print('confirm $date');
+        setState(() {
+          openingTime = date;
+        });
+      },
+    );
+  }
+
+  Future setClosingTime() async {
+    return DatePicker.showDateTimePicker(
+      context,
+      showTitleActions: true,
+      onChanged: (date) {
+        print('change $date in time zone ' +
+            date.timeZoneOffset.inHours.toString());
+      },
+      onConfirm: (date) {
+        print('confirm $date');
+        setState(() {
+          closingTime = date;
+        });
+      },
+    );
+  }
+
   Widget todayMenu(DishList availableDishes) {
     print("menu");
     if (availableDishes.dishList == null) {
@@ -255,6 +356,21 @@ class CookManageDishesState extends State<CookManageDishes> {
       scrollDirection: Axis.vertical,
       shrinkWrap: true,
       children: [
+        Card(
+          elevation: 2,
+          child: InkWell(
+            child: Text(
+              "Select opening hours",
+              style: TextStyle(
+                  fontSize: 25,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w700),
+            ),
+            onTap: () {
+              _showPicker(context);
+            },
+          ),
+        ),
         todayMenu(availableDishes),
         Card(
           elevation: 2,
@@ -318,14 +434,27 @@ class CookManageDishesState extends State<CookManageDishes> {
                 leading: CircleAvatar(
                   backgroundImage: NetworkImage(dish.dishPic),
                 ),
-                trailing: InkWell(
-                  child: Icon(
-                    Icons.add_circle_outline,
-                    color: doneButton,
-                  ),
-                  onTap: () async {
-                    await makeDishesAvailable(dish);
-                  },
+                trailing: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    dish.avgRating != 0.0
+                        ? Icon(Icons.star, color: Colors.yellow)
+                        : Text(""),
+                    dish.avgRating != 0.0
+                        ? Text(dish.avgRating.toStringAsFixed(1))
+                        : Text(""),
+                    SizedBox(width: 10),
+                    InkWell(
+                      child: Icon(
+                        Icons.add_circle_outline,
+                        color: doneButton,
+                      ),
+                      onTap: () async {
+                        await makeDishesAvailable(dish);
+                      },
+                    ),
+                  ],
                 ),
                 title: Text(dish.name +
                     " | " +

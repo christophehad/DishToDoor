@@ -31,8 +31,19 @@ class _CookPageEaterState extends State<CookPageEater> {
                 leading: CircleAvatar(
                   backgroundImage: NetworkImage(dish.dishPic),
                 ),
-                trailing: Text(dish.price.toString() + "LBP"),
-                title: Text(dish.name + " | " + dish.category),
+                trailing: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    dish.avgRating != 0.0
+                        ? Icon(Icons.star, color: Colors.yellow)
+                        : Text(""),
+                    dish.avgRating != 0.0
+                        ? Text(dish.avgRating.toStringAsFixed(1))
+                        : Text(""),
+                  ],
+                ),
+                title: Text(dish.name + "\n" + dish.price.toString() + "LBP"),
                 subtitle: Text(dish.description),
               ),
               Row(
@@ -189,19 +200,9 @@ class _CookPageEaterState extends State<CookPageEater> {
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Specialty?",
-                  style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 15,
-                      color: Colors.grey),
-                ),
-              ),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
                   widget.cook.distance.toStringAsFixed(2) + "Km away",
                   style: TextStyle(
-                      fontWeight: FontWeight.w300,
+                      fontWeight: FontWeight.w400,
                       fontSize: 15,
                       color: Colors.grey),
                 ),

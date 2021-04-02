@@ -139,9 +139,7 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
   }
 
   Widget addButton() {
-    return Positioned(
-      left: 0,
-      bottom: 0,
+    return Center(
       child: InkWell(
         onTap: () {
           Navigator.of(context).push(
@@ -152,7 +150,7 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
           width: 230,
           height: 50,
           child: Center(
-              child: new Text("Add Generic dish",
+              child: new Text("Create Generic dish",
                   style: const TextStyle(color: Colors.white, fontSize: 20.0))),
           decoration: BoxDecoration(
               color: Colors.blue,
@@ -177,37 +175,32 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
       );
     }
     return Scaffold(
-        backgroundColor: Colors.blue[100],
-        body: Stack(children: <Widget>[
-          Padding(
-              padding: EdgeInsets.only(left: 28.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  SizedBox(height: 90),
-                  searchField(),
-                  ListView(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      children: [
-                        Column(
-                            children: genDishes.genDishList.map((p) {
-                          return genDishCards(p);
-                        }).toList()),
-                      ]),
-                  addButton()
-                ],
-              )),
-          Positioned(
-              top: 35,
-              left: 5,
-              child: IconButton(
-                color: Colors.white,
-                icon: Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ))
-        ]));
+      backgroundColor: Colors.blue[100],
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            IconButton(
+              color: Colors.white,
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            searchField(),
+            ListView(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                children: [
+                  Column(
+                      children: genDishes.genDishList.map((p) {
+                    return genDishCards(p);
+                  }).toList()),
+                ]),
+            addButton(),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -4,7 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 //definition of a list of EaterOrder for convenience and automation
 class EaterOrderList {
-  final List<EaterOrder> eaterOrderList;
+  List<EaterOrder> eaterOrderList;
 
   EaterOrderList({
     this.eaterOrderList,
@@ -113,9 +113,16 @@ class OrderDish {
   final String name;
   final int price;
   final int quantity;
+  final bool rated;
   final String dishPic;
 
-  OrderDish({this.dishID, this.dishPic, this.name, this.price, this.quantity});
+  OrderDish(
+      {this.dishID,
+      this.dishPic,
+      this.name,
+      this.price,
+      this.quantity,
+      this.rated});
 
   factory OrderDish.fromJson(Map<String, dynamic> json) {
     String defaultLogo =
@@ -134,6 +141,7 @@ class OrderDish {
       price: json['price'],
       quantity: json['quantity'],
       dishPic: defaultLogo,
+      rated: json['rated'],
     );
   }
 }

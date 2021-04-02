@@ -1,43 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:timeline_tile/timeline_tile.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import 'dart:convert';
-
+import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
 import 'orderClass.dart';
-
-void main() => runApp(OrderApp());
-
-class OrderApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Horizontal Timeline',
-      home: Order(),
-    );
-  }
-}
+import 'package:url_launcher/url_launcher.dart';
 
 const deliverySteps = ['Pending', 'Cooking', 'Ready'];
 
-class Order extends StatefulWidget {
+class EaterTrackOrder extends StatefulWidget {
   final EaterOrderList orderList;
-  Order({Key key, this.orderList}) : super(key: key);
+  EaterTrackOrder({Key key, this.orderList}) : super(key: key);
   @override
-  OrderState createState() => OrderState();
+  EaterTrackOrderState createState() => EaterTrackOrderState();
 }
 
-class OrderState extends State<Order> {
+class EaterTrackOrderState extends State<EaterTrackOrder> {
   EaterOrderList orderList = EaterOrderList();
-  ScrollController _scrollController;
+  EaterOrderList done = EaterOrderList();
+  EaterOrderList ongoing = EaterOrderList();
   bool isOrderEmpty = false;
+  double ratingDish = 1;
 
   @override
   void initState() {
-    _scrollController = ScrollController();
     orderFetching();
     super.initState();
   }
@@ -64,7 +54,12 @@ class OrderState extends State<Order> {
         setState(() {
           orderList = EaterOrderList.fromJson(decoded['orders']);
           isOrderEmpty = false;
+          done = EaterOrderList();
+          done.eaterOrderList = List<EaterOrder>();
+          ongoing = EaterOrderList();
+          ongoing.eaterOrderList = List<EaterOrder>();
         });
+        classifyDishes(orderList);
         print("Successful!");
       } else {
         print("Error: " + decoded['error']);
@@ -78,6 +73,122 @@ class OrderState extends State<Order> {
       setState(() {
         isOrderEmpty = true;
       });
+    }
+  }
+
+  Future<void> sendDishRating(
+      EaterOrder order, OrderDish dish, double ratingDish) async {
+    String token = await storage.read(key: 'token');
+    final http.Response response = await http.post(
+      baseURL + '/eater/api/dish/rate',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': "Bearer " + token.toString(),
+      },
+      body: jsonEncode(<String, String>{
+        'dish_id': dish.dishID.toString(),
+        'order_id': order.orderId.toString(),
+        'rating': ratingDish.toString(),
+      }),
+    );
+    if (response.statusCode == 200) {
+      // If the server did return a 200 CREATED response,
+      // then parse the JSON and send user to login screen
+      dynamic decoded = jsonDecode(response.body);
+      print("Received: " + decoded.toString());
+      bool success = decoded['success'];
+      if (success) {
+        print("Successful!");
+      } else {
+        //handle errors
+        print("Error: " + decoded['error']);
+      }
+    }
+  }
+
+  void classifyDishes(EaterOrderList orderList) {
+    int i = 0;
+    while (i < orderList.eaterOrderList.length) {
+      if (orderList.eaterOrderList[i].generalStatus == "completed" ||
+          orderList.eaterOrderList[i].generalStatus == "cancelled" ||
+          orderList.eaterOrderList[i].generalStatus == "rejected") {
+        setState(() {
+          done.eaterOrderList.add(orderList.eaterOrderList[i]);
+        });
+      } else {
+        setState(() {
+          ongoing.eaterOrderList.add(orderList.eaterOrderList[i]);
+        });
+      }
+      ++i;
+    }
+    setState(() {
+      ongoing.eaterOrderList = ongoing.eaterOrderList.reversed.toList();
+    });
+  }
+
+  Widget rateDish(EaterOrder order, OrderDish dish) {
+    return RatingBar.builder(
+      initialRating: 3,
+      minRating: 1,
+      direction: Axis.horizontal,
+      allowHalfRating: true,
+      itemCount: 5,
+      itemBuilder: (context, _) => Icon(
+        Icons.star,
+        color: Colors.amber,
+      ),
+      onRatingUpdate: (rating) {
+        setState(() {
+          ratingDish = rating;
+        });
+        print(rating);
+      },
+    );
+  }
+
+  Widget rateButton(BuildContext context, EaterOrder order, OrderDish dish) {
+    return InkWell(
+      child: Icon(
+        Icons.star,
+        color: dish.rated ? Colors.yellow : Colors.grey,
+      ),
+      onTap: () {
+        _showPicker(context, order, dish);
+      },
+    );
+  }
+
+  void _showPicker(context, EaterOrder order, OrderDish dish) async {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext bc) {
+          return SafeArea(
+            child: Container(
+              child: new ListTile(
+                leading: new Text("Rate Dish"),
+                title: rateDish(order, dish),
+                trailing: InkWell(
+                  child: Text(
+                    "Done",
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                  onTap: () {
+                    sendDishRating(order, dish, ratingDish);
+                  },
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
+  Future<void> _launchCaller(String number) async {
+    String url = "tel:" + number;
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
     }
   }
 
@@ -113,16 +224,12 @@ class OrderState extends State<Order> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Positioned(
-                          top: 45,
-                          left: 5,
-                          child: IconButton(
-                            color: Colors.black,
-                            icon: Icon(Icons.arrow_back),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
+                        IconButton(
+                          color: Colors.black,
+                          icon: Icon(Icons.arrow_back),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
                         ),
                       ],
                     ),
@@ -183,16 +290,12 @@ class OrderState extends State<Order> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Positioned(
-                        top: 45,
-                        left: 5,
-                        child: IconButton(
-                          color: Colors.black,
-                          icon: Icon(Icons.arrow_back),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
+                      IconButton(
+                        color: Colors.black,
+                        icon: Icon(Icons.arrow_back),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
                       ),
                     ],
                   ),
@@ -213,10 +316,7 @@ class OrderState extends State<Order> {
                     ],
                   ),
                   Expanded(
-                    child: CustomScrollView(
-                        slivers: orderList.eaterOrderList.map((p) {
-                      return deliveryTimeline(p);
-                    }).toList()),
+                    child: sectionTimeline(ongoing, done),
                   )
                 ],
               ),
@@ -227,89 +327,141 @@ class OrderState extends State<Order> {
     );
   }
 
-  void statusUpdate(EaterOrder order) {
-    switch (order.generalStatus) {
-      case "pending":
-        {
-          setState(() => order.completedStep = 0);
-        }
-        break;
+  Widget sectionTimeline(EaterOrderList ongoing, EaterOrderList done) {
+    return ListView(
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
+      children: [
+        Card(
+          elevation: 2,
+          child: ExpansionTile(
+            backgroundColor: Colors.white,
+            title: Text(
+              "Current Orders",
+              style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700),
+            ),
+            trailing: numberOfOrders(ongoing),
+            children: [
+              ListView(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                physics: ClampingScrollPhysics(),
+                children: ongoing.eaterOrderList.map((p) {
+                  return deliveryTimeline(p);
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+        Card(
+          elevation: 2,
+          child: ExpansionTile(
+            backgroundColor: Colors.white,
+            title: Text(
+              "Past Orders",
+              style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700),
+            ),
+            trailing: numberOfOrders(done),
+            children: [
+              ListView(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                physics: ClampingScrollPhysics(),
+                children: done.eaterOrderList.map((p) {
+                  return pastTimeline(p);
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
-      case "approved":
-        {
-          setState(() => order.completedStep = 1);
-        }
-        break;
+  Widget pastTimeline(EaterOrder order) {
+    statusUpdate(order);
+    return Card(
+      child: Column(
+        children: [
+          //TODO clickable tile to show order
 
-      case "rejected":
-        {
-          setState(() => order.completedStep = 0);
-        }
-        break;
-
-      case "cancelled":
-        {
-          setState(() => order.completedStep = 1);
-        }
-        break;
-
-      case "ready":
-        {
-          setState(() => order.completedStep = 2);
-        }
-        break;
-
-      case "completed":
-        {
-          setState(() => order.completedStep = 3);
-        }
-        break;
-
-      default:
-        {}
-        break;
-    }
+          Card(
+            elevation: 2,
+            child: ExpansionTile(
+              backgroundColor: Colors.white,
+              title: Text(
+                "Order " +
+                    order.orderId.toString() +
+                    " - " +
+                    order.generalStatus.toString(),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+              ),
+              subtitle: Text(order.cook.firstName + " " + order.cook.lastName),
+              children: [
+                ListView(
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  physics: ClampingScrollPhysics(),
+                  children: order.dishes.map((p) {
+                    return dishesCards(order, p);
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget deliveryTimeline(EaterOrder order) {
     statusUpdate(order);
-    return SliverToBoxAdapter(
+    return Card(
       child: Column(
         children: [
           Card(
-            child: Column(
+            elevation: 2,
+            child: ExpansionTile(
+              backgroundColor: Colors.white,
+              title: Column(
+                children: [
+                  ListTile(
+                    dense: true,
+                    title: Text(
+                      "Order " +
+                          order.orderId.toString() +
+                          " - " +
+                          order.cook.firstName +
+                          " " +
+                          order.cook.lastName,
+                      style:
+                          TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: Text(
+                      "pickup time: " +
+                          DateFormat('kk:mm').format(order.scheduledTime) +
+                          "\n" +
+                          "total: " +
+                          order.totalPrice.toString() +
+                          " LBP",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                  ),
+                ],
+              ),
+              trailing: InkWell(
+                child: Icon(Icons.call_rounded, color: Colors.blue),
+                onTap: () async {
+                  //TODO add cook number to CookProfile - Christophe
+                  //await _launchCaller(order.cook);
+                },
+              ),
               children: [
-                Column(
-                  children: [
-                    ListTile(
-                      dense: true,
-                      title: Text(
-                        "Order " + order.orderId.toString(),
-                        style: TextStyle(
-                            fontSize: 17, fontWeight: FontWeight.w700),
-                      ),
-                      subtitle: Text(
-                          order.cook.firstName + " " + order.cook.lastName),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          child: Text("Call " + order.cook.firstName),
-                          onPressed: () {
-                            //call cook
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
                 Container(
                   margin: const EdgeInsets.all(8),
                   constraints: const BoxConstraints(maxHeight: 180),
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    controller: _scrollController,
                     itemCount: deliverySteps.length,
                     itemBuilder: (BuildContext context, int index) {
                       final step = deliverySteps[index];
@@ -365,7 +517,7 @@ class OrderState extends State<Order> {
                     scrollDirection: Axis.vertical,
                     shrinkWrap: true,
                     children: order.dishes.map((p) {
-                      return dishesCards(p);
+                      return dishesCards(order, p);
                     }).toList(),
                   ),
                 ),
@@ -377,8 +529,76 @@ class OrderState extends State<Order> {
     );
   }
 
+  Widget numberOfOrders(EaterOrderList orderList) {
+    return Container(
+      width: 30,
+      height: 30,
+      child: Center(
+        child: Text(
+          orderList.eaterOrderList.length.toString(),
+          style: TextStyle(
+            fontSize: 15.0,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(width: 1),
+        borderRadius: BorderRadius.all(
+          Radius.circular(30),
+        ),
+        color: Colors.white,
+      ),
+    );
+  }
+
+  void statusUpdate(EaterOrder order) {
+    switch (order.generalStatus) {
+      case "pending":
+        {
+          setState(() => order.completedStep = 0);
+        }
+        break;
+
+      case "approved":
+        {
+          setState(() => order.completedStep = 1);
+        }
+        break;
+
+      case "rejected":
+        {
+          setState(() => order.completedStep = 0);
+        }
+        break;
+
+      case "cancelled":
+        {
+          setState(() => order.completedStep = 1);
+        }
+        break;
+
+      case "ready":
+        {
+          setState(() => order.completedStep = 2);
+        }
+        break;
+
+      case "completed":
+        {
+          setState(() => order.completedStep = 3);
+        }
+        break;
+
+      default:
+        {}
+        break;
+    }
+  }
+
   //List creation -- cooks cards
-  Widget dishesCards(OrderDish dish) {
+  Widget dishesCards(EaterOrder order, OrderDish dish) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -389,8 +609,13 @@ class OrderState extends State<Order> {
                 leading: CircleAvatar(
                   backgroundImage: NetworkImage(dish.dishPic),
                 ),
-                trailing: Text(dish.price.toString() + "LBP"),
-                title: Text(dish.name + " x" + dish.quantity.toString()),
+                trailing: rateButton(context, order, dish),
+                title: Text(dish.name +
+                    " x" +
+                    dish.quantity.toString() +
+                    "\n" +
+                    dish.price.toString() +
+                    "LBP"),
               ),
             ],
           ),

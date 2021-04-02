@@ -1,3 +1,4 @@
+import 'package:dishtodoor/screens/Cook/orderClassCook.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 //TODO change default values
@@ -101,6 +102,8 @@ class CookDish {
   final String category;
   final String description;
   final String dishPic;
+  final double avgRating;
+  final List<DishRating> rating;
   bool available = false;
 
   CookDish(
@@ -110,17 +113,27 @@ class CookDish {
       this.price,
       this.category,
       this.description,
-      this.dishPic});
+      this.dishPic,
+      this.avgRating,
+      this.rating});
 
   factory CookDish.fromJson(Map<String, dynamic> json) {
     String defaultLogo =
         "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500";
-
+    double defaultRating = 0.0;
+    var defaultRatingsList = List<DishRating>();
     if (json['dish_pic'] == null) {
       defaultLogo =
           "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500";
     } else {
       defaultLogo = json['dish_pic'];
+    }
+    if (json['avg_rating'] != null) {
+      defaultRating = json['avg_rating'] * 1.0;
+    }
+    if (json['ratings'] != null) {
+      var list = json['ratings'] as List;
+      defaultRatingsList = list.map((i) => DishRating.fromJson(i)).toList();
     }
 
     return CookDish(
@@ -131,6 +144,46 @@ class CookDish {
       category: json['category'],
       description: json['description'],
       dishPic: defaultLogo,
+      avgRating: defaultRating,
+      rating: defaultRatingsList,
+    );
+  }
+}
+
+class DishRating {
+  final EaterProfile eater;
+  final double rating;
+  final DateTime date;
+
+  DishRating({
+    this.eater,
+    this.rating,
+    this.date,
+  });
+
+  factory DishRating.fromJson(Map<String, dynamic> json) {
+    return DishRating(
+      eater: EaterProfile.fromJson(json['eater']),
+      rating: json['rating'] * 1.0,
+      date: DateTime.parse(json['date']),
+    );
+  }
+}
+
+//definition of cook and construction from Json
+class EaterProfile {
+  final String firstName;
+  final String lastName;
+
+  EaterProfile({
+    this.firstName,
+    this.lastName,
+  });
+
+  factory EaterProfile.fromJson(Map<String, dynamic> json) {
+    return EaterProfile(
+      firstName: json['first_name'],
+      lastName: json['last_name'],
     );
   }
 }

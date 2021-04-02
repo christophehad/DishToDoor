@@ -8,19 +8,6 @@ import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
 import 'package:dishtodoor/screens/Cook/orderClassCook.dart';
 
-void main() => runApp(OrderApp());
-
-class OrderApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Horizontal Timeline',
-      home: CookTrackOrder(),
-    );
-  }
-}
-
 const deliverySteps = ['Pending', 'Cooking', 'Ready'];
 
 class CookTrackOrder extends StatefulWidget {
@@ -52,7 +39,6 @@ class CookTrackOrderState extends State<CookTrackOrder> {
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': "Bearer " + token.toString(),
-        //"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiaWF0IjoxNjEzMDQwOTgyfQ.5Pp6xPvfmqAeL09oWqX0sJugy3ryxsXdVfNSrHdv2TY",
       },
     );
 
@@ -116,22 +102,6 @@ class CookTrackOrderState extends State<CookTrackOrder> {
               body: Center(
                 child: Column(
                   children: <Widget>[
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.start,
-                    //   children: [
-                    //     Positioned(
-                    //       top: 45,
-                    //       left: 5,
-                    //       child: IconButton(
-                    //         color: Colors.black,
-                    //         icon: Icon(Icons.arrow_back),
-                    //         onPressed: () {
-                    //           Navigator.pop(context);
-                    //         },
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -398,42 +368,6 @@ class CookTrackOrderState extends State<CookTrackOrder> {
               ],
             ),
           ),
-
-          // ListTile(
-          //   dense: true,
-          //   title: Text(
-          //     "Order " + order.orderId.toString(),
-          //     style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-          //   ),
-          //   subtitle: Text(order.eater.firstName + " " + order.eater.lastName),
-          // ),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.end,
-          //   children: [
-          //     InkWell(
-          //       child: Icon(
-          //         Icons.check_circle_outline,
-          //         color: colorAccept,
-          //       ),
-          //       onTap: () async {
-          //         if (await acceptOrder(order) == true) {
-          //           colorAccept = Colors.green;
-          //         }
-          //       },
-          //     ),
-          //     InkWell(
-          //       child: Icon(
-          //         Icons.block,
-          //         color: colorReject,
-          //       ),
-          //       onTap: () async {
-          //         if (await rejectOrder(order) == true) {
-          //           colorReject = Colors.red;
-          //         }
-          //       },
-          //     ),
-          //   ],
-          // ),
         ],
       ),
     );

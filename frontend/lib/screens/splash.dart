@@ -98,21 +98,18 @@ class _SplashScreenState extends State<SplashScreen>
         print("Received: " + decoded.toString());
         bool success = decoded['success'];
         if (success) {
-          //_registerSuccessfulAlert();
-          //add cook info
-          //add cook location only if hasn't been previously stored
-          bool locAvailable = await storage.containsKey(key: 'location');
-          if (locAvailable == false) {
-            cookLocation.sendLoc().then((value) async {
-              await storage.write(
-                  key: 'location',
-                  value: (cookLocation.cookLocation.latitude.toString() +
-                      ',' +
-                      cookLocation.cookLocation.longitude.toString()));
-            });
-          }
-          // if(gotLocation == false){
-
+          // //_registerSuccessfulAlert();
+          // //add cook info
+          // //add cook location only if hasn't been previously stored
+          // bool locAvailable = await storage.containsKey(key: 'location');
+          // if (locAvailable == false) {
+          //   cookLocation.sendLoc().then((value) async {
+          //     await storage.write(
+          //         key: 'location',
+          //         value: (cookLocation.cookLocation.latitude.toString() +
+          //             ',' +
+          //             cookLocation.cookLocation.longitude.toString()));
+          //   });
           // }
           Navigator.of(context)
               .push(MaterialPageRoute(builder: (_) => PageNavigatorCook()));
