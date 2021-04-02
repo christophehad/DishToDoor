@@ -253,15 +253,17 @@ class _ProfileEaterState extends State<ProfileEater> {
                   Icons.logout,
                   color: Colors.teal,
                 ),
-                onTap: () {
-                  storage.deleteAll();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (BuildContext context) => Login(),
-                    ),
-                    (route) => false,
-                  );
+                onTap: () async {
+                  await logoutNotif();
+                  await storage.deleteAll().then((value) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => Login(),
+                      ),
+                      (route) => false,
+                    );
+                  });
                 },
                 title: Text(
                   "Logout",

@@ -1,7 +1,6 @@
 import 'package:dishtodoor/screens/Cook/add_cook_dish.dart';
 import 'package:flutter/material.dart';
 import 'Cook/cook_profile.dart';
-import 'placeholder_widget.dart';
 import 'Cook/orderTrackingCook.dart';
 
 import 'package:dishtodoor/screens/Cook/cookAvailableMeals.dart';
@@ -22,7 +21,6 @@ class _PageNavigatorCook extends State<PageNavigatorCook> {
     //if no cooks around, another map is displayed
     CookManageDishes(),
     CookTrackOrder(),
-    PlaceholderWidget(Colors.green),
     ProfileCook2(),
   ];
 
@@ -55,9 +53,6 @@ class _PageNavigatorCook extends State<PageNavigatorCook> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //  appBar: AppBar(
-      //    title: Text('My Flutter App'),
-      //  ),
       body: _children[
           _currentIndex], //widget that gets displayed, equal to the corresponding widget in our _children widget list
       bottomNavigationBar: BottomNavigationBar(
@@ -69,11 +64,10 @@ class _PageNavigatorCook extends State<PageNavigatorCook> {
         items: [
           new BottomNavigationBarItem(
               icon: Icon(Icons.local_restaurant), label: 'Meals'),
-          new BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Discover'),
+          new BottomNavigationBarItem(
+              icon: Icon(Icons.menu_book_rounded), label: 'Menu'),
           new BottomNavigationBarItem(
               icon: Icon(Icons.calendar_today), label: 'Orders'),
-          new BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart), label: 'Analytics'),
           new BottomNavigationBarItem(
               icon: Icon(Icons.person), label: 'Profile')
         ],

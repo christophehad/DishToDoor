@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Map/main_map.dart';
-import 'Eater/Order_Tracking/orderTracking2.dart';
+import 'Eater/Order_Tracking/orderTrackingEater.dart';
 import 'Eater/Profile/profile_eater.dart';
 
 //Eater Page Navigator
@@ -18,7 +18,7 @@ class _PageNavigatorEater extends State<PageNavigatorEater> {
   //list of widgets that we want to render based on the currently selected tab
   List<Widget> _children = [
     MainMap(),
-    Order(),
+    EaterTrackOrder(),
     ProfileEater(),
   ];
 

@@ -17,9 +17,7 @@ class _AddGenDish extends State<AddGenDish> {
 
   @override
   Widget build(BuildContext context) {
-    Widget loginButton = Positioned(
-      left: MediaQuery.of(context).size.width / 4,
-      bottom: 0,
+    Widget addButton = Center(
       child: InkWell(
         onTap: () async {
           String token = await storage.read(key: "token");
@@ -145,7 +143,7 @@ class _AddGenDish extends State<AddGenDish> {
                 ],
               ),
             ),
-            loginButton,
+            addButton,
           ],
         ),
       )
