@@ -1,7 +1,6 @@
 import 'package:intl_phone_field/intl_phone_field.dart'; //
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:dishtodoor/screens/page_navigator.dart';
 import 'package:dishtodoor/screens/auth/eater_login_email.dart';
 import 'register_as_eater.dart';
 
@@ -43,8 +42,8 @@ class _Login extends State<Login> {
       child: InkWell(
         onTap: () {
           //Add OTP page navigation
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => PageNavigator()));
+          // Navigator.of(context)
+          //     .push(MaterialPageRoute(builder: (_) => PageNavigator()));
           //.push(MaterialPageRoute(builder: (_) => MyHomePage()));
         },
         child: Container(
@@ -226,20 +225,22 @@ class _Login extends State<Login> {
 
     return Scaffold(
       backgroundColor: Colors.blue[100],
-      body: Padding(
-        padding: const EdgeInsets.only(left: 20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            loginText,
-            logo,
-            phoneNumber,
-            emailLogin,
-            divider,
-            signInWithText,
-            socialBtnRow,
-            signupBtn
-          ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              loginText,
+              logo,
+              phoneNumber,
+              emailLogin,
+              SizedBox(
+                height: MediaQuery.of(context).size.height / 4,
+              ),
+              signupBtn
+            ],
+          ),
         ),
       ),
     );

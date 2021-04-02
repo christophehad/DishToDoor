@@ -6,24 +6,24 @@ import 'package:location/location.dart';
 import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
-
+import 'package:dishtodoor/config/config.dart';
 import 'package:dishtodoor/screens/Map/custom_info_widget.dart';
 import 'package:dishtodoor/screens/Map/cookClass.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 //GET HERE FROM EMAIL LOGIN SCREEN
 //This is an attempt at getting the current device location after asking user for permission
 //TODO: add support for ios for both API google maps and geolocator enabling
-//TODO: add diameter
 
 class MainMap extends StatefulWidget {
   final CookList cookList;
-  MainMap({Key key, @required this.cookList}) : super(key: key);
+  MainMap({Key key, this.cookList}) : super(key: key);
   @override
   _MainMapState createState() => _MainMapState();
 }
 
 //Attributes of point/marker on map
-//TODO modify when communication API finalized
 class PointObject {
   final Widget child;
   final LatLng location;
@@ -57,16 +57,98 @@ class _MainMapState extends State<MainMap> {
   Set<Marker> _markers = {};
   Set<Circle> _circles = {};
 
+  CookList cooks = CookList();
+  bool _serviceEnabled;
+  PermissionStatus _permissionGranted;
+  bool isOrderEmpty = false;
+
   @override
   void initState() {
     super.initState();
-    //cooks = widget.cookList;
+    getLoc().then((value) => locsharing());
     setSourceAndDestinationIcons();
     _fabHeight = _initFabHeight;
   }
 
+//for Map building
+  Future<void> getLoc() async {
+    _serviceEnabled = await _location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await _location.requestService();
+      if (!_serviceEnabled) {
+        print("location service not enabled");
+        return;
+      }
+    }
+
+    _permissionGranted = await _location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await _location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        print("permission for location not granted");
+        return;
+      }
+    }
+    var _loc = await _location.getLocation();
+    print("location: " +
+        _loc.latitude.toString() +
+        "," +
+        _loc.longitude.toString());
+    setState(() {
+      _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
+    });
+  }
+
+  Future locsharing() async {
+    print("trying comm");
+    String token = await storage.read(key: 'token');
+    print(await storage.containsKey(key: 'token'));
+    final http.Response response = await http.get(
+      baseURL +
+          '/eater/api/dish/around?lat=' +
+          _finaluserlocation.latitude.toString() +
+          '&lon=' +
+          _finaluserlocation.longitude.toString(),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': "Bearer " + token.toString(),
+      },
+    );
+    if (response.statusCode == 200) {
+      // If the server did return a 200 CREATED response,
+      // then parse the JSON and send user to login screen
+      dynamic decoded = jsonDecode(response.body);
+      debugPrint("Received: " + decoded.toString(), wrapWidth: 1024);
+      bool success = decoded['success'];
+      print("success: " + success.toString());
+      print(decoded['cooks']);
+      if (success) {
+        setState(() {
+          cooks = CookList.fromJson(decoded['cooks']);
+        });
+        isOrderEmpty = false;
+        debugPrint("debug print: " + cooks.cooksList.toString(),
+            wrapWidth: 1024);
+        print("Successful!");
+      } else {
+        //handle errors
+        setState(() {
+          cooks = CookList();
+        });
+        isOrderEmpty = true;
+        print("Error: " + decoded['error']);
+      }
+    } else {
+      // If the server did not return a 201 CREATED response,
+      // then throw an exception.
+      isOrderEmpty = true;
+      print("An unkown error occured");
+    }
+  }
+
 //Google maps enclosed in _body
-  Widget _body() {
+  Widget _bodyWithCooks() {
+    //map with cooks
     return GoogleMap(
       padding: EdgeInsets.only(bottom: 100, top: 50),
       initialCameraPosition: CameraPosition(target: _initialcameraposition),
@@ -74,6 +156,32 @@ class _MainMapState extends State<MainMap> {
       markers: _markers,
       onMapCreated: _onMapCreated,
       circles: _circles,
+      myLocationEnabled: true,
+      onCameraMove: (newPosition) {
+        _mapIdleSubscription?.cancel();
+        _mapIdleSubscription =
+            Future.delayed(Duration(milliseconds: 150)).asStream().listen((_) {
+          if (_infoWidgetRoute != null) {
+            Navigator.of(context, rootNavigator: true)
+                .push(_infoWidgetRoute)
+                .then<void>(
+              (newValue) {
+                _infoWidgetRoute = null;
+              },
+            );
+          }
+        });
+      },
+    );
+  }
+
+  Widget _bodyCookless() {
+    //body without cooks
+    return GoogleMap(
+      padding: EdgeInsets.only(bottom: 100, top: 50),
+      initialCameraPosition: CameraPosition(target: _initialcameraposition),
+      mapType: MapType.normal,
+      onMapCreated: _onMapCreatedCookless,
       myLocationEnabled: true,
       onCameraMove: (newPosition) {
         _mapIdleSubscription?.cancel();
@@ -152,7 +260,7 @@ class _MainMapState extends State<MainMap> {
               padding: const EdgeInsets.only(left: 24.0, right: 24.0),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: widget.cookList.cooksList.map((p) {
+                  children: cooks.cooksList.map((p) {
                     return cooksCards(p);
                   }).toList()),
             ),
@@ -171,8 +279,6 @@ class _MainMapState extends State<MainMap> {
   }
 
   //List creation -- cooks cards
-  //TODO automate process using GET -- backend communication
-  //TODO add link to cook's page on tap
   Widget cooksCards(CookMap cook) {
     return Card(
       child: Column(
@@ -206,10 +312,9 @@ class _MainMapState extends State<MainMap> {
   }
 
 //Creation of the cook instances
-//TODO modify to take parameters from backend call
   void setPoints() {
     //advanced with picture
-    for (var i in widget.cookList.cooksList) {
+    for (var i in cooks.cooksList) {
       _points.add(PointObject(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -230,8 +335,7 @@ class _MainMapState extends State<MainMap> {
                 child: Text(i.firstName + "'s Kitchen"),
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => CookPageEater(
-                          cook: i))); //TODO placeholder destination
+                      builder: (_) => CookPageEater(cook: i)));
                 },
               ),
             ),
@@ -335,7 +439,6 @@ class _MainMapState extends State<MainMap> {
   }
 
 //things to do when map is created
-//TODO add call to locsharing
   void _onMapCreated(GoogleMapController _cntlr) async {
     print("creating map");
     var _loc = await _location.getLocation();
@@ -357,13 +460,43 @@ class _MainMapState extends State<MainMap> {
     );
   }
 
+  //things to do when map is created
+  void _onMapCreatedCookless(GoogleMapController _cntlr) async {
+    print("creating map");
+    var _loc = await _location.getLocation();
+    if (this.mounted) {
+      setState(() {
+        _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
+      });
+    }
+    isMapCreated = true;
+    changeMapMode();
+    setState(() {});
+    _controller = _cntlr;
+
+    _controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: _finaluserlocation, zoom: 17),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (cooks.cooksList == null && isOrderEmpty == false) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    } else if (isOrderEmpty == true) {
+      return Scaffold(
+        body: _bodyCookless(),
+      );
+    }
     return Scaffold(
       body: Stack(
         alignment: Alignment.topCenter,
         children: <Widget>[
-          _body(),
+          _bodyWithCooks(),
           SlidingUpPanel(
             controller: _pc,
             maxHeight: _panelHeightOpen,
@@ -381,17 +514,6 @@ class _MainMapState extends State<MainMap> {
               },
             ),
           ),
-          Positioned(
-            top: 35,
-            left: 5,
-            child: IconButton(
-              color: Colors.white,
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          )
         ],
       ),
     );

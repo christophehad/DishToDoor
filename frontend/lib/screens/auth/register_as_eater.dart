@@ -145,6 +145,10 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
             print("Received: " + decoded.toString());
             bool success = decoded['success'];
             if (success) {
+              await storage.write(key: 'token', value: decoded['token']);
+              await storage.write(key: 'email', value: email.text);
+              await storage.write(key: 'pass', value: password.text);
+
               _registerSuccessfulAlert();
               print("Successful!");
             } else {
@@ -301,7 +305,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
             ),
           ),
           Positioned(
-            top: 35,
+            top: 45,
             left: 5,
             child: IconButton(
               color: Colors.white,

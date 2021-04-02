@@ -205,7 +205,7 @@ CREATE TABLE `dish_rating` (
   `rating_id` int(11) NOT NULL,
   `eater_id` int(11) NOT NULL,
   `dish_id` int(11) NOT NULL,
-  `rating` int(11) NOT NULL,
+  `rating` decimal(4,2) NOT NULL,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -256,6 +256,7 @@ CREATE TABLE `eater_cart` (
   `eater_id` int(11) NOT NULL,
   `dish_id` int(11) NOT NULL,
   `cook_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
   `delivery_availability` tinyint(1) NOT NULL,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -272,8 +273,7 @@ CREATE TABLE `eater_dish_order` (
   `dish_id` int(11) NOT NULL,
   `eater_id` int(11) NOT NULL,
   `quantity` int(255) NOT NULL,
-  `delivery_method` enum('delivery','takeaway') NOT NULL,
-  `date_scheduled_on` datetime DEFAULT NULL,
+  `rated` tinyint(1) NOT NULL DEFAULT 0,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -367,11 +367,16 @@ CREATE TABLE `ingredients` (
 
 CREATE TABLE `order_status` (
   `order_id` int(11) NOT NULL,
-  `prepared_status` varchar(255) NOT NULL,
-  `packaged_status` varchar(255) NOT NULL,
-  `delivery_id` int(11) NOT NULL,
-  `delivery_status` varchar(255) NOT NULL,
-  `message` varchar(2038) NOT NULL,
+  `cook_id` int(11) NOT NULL,
+  `general_status` enum('pending','approved','rejected','cancelled','ready','completed') NOT NULL DEFAULT 'pending',
+  `total_price` int(255) NOT NULL,
+  `prepared_status` varchar(255) DEFAULT NULL,
+  `packaged_status` varchar(255) DEFAULT NULL,
+  `delivery_method` enum('delivery','takeaway') NOT NULL,
+  `date_scheduled_on` datetime DEFAULT NULL,
+  `delivery_id` int(11) DEFAULT NULL,
+  `delivery_status` varchar(255) DEFAULT NULL,
+  `message` varchar(2038) DEFAULT NULL,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -388,6 +393,20 @@ CREATE TABLE `user_account` (
   `type` enum('COOK','EATER','ADMIN') COLLATE utf8_unicode_ci NOT NULL,
   `password` binary(60) NOT NULL COMMENT 'length for bcrypt hash',
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_device`
+--
+
+CREATE TABLE `user_device` (
+  `device_index` int(11) NOT NULL,
+  `id` int(11) NOT NULL,
+  `platform` enum('android','ios') NOT NULL DEFAULT 'android',
+  `token` varchar(2083) COLLATE utf8_unicode_ci NOT NULL,
+  `_added` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -526,8 +545,8 @@ ALTER TABLE `eater_allergens`
 -- Indexes for table `eater_cart`
 --
 ALTER TABLE `eater_cart`
-  ADD PRIMARY KEY (`eater_id`),
-  ADD UNIQUE KEY `dish_id` (`dish_id`),
+  ADD KEY (`eater_id`),
+  ADD KEY `dish_id` (`dish_id`),
   ADD KEY `cook_id` (`cook_id`);
 
 --
@@ -589,6 +608,7 @@ ALTER TABLE `ingredients`
 --
 ALTER TABLE `order_status`
   ADD PRIMARY KEY (`order_id`),
+  ADD KEY `cook_id` (`cook_id`),
   ADD KEY `delivery_id` (`delivery_id`);
 
 --
@@ -596,6 +616,13 @@ ALTER TABLE `order_status`
 --
 ALTER TABLE `user_account`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `user_device`
+--
+ALTER TABLE `user_device`
+  ADD PRIMARY KEY (`device_index`),
+  ADD KEY `id` (`id`);
 
 --
 -- Indexes for table `user_profile`
@@ -656,10 +683,22 @@ ALTER TABLE `ingredients`
   MODIFY `ingredient_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `order_status`
+--
+ALTER TABLE `order_status`
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `user_account`
 --
 ALTER TABLE `user_account`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `user_device`
+--
+ALTER TABLE `user_device`
+  MODIFY `device_index` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -806,7 +845,13 @@ ALTER TABLE `generic_dish_ingredients`
 -- Constraints for table `order_status`
 --
 ALTER TABLE `order_status`
-  ADD CONSTRAINT `order_status_ibfk_1` FOREIGN KEY (`delivery_id`) REFERENCES `delivery_service` (`delivery_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `order_status_ibfk_1` FOREIGN KEY (`cook_id`) REFERENCES `cook` (`cook_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `order_status_ibfk_2` FOREIGN KEY (`delivery_id`) REFERENCES `delivery_service` (`delivery_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+--
+-- Constraints for table `user_device`
+--
+ALTER TABLE `user_device`
+  ADD CONSTRAINT `user_device_ibfk_1` FOREIGN KEY (`id`) REFERENCES `user_account` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

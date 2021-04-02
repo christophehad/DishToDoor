@@ -1,5 +1,12 @@
+import 'dart:convert';
+
 import 'package:dishtodoor/screens/auth/login.dart';
+import 'package:dishtodoor/screens/page_navigator_cook.dart';
+import 'package:dishtodoor/screens/page_navigator_eater.dart';
 import 'package:flutter/material.dart';
+import 'package:dishtodoor/config/config.dart';
+import 'dart:async';
+import 'package:http/http.dart' as http;
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -20,8 +27,11 @@ class _SplashScreenState extends State<SplashScreen>
       ..addListener(() {
         setState(() {});
       });
-    controller.forward().then((_) {
-      navigationPage();
+
+    _tokenCheck().then((value) {
+      controller.forward().then((_) {
+        navigationPage();
+      });
     });
   }
 
@@ -29,6 +39,92 @@ class _SplashScreenState extends State<SplashScreen>
   void dispose() {
     controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _tokenCheck() async {
+    if (await storage.containsKey(key: 'email') == false) {
+      print("not here");
+      return;
+    }
+    String resT = await storage.read(key: "token");
+    String resE = await storage.read(key: "email");
+    String resP = await storage.read(key: "pass");
+    String resType = await storage.read(key: "type");
+    print(resE);
+    print(resP);
+    print(resType);
+
+    if (resType == "eater") {
+      final http.Response response = await http.post(
+          baseURL + '/eater/login-email',
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8'
+          },
+          body: jsonEncode(<String, String>{
+            "email": resE,
+            "password": resP,
+          }));
+
+      if (response.statusCode == 200) {
+        dynamic decoded = jsonDecode(response.body);
+        print("Received: " + decoded.toString());
+        bool success = decoded['success'];
+        await storage.delete(key: 'token');
+        await storage.write(key: 'token', value: decoded['token']);
+        if (success) {
+          //_registerSuccessfulAlert();
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => PageNavigatorEater()));
+          print("Successful!");
+        } else {
+          print("Error: " + decoded['error']);
+        }
+      } else {
+        print("An unkown error occured");
+      }
+    } else {
+      final http.Response response = await http.post(
+          baseURL + '/cook/login-email',
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8'
+          },
+          body: jsonEncode(<String, String>{
+            "email": resE,
+            "password": resP,
+          }));
+
+      if (response.statusCode == 200) {
+        dynamic decoded = jsonDecode(response.body);
+        print("Received: " + decoded.toString());
+        bool success = decoded['success'];
+        if (success) {
+          //_registerSuccessfulAlert();
+          //add cook info
+          //add cook location only if hasn't been previously stored
+          bool locAvailable = await storage.containsKey(key: 'location');
+          if (locAvailable == false) {
+            cookLocation.sendLoc().then((value) async {
+              await storage.write(
+                  key: 'location',
+                  value: (cookLocation.cookLocation.latitude.toString() +
+                      ',' +
+                      cookLocation.cookLocation.longitude.toString()));
+            });
+          }
+          // if(gotLocation == false){
+
+          // }
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => PageNavigatorCook()));
+          print("Successful!");
+        } else {
+          print("Error: " + decoded['error']);
+        }
+      } else {
+        print("Error: " + response.statusCode.toString());
+        print("An unkown error occured");
+      }
+    }
   }
 
   void navigationPage() {

@@ -12,7 +12,7 @@ const multer = require('multer');
 const fs = require('fs');
 const extension = require('mime-types').extension;
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => { cb(null, apiConfig.tmpPath + 'dish_pics/')},
+    destination: (req, file, cb) => { cb(null, apiConfig.tmpPath)},
     filename: (req,file,cb) => {
         const uniquePref = Date.now() + '-' + Math.round(Math.random()*1E9);
         cb(null, uniquePref+'.'+extension(file.mimetype));
@@ -29,7 +29,7 @@ const cookDish = require('./dish/cook_dish');
 router.post('/gen-dish/add', (req,res,next) => {
     if (DEBUG) console.log(req.body);
 
-    let name=req.body.gendish_name, category=req.body.gendish_category;
+    let name=req.body.name, category=req.body.category;
     genDish.add(name,category, (err,gendish_id,message) => {
         if (err) return next(err);
         if (!gendish_id) return res.json(failureJSON(message));
@@ -55,6 +55,28 @@ router.get('/gen-dish/search', (req,res,next) => {
         }
         res.json(toSend);
     })
+})
+
+router.get('/gen-dish/get', (req,res,next) => {
+    if (DEBUG) console.log(req.query);
+
+    if (Object.keys(req.query).length == 0) {
+        genDish.getAll((err, gendishes, message) => {
+            if (err) return next(err);
+
+            let toSend = successJSON();
+            toSend.gen_dishes = [];
+            for (const gendish of gendishes) {
+                toSend.gen_dishes.push(
+                    genDishAPI(gendish.id, gendish.name, gendish.category)
+                );
+            }
+            res.json(toSend);
+        })
+    }
+    else {
+        res.status(400);
+    }
 })
 
 // get the gendish categories
@@ -93,7 +115,7 @@ router.post('/cook-dish/add', upload.single('dish_pic'), (req,res,next) => {
 
 // get the cookdishes
 router.get('/cook-dish/get', (req, res, next) => {
-    if (DEBUG) console.log(req.body);
+    if (DEBUG) console.log(req.query);
 
     let cook_id = req.user;
     if (Object.keys(req.query).length == 0) {
@@ -106,17 +128,38 @@ router.get('/cook-dish/get', (req, res, next) => {
             /** @type {apiConfig.CookDishAPI[]} */
             let cook_dishesAPI = [];
             for (const cookdish of cookdishes) {
-                cook_dishesAPI.push({
-                    dish_id: cookdish.dish_id, gendish_id: cookdish.gendish_id, name: cookdish.name,
-                    price: cookdish.price, category: cookdish.category, description: cookdish.description, dish_pic: cookdish.dish_pic
-                });
+                cook_dishesAPI.push(apiConfig.cookDish(
+                    cookdish.dish_id, cookdish.gendish_id, cookdish.name, cookdish.price, cookdish.category,
+                    cookdish.description, cookdish.dish_pic, cookdish.avg_rating, cookdish.ratings
+                ));
             }
             toSend.cook_dishes = cook_dishesAPI;
             res.json(toSend);
         })
     }
     else {
-        res.sendStatus(400);
+        let available = req.query.available == 'true';
+        if (available) {
+            cookDish.getAvailable(cook_id, (err, cookdishes, message) => {
+                if (err) return next(err);
+                if (!cookdishes) return res.json(failureJSON(message));
+
+                let toSend = successJSON();
+                /** @type {apiConfig.CookDishAPI[]} */
+                let cook_dishesAPI = [];
+                for (const cookdish of cookdishes) {
+                    cook_dishesAPI.push(apiConfig.cookDish(
+                        cookdish.dish_id, cookdish.gendish_id, cookdish.name, cookdish.price, cookdish.category,
+                        cookdish.description, cookdish.dish_pic, cookdish.avg_rating, cookdish.ratings
+                    ));
+                }
+                toSend.cook_dishes = cook_dishesAPI;
+                res.json(toSend);
+            })
+        }
+        else {
+            res.sendStatus(400);
+        }
     }
 })
 

@@ -4,47 +4,6 @@ import 'package:dishtodoor/screens/Map/cookClass.dart';
 import 'package:dishtodoor/screens/Eater/Checkout_Processs/bloc/cart_items.dart';
 import 'package:dishtodoor/screens/Eater/Checkout_Processs/pages/checkout_screen.dart';
 
-void main() => runApp(MyApp());
-
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      initialRoute: "/",
-      routes: {
-        "/": (context) => CookPageEater(
-              cook: CookMap(
-                  firstName: "fadi",
-                  lastName: "z",
-                  distance: 20,
-                  lat: 33.7,
-                  lon: 33.05,
-                  logo:
-                      "https://www.lark.com/wp-content/uploads/2020/01/Blog_thumb-46.jpg",
-                  dishes: [
-                    CookDish(
-                        category: "Salad",
-                        description: "Delicious salad",
-                        dishID: 4,
-                        dishPic:
-                            "https://christophehad.blob.core.windows.net/dishtodoor/cookpic2.jpeg",
-                        gendishID: 1,
-                        name: "TestSalad",
-                        price: 10000)
-                  ]),
-            ),
-      },
-    );
-  }
-}
-
-//TODO pass cookID from map page
 class CookPageEater extends StatefulWidget {
   final CookMap cook;
   CookPageEater({Key key, @required this.cook}) : super(key: key);
@@ -61,8 +20,6 @@ class _CookPageEaterState extends State<CookPageEater> {
   }
 
   //List creation -- cooks cards
-  //TODO automate process using GET -- backend communication
-  //TODO add link to buy now on tap
   Widget cooksCards(CookDish dish) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -84,12 +41,24 @@ class _CookPageEaterState extends State<CookPageEater> {
                   TextButton(
                     child: const Text("Add to cart"),
                     onPressed: () {
-                      bloc.addToCart(CartTuple(dish: dish, count: 1));
+                      bloc.addToCart(CartTuple(
+                          dish: dish,
+                          count: 1,
+                          cookFname: widget.cook.firstName,
+                          cookLname: widget.cook.lastName));
                     },
                   ),
                   TextButton(
                     child: const Text("Buy now"),
-                    onPressed: () {/* ... */},
+                    onPressed: () {
+                      bloc.addToCart(CartTuple(
+                          dish: dish,
+                          count: 1,
+                          cookFname: widget.cook.firstName,
+                          cookLname: widget.cook.lastName));
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (_) => Checkout()));
+                    },
                   ),
                 ],
               ),
@@ -116,19 +85,44 @@ class _CookPageEaterState extends State<CookPageEater> {
     );
   }
 
-//TODO nead opening hours
+//check time range
+  bool isCurrentDateInRange(DateTime startDate, DateTime endDate) {
+    final currentDate = DateTime.now();
+    print(currentDate);
+    return currentDate.isAfter(startDate) && currentDate.isBefore(endDate);
+  }
+
+  TextSpan _openingCheck(startDate, endDate) {
+    if (isCurrentDateInRange(startDate, endDate)) {
+      return TextSpan(
+        text: "Open now - ",
+        style: TextStyle(color: Colors.blueAccent),
+      );
+    } else {
+      return TextSpan(
+        text: "Closed - ",
+        style: TextStyle(color: Colors.redAccent),
+      );
+    }
+  }
+
   Widget _openNow(BuildContext context) {
     return RichText(
         text: TextSpan(
-            // set the default style for the children TextSpans
             style: Theme.of(context).textTheme.bodyText2.copyWith(fontSize: 13),
             children: [
+          _openingCheck(widget.cook.opening, widget.cook.closing),
           TextSpan(
-            text: 'Open now - ',
-            style: TextStyle(color: Colors.blueAccent),
-          ),
+              text: widget.cook.opening.toLocal().hour.toString() +
+                  ':' +
+                  widget.cook.opening.toLocal().minute.toString() +
+                  ' - ',
+              style:
+                  TextStyle(fontWeight: FontWeight.w500, color: Colors.grey)),
           TextSpan(
-              text: '11am - 10pm',
+              text: widget.cook.closing.toLocal().hour.toString() +
+                  ':' +
+                  widget.cook.closing.toLocal().minute.toString(),
               style:
                   TextStyle(fontWeight: FontWeight.w500, color: Colors.grey)),
         ]));
@@ -185,7 +179,6 @@ class _CookPageEaterState extends State<CookPageEater> {
               SizedBox(
                 height: 6.0,
               ),
-              //Design, TODO get specialty from backend
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(

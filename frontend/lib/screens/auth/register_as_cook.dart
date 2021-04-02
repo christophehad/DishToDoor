@@ -417,7 +417,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
             ),
           ),
           Positioned(
-            top: 35,
+            top: 45,
             left: 5,
             child: IconButton(
               color: Colors.white,

@@ -1,4 +1,5 @@
 const mysql = require('mysql');
+const async = require ('async'); // for using async loops
 
 // Schemes and templates of database functions/entities
 const schemes = require('./schemes');
@@ -9,7 +10,7 @@ const cloudStorage = require('./cloud_storage');
 
 const dbConfig = {
     host: 'localhost', // insert the database url here
-    port: 50207, // 3306, for local
+    port: process.env.MYSQL_PORT || process.env.WEBSITE_MYSQL_PORT || 50207, // 3306, for local
     user: 'azure', // 'root',
     password: '6#vWHD_$',// '',
     database: 'dishtodoor',
@@ -23,8 +24,17 @@ var con; // con
 // handling connection errors (after timeout for example)
 function handleDisconnect() {
     con = mysql.createConnection(dbConfig);
+    con.connect( (err) => {
+        if (err) {
+            console.log('Error connecting to database: ',err);
+            console.log('Retrying in 5s...');
+            setTimeout(handleDisconnect,5000);
+        }
+        else
+            console.log('Connected to the MySQL database!');
+    })
     con.on('error', (err) => {
-        if (err.code == 'PROTOCOL_CONNECTION_LOST') {
+        if (err.code == 'PROTOCOL_CONNECTION_LOST' || err.code == 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
             console.log('MySQL connection lost. Reconnecting...');
             handleDisconnect();
         }
@@ -34,15 +44,17 @@ function handleDisconnect() {
 }
 handleDisconnect();
 
-module.exports.tryConnection = function tryConnection() {
+module.exports.tryConnection = function tryConnection(done) {
     con.connect( (err) => {
         if (err) {
-            if (err.code == 'PROTOCOL_ENQUEUE_HANDSHAKE_TWICE')
-                return console.log('MySQL already connected');
-            else
-                return console.log(err);
+            if (err.code == 'PROTOCOL_ENQUEUE_HANDSHAKE_TWICE') {
+                console.log('MySQL already connected'); return done(null, 'MySQL already connected');
+            }
+            else {
+                console.log(err); return done(err);
+            }
         }
-        console.log('Connected to the MySQL database!');
+        console.log('Connected to the MySQL database!'); return done(null, 'Connected to the MySQL database!');
     })
 }
 
@@ -90,6 +102,52 @@ module.exports.eaterPhoneExists = function eaterPhoneExists(phone,done) {
 // returns 1 if eater account with email exists; else 0
 module.exports.eaterEmailExists = function eaterEmailExists(email,done) {
     return emailExists(email,'EATER',done);
+}
+
+// returns true if a user has already registered a device
+function deviceRegisteredUser(id,done) {
+    con.query('SELECT * FROM user_device WHERE id = ?',[id], (err, rows) => {
+        if (err) return done(err);
+        return done(null, rows.length > 0);
+    })
+}
+
+// returns token if a user has already registered a device; else false
+module.exports.deviceGetToken = function(id,done) {
+    con.query('SELECT token FROM user_device WHERE id = ?',[id], (err, rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null,false);
+        return done(null, rows[0].token);
+    })
+}
+
+// returns true if device was registered
+module.exports.userRegisterDevice = function(id,platform='android',token,done) {
+    deviceRegisteredUser(id, (err,hasDevice) => {
+        if (err) return done(err);
+        if (hasDevice) {
+            // update the token
+            con.query('UPDATE user_device SET token = ? WHERE id = ?',[token,id], (err,result) => {
+                if (err) return done(err);
+                return done(null,true);
+            })
+        }
+        else {
+            // insert a new row
+            con.query('INSERT into user_device (id,token) values (?,?)',[id,token], (err,result) => {
+                if (err) return done(err);
+                return done(null,true);
+            })
+        }
+    })
+}
+
+// delete device(s) associated with user
+module.exports.deviceDeleteToken = function(id,done) {
+    con.query('DELETE FROM user_device WHERE id = ?',[id], (err,result) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
 }
 
 // returns the cook ID
@@ -328,6 +386,68 @@ module.exports.cookGetOpenCloseTimes = function cookGetOpenCloseTimes(id, done) 
     })
 }
 
+// update the user's first name and last name
+module.exports.userUpdateNames = function (user_id,f_name,l_name,done) {
+    con.query('UPDATE user_profile SET first_name = ?, last_name = ? WHERE id = ?',[f_name,l_name,user_id], (err,result) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
+}
+
+/**
+ * @param {schemes.cookProfileCallback} done 
+ */
+var cookGetProfile = module.exports.cookGetProfile = function(cook_id,done) {
+    con.query('SELECT cook.*,user_profile.* FROM cook,user_profile WHERE cook_id = ? AND id = cook_id',[cook_id], (err,rows) => {
+        if (err) return done(err);
+        let row = rows[0];
+        let cookProfile = schemes.cookProfile(row.cook_id,row.first_name,row.last_name,row.cook_logo,row.lat,row.lon,row.opening_time,row.closing_time);
+        return done(null,cookProfile);
+    })
+}
+
+/**
+ * @param {schemes.cookAccountCallback} done 
+ */
+module.exports.cookGetAccount = function(cook_id,done) {
+    con.query('SELECT user_account.*, cook.is_verified FROM user_account,cook WHERE cook_id = ? AND id = cook_id',[cook_id], (err,rows) => {
+        if (err) return done(err);
+        let row = rows[0];
+        cookGetProfile(cook_id, (err,cookprofile) => {
+            if (err) return done(err);
+            let cookAccount = schemes.cookAccount(cook_id,row.email,row.phone,row.is_verified,row._added,cookprofile);
+            return done(null,cookAccount);
+        })
+    })
+}
+
+/**
+ * @param {schemes.eaterProfileCallback} done 
+ */
+var eaterGetProfile = module.exports.eaterGetProfile = function(eater_id,done) {
+    con.query('SELECT eater.*,user_profile.* FROM eater,user_profile WHERE eater_id = ? AND id = eater_id',[eater_id], (err,rows) => {
+        if (err) return done(err);
+        let row = rows[0];
+        let eaterProfile = schemes.eaterProfile(row.eater_id,row.first_name,row.last_name);
+        return done(null,eaterProfile);
+    })
+}
+
+/**
+ * @param {schemes.eaterAccountCallback} done 
+ */
+module.exports.eaterGetAccount = function(eater_id,done) {
+    con.query('SELECT user_account.*, eater.pickup_radius FROM user_account, eater WHERE eater_id = ? AND id = eater_id',[eater_id], (err,rows) => {
+        if (err) return done(err);
+        let row = rows[0];
+        eaterGetProfile(eater_id, (err, eaterprofile) => {
+            if (err) return done(err);
+            let eaterAccount = schemes.eaterAccount(eater_id,row.email,row.phone,row.pickup_radius,row._added,eaterprofile);
+            return done(null,eaterAccount);
+        })
+    })
+}
+
 /* Generic Dishes Functions */
 
 // returns the gendish id
@@ -344,6 +464,23 @@ module.exports.genDishAdd = function genDishAdd(name,category,mean_price=0,done)
  */
 module.exports.genDishSearch = function genDishSearch(query,done) {
     con.query('SELECT * FROM generic_dishes WHERE LOCATE(?,LOWER(gendish_name))>0',[query.toLowerCase()], (err,rows) => {
+        if (err) return done(err);
+
+        /** @type {schemes.GenDish[]} */
+        let found_gen = [];
+        for (const row of rows) {
+            found_gen.push(schemes.genDish(row.gendish_id,row.gendish_name,row.category));
+        }
+        return done(null,found_gen);
+    })
+}
+
+/**
+ * get all the generic dishes
+ * @param {schemes.genDishSearchCallback} done 
+ */
+module.exports.genDishGetAll = function genDishGetAll(done) {
+    con.query('SELECT * FROM generic_dishes ORDER BY gendish_name',undefined, (err,rows) => {
         if (err) return done(err);
 
         /** @type {schemes.GenDish[]} */
@@ -392,27 +529,99 @@ module.exports.cookDishMakeUnavailable = function cookDishMakeUnavailable(cookdi
 }
 
 /**
+ * returns a list of the dishes for a cook matching the availability
+ * @param {Date} availability
+ * @param {schemes.cookDishSearchCallback} done
+ */
+function cookDishGet(cook_id,availability=null,done) {
+    con.query('SELECT dish_id FROM dishes WHERE cook_id = ? AND (dish_status = ? OR ? IS NULL)',[cook_id,availability,availability], (err,rows) => {
+        if (err) return done(err);
+        /** @type {schemes.CookDish[]} */
+        let cookdishes = [];
+        async.eachOf(rows, (row,index,inner_callback) => {
+            let dish_id = row.dish_id;
+            cookDishInfo(dish_id, (err,cookdish) => {
+                if (err) return inner_callback(err);
+                cookdishes.push(cookdish);
+                inner_callback();
+            })
+        }, (err) => {
+            if (err) return done(err);
+            return done(null,cookdishes);
+        })
+    })
+}
+
+/**
  * returns a list of the dishes for a cook (the name is the gendish_name if custom_name is null or custom_name else)
  * @param {schemes.cookDishSearchCallback} done 
  */
 module.exports.cookDishGetAll = function cookDishGetAll(cook_id,done) {
-    con.query('SELECT dishes.*, generic_dishes.gendish_name FROM dishes, generic_dishes '+
-                'WHERE dishes.gendish_id = generic_dishes.gendish_id AND dishes.cook_id = ?',[cook_id], (err,rows) => {
-                    if (err) return done(err);
-
-                    /** @type {schemes.CookDish[]} */
-                    let cookdishes = [];
-                    for (const row of rows) {
-                        let name = row.custom_name ? row.custom_name : row.gendish_name;
-                        cookdishes.push(schemes.cookDish(
-                            row.dish_id,row.gendish_id,row.cook_id,name,row.price,
-                            row.category,row.label,row.description,row.dish_pic
-                        ));
-                    }
-                    return done(null,cookdishes);
-                })
+    cookDishGet(cook_id,undefined,done);
+}
+/**
+ * returns a list of the dishes for a cook (the name is the gendish_name if custom_name is null or custom_name else)
+ * @param {schemes.cookDishSearchCallback} done 
+ */
+module.exports.cookDishGetAvailable = function cookDishGetAvailable(cook_id,date,done) {
+    cookDishGet(cook_id,date,done);
 }
 
+/**
+ * returns the cookdish info
+ * @param {schemes.cookDishInfoCallback} done
+ */
+var cookDishInfo = module.exports.cookDishInfo = function (dish_id,done) {
+    con.query('SELECT dish_rating.*, dishes.*, generic_dishes.gendish_name FROM (dishes, generic_dishes) '+
+            'LEFT JOIN dish_rating ON dish_rating.dish_id = dishes.dish_id ' +
+            'WHERE dishes.gendish_id = generic_dishes.gendish_id AND dishes.dish_id = ?',[dish_id],(err,rows) => {
+                if (err) return done(err);
+                
+                let ratings = [], avg_rating = 0;
+                async.eachOf(rows, function(row,index,inner_callback) {
+                    if (row.rating) {
+                        eaterGetProfile(row.eater_id, (err,eater) => {
+                            if (err) return inner_callback(err);
+                            ratings.push(schemes.dishRating(eater,row.rating,row._added));
+                            avg_rating += row.rating;
+                            inner_callback();
+                        })
+                    }
+                    else
+                        inner_callback();
+                }, function (err) {
+                    if (err) return done(err);
+                    let row = rows[0];
+                    let name = row.custom_name ? row.custom_name : row.gendish_name;
+                    if (ratings.length == 0) {
+                        ratings = null, avg_rating = null;
+                    }
+                    else
+                        avg_rating = avg_rating / ratings.length;
+                    let cookdish = schemes.cookDish(
+                        row.dish_id, row.gendish_id, row.cook_id, name, row.price,
+                        row.category, row.label, row.description, row.dish_pic, avg_rating, ratings
+                    );
+                    return done(null, cookdish);
+                });
+            });
+}
+
+// returns false if already rated; else true
+module.exports.cookDishRate = function (eater_id,dish_id,order_id,rating,done) {
+    con.query('SELECT rated FROM eater_dish_order WHERE order_id = ? AND dish_id = ?', [order_id, dish_id],(err,rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null,false);
+        if (rows[0].rated == 1) return done(null,false);
+        con.query('INSERT into dish_rating (eater_id,dish_id,rating) values (?,?,?)', [eater_id, dish_id, rating], (err, result) => {
+            if (err) return done(err);
+            con.query('UPDATE eater_dish_order SET rated = 1 WHERE order_id = ? AND dish_id = ?', [order_id, dish_id], (err, result) => {
+                if (err) return done(err);
+                return done(null, true);
+            })
+        })
+    })
+}
 
 /* Map Functions */
 
@@ -424,14 +633,14 @@ module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_
     con.query('SELECT *,distance FROM ('+
                 'SELECT cook.cook_logo,cook.lat,cook.lon,cook.opening_time,cook.closing_time,profile.first_name,profile.last_name,'+
                         'eater.pickup_radius, '+
-                        'dishes.*, generic_dishes.gendish_name, '+
+                        'dishes.*, '+
                         'p.distance_unit '+
                             '* DEGREES(ACOS(LEAST(1.0, COS(RADIANS(p.lat)) '+
                             '* COS(RADIANS(cook.lat)) '+
                             '* COS(RADIANS(p.lon - cook.lon)) '+
                             '+ SIN(RADIANS(p.lat)) '+
                             '* SIN(RADIANS(cook.lat))))) AS distance '+
-                'FROM cook, user_profile as profile, dishes, generic_dishes, eater '+
+                'FROM cook, user_profile as profile, dishes, eater '+
                 'JOIN (SELECT ? AS lat, ? AS lon, 111.045 AS distance_unit, ? AS status) AS p ON 1=1 '+ // 111.045 km/degree
                 'WHERE eater.eater_id = ? '+
                     'AND cook.lat BETWEEN p.lat - (eater.pickup_radius / p.distance_unit) '+
@@ -439,7 +648,7 @@ module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_
                     'AND cook.lon BETWEEN p.lon - (eater.pickup_radius / (p.distance_unit * COS(RADIANS(p.lat)))) '+
                                     'AND p.lon + (eater.pickup_radius / (p.distance_unit * COS(RADIANS(p.lat)))) '+
                     'AND cook.cook_id = profile.id '+
-                    'AND dishes.gendish_id = generic_dishes.gendish_id AND dishes.cook_id = cook.cook_id '+
+                    'AND dishes.cook_id = cook.cook_id '+
                     'AND (dishes.dish_status = p.status OR p.status IS NULL) '+
                 ') AS d '+
                 'WHERE distance <= pickup_radius '  // can add LIMIT x
@@ -447,23 +656,224 @@ module.exports.getDishesAround = function getDishesAround(eater_id,lat,lon,dish_
                     if (err) return done(err);
                     if (rows.length == 0) return done(null,false);
                     let cookDetails = {};
-                    for (const row of rows) {
+                    async.eachOf(rows,function(row,index,inner_callback){
                         let cook_id = row.cook_id;
-                        let dishname = row.custom_name ? row.custom_name : row.gendish_name;
-                        let curDish = schemes.cookDish(row.dish_id, row.gendish_id, row.cook_id, dishname, row.price,
-                            row.category, row.label, row.description, row.dish_pic);
-                        if (cook_id in cookDetails) { // just add meal
-                            cookDetails[cook_id].dishes.push(curDish);
-                        }
-                        else {
-                            cookDetails[cook_id] = schemes.cookMap(
-                                cook_id,row.first_name,row.last_name,
-                                row.cook_logo,row.lat,row.lon,row.distance,row.opening_time,row.closing_time,[curDish]);
-                        }
-                    }
-                    let cookList = Object.values(cookDetails);
-                    return done(null,cookList);
+                        cookDishInfo(row.dish_id,(err,curDish) => {
+                            if (err) return inner_callback(err);
+                            if (cook_id in cookDetails) { // just add meal
+                                cookDetails[cook_id].dishes.push(curDish);
+                            }
+                            else {
+                                cookDetails[cook_id] = schemes.cookMap(
+                                    cook_id, row.first_name, row.last_name,
+                                    row.cook_logo, row.lat, row.lon, row.distance, row.opening_time, row.closing_time, [curDish]);
+                            }
+                            inner_callback();
+                        })
+                    },function(err) {
+                        if (err) return done(err);
+                        let cookList = Object.values(cookDetails);
+                        return done(null, cookList);
+                    })
                 });
 }
+
+/* Cart Functions */
+
+// return the insert id
+module.exports.cartAdd = function cartAdd(eater_id,dish_id,cook_id,quantity=1,delivery=false,done) {
+    con.query('INSERT into eater_cart (eater_id,dish_id,cook_id,quantity,delivery_availability) values (?,?,?,?,?)',[eater_id,dish_id,cook_id,quantity,delivery],(err,result) => {
+        if (err) return done(err);
+        return done(null,result.insertId);
+    });
+}
+
+/**
+ * returns the cart dishes and their info
+ * @param {schemes.eaterCartCallback} done 
+ */
+module.exports.cartGetDishes = function cartGetDishes(eater_id,done) {
+    con.query('SELECT * FROM eater_cart WHERE eater_id = ?',[eater_id],(err,rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null,false);
+        /** @type {schemes.EaterCartEntry[]} */
+        let cart = [];
+        async.eachOf(rows, function(row,index,inner_callback) {
+            let dish_id=row.dish_id,quantity=row.quantity,delivery=row.delivery_availability;
+            cookDishInfo(dish_id, (err,cookdish) => {
+                if (err) return inner_callback(err);
+                cart.push(schemes.eaterCartEntry(cookdish,quantity,delivery));
+            })
+        }, function (err) {
+            if (err) return done(err);
+            return done(null,cart);
+        });
+    })
+}
+
+// return true if entry deleted
+module.exports.cartDelete = function cartDelete(eater_id, dish_id, done) {
+    con.query('DELETE FROM eater_cart WHERE eater_id = ? AND dish_id = ?', [eater_id, dish_id], (done, result) => {
+        if (err) return done(err);
+        return done(null, result.affectedRows > 0);
+    });
+}
+
+// return true if cart emptied
+module.exports.cartEmpty = function cartEmpty(eater_id, done) {
+    con.query('DELETE FROM eater_cart WHERE eater_id = ?', [eater_id], (done, result) => {
+        if (err) return done(err);
+        return done(null, result.affectedRows > 0);
+    });
+}
+
+
+/* Orders Functions */
+
+/**
+ * adds a dish to an already created order
+ * @param {schemes.DishTuple[]} dishes 
+ */
+function orderAddDishes(order_id,eater_id,dishes,done) {
+    let dishlist = [];
+    for (const dish of dishes) {
+        dishlist.push([order_id,dish.dish_id,eater_id,dish.quantity]);
+    }
+    con.query('INSERT into eater_dish_order (order_id,dish_id,eater_id,quantity) values ?',[dishlist],(err,result)=>{
+        if (err) return done(err);
+        return done(null,result.insertId);
+    })
+}
+
+/**
+ * returns true if successful
+ * @param {Date} datetime 
+ * @param {schemes.DishTuple[]} dishes 
+ */
+module.exports.orderCreate = function orderCreate(eater_id,cook_id,del_method='takeaway',datetime,total,dishes,done) {
+    con.query('INSERT into order_status (cook_id,total_price,delivery_method,date_scheduled_on) values (?,?,?,?)',[cook_id,total,del_method,datetime],(err,result) => {
+        if (err) return done(err);
+        const order_id = result.insertId;
+        // insert the dishes to the order
+        orderAddDishes(order_id,eater_id,dishes, (err,resultId) => {
+            if (err) return done(err);
+            return done(null,true);
+        })
+    });
+}
+
+/**
+ * returns a list of orders for a given eater
+ * @param {schemes.orderCallback} done 
+ */
+module.exports.orderGet_Eater = function orderGet_Eater(eater_id,status=null,done) {
+    con.query('SELECT eater_dish_order.*,order_status.* FROM eater_dish_order,order_status '+
+                'WHERE eater_dish_order.order_id=order_status.order_id AND eater_dish_order.eater_id = ? '+
+                    'AND (order_status.general_status = ? OR ? IS NULL)',[eater_id,status,status], (err,rows) => {
+                        if (err) return done(err);
+                        let orderByID = {};
+                        for (const row of rows) {
+                            let order_id=row.order_id;
+                            /** @type {schemes.DishTuple} */
+                            let dish = {dish_id: row.dish_id, quantity: row.quantity, rated:row.rated};
+                            if (order_id in orderByID)
+                                orderByID[order_id].dishes.push(dish);
+                            else {
+                                orderByID[order_id] = schemes.order(
+                                    order_id, row.eater_id, row.cook_id, row.total_price, row.general_status, row.prepared_status, row.packaged_status,
+                                    row.message,row.date_scheduled_on,[dish]);
+                            }
+                        }
+                        let orderList = Object.values(orderByID);
+                        return done(null,orderList);
+                    })
+}
+
+/**
+ * returns a list of orders for a given cook
+ * @param {schemes.orderCallback} done 
+ */
+module.exports.orderGet_Cook = function orderGet_Cook(cook_id,status=null,done) {
+    con.query('SELECT eater_dish_order.*,order_status.* FROM eater_dish_order,order_status '+
+                'WHERE eater_dish_order.order_id=order_status.order_id AND order_status.cook_id = ? '+
+                    'AND (order_status.general_status = ? OR ? IS NULL)',[cook_id,status,status], (err,rows) => {
+                        if (err) return done(err);
+                        let orderByID = {};
+                        for (const row of rows) {
+                            let order_id=row.order_id;
+                            /** @type {schemes.DishTuple} */
+                            let dish = { dish_id: row.dish_id, quantity: row.quantity, rated: row.rated};
+                            if (order_id in orderByID)
+                                orderByID[order_id].dishes.push(dish);
+                            else {
+                                orderByID[order_id] = schemes.order(
+                                    order_id, row.eater_id, row.cook_id, row.total_price, row.general_status, row.prepared_status, row.packaged_status,
+                                    row.message,row.date_scheduled_on,[dish]);
+                            }
+                        }
+                        let orderList = Object.values(orderByID);
+                        return done(null,orderList);
+                    })
+}
+
+/**
+ * @param {schemes.orderInfoCallback} done 
+ */
+var orderInfo = module.exports.orderInfo = function(order_id,done) {
+    con.query('SELECT eater_dish_order.*,order_status.* FROM eater_dish_order,order_status ' +
+        'WHERE eater_dish_order.order_id=order_status.order_id AND order_status.order_id = ?',
+        [order_id], (err, rows) => {
+            if (err) return done(err);
+            let orderByID = {};
+            for (const row of rows) {
+                /** @type {schemes.DishTuple} */
+                let dish = { dish_id: row.dish_id, quantity: row.quantity };
+                if (order_id in orderByID)
+                    orderByID[order_id].dishes.push(dish);
+                else {
+                    orderByID[order_id] = schemes.order(
+                        order_id, row.eater_id, row.cook_id, row.total_price, row.general_status, row.prepared_status, row.packaged_status,
+                        row.message, row.date_scheduled_on, [dish]);
+                }
+            }
+            let order = orderByID[order_id];
+            return done(null, order);
+        })
+}
+
+// returns true
+function orderSetStatus(order_id,status,done) {
+    con.query('UPDATE order_status SET general_status = ? WHERE order_id = ?',[status,order_id], (err,result) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
+}
+
+// approve order
+module.exports.orderApprove = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.approved,done);
+}
+
+// reject order
+module.exports.orderReject = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.rejected,done);
+}
+
+// cancel order
+module.exports.orderCancel = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.cancelled,done);
+}
+
+// ready order
+module.exports.orderReady = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.ready,done);
+}
+
+// complete order
+module.exports.orderComplete = function(order_id,done) {
+    orderSetStatus(order_id,schemes.OrderStatus.completed,done);
+}
+
+
 
 module.exports.uploadCookDishPic = cloudStorage.uploadCookDishPic;
