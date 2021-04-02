@@ -83,6 +83,7 @@ passport.use('cook-register-email-phone', new LocalStrategy(
                         // since email and phone are not used, we can create the Cook account
                         // using bcrypt to hash the password
                         bcrypt.hash(password, BCRYPT_SALT_ROUNDS).then(async hashedPassword => {
+                            cert=cert==true; train=train==true; inspection=inspection==true;
                             database.cookRegister(email, phone, hashedPassword, f_name, l_name, false, exp, cert, train, inspection, (err, id) => {
                                 if (err) return done(err);
                                 return done(null, id);
