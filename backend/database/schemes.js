@@ -269,6 +269,7 @@ exports.OrderStatus = Object.freeze(OrderStatus);
  * @typedef {Object} DishTuple
  * @property {Number} dish_id
  * @property {Number} quantity
+ * @property {Boolean} rated
 */
 
 /**

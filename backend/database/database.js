@@ -589,11 +589,19 @@ var cookDishInfo = module.exports.cookDishInfo = function (dish_id,done) {
             });
 }
 
-
-module.exports.cookDishRate = function (eater_id,dish_id,rating,done) {
-    con.query('INSERT into dish_rating (eater_id,dish_id,rating) values (?,?,?)',[eater_id,dish_id,rating],(err,result) => {
+// returns false if already rated; else true
+module.exports.cookDishRate = function (eater_id,dish_id,order_id,rating,done) {
+    con.query('SELECT rated FROM eater_dish_order WHERE order_id = ? AND dish_id = ?', [order_id, dish_id],(err,rows) => {
         if (err) return done(err);
-        return done(null,true);
+        if (rows.length == 0) return done(null,false);
+        if (rows[0].rated == 1) return done(null,false);
+        con.query('INSERT into dish_rating (eater_id,dish_id,rating) values (?,?,?)', [eater_id, dish_id, rating], (err, result) => {
+            if (err) return done(err);
+            con.query('UPDATE eater_dish_order SET rated = 1 WHERE order_id = ? AND dish_id = ?', [order_id, dish_id], (err, result) => {
+                if (err) return done(err);
+                return done(null, true);
+            })
+        })
     })
 }
 
@@ -749,7 +757,7 @@ module.exports.orderGet_Eater = function orderGet_Eater(eater_id,status=null,don
                         for (const row of rows) {
                             let order_id=row.order_id;
                             /** @type {schemes.DishTuple} */
-                            let dish = {dish_id: row.dish_id, quantity: row.quantity};
+                            let dish = {dish_id: row.dish_id, quantity: row.quantity, rated:row.rated};
                             if (order_id in orderByID)
                                 orderByID[order_id].dishes.push(dish);
                             else {
@@ -776,7 +784,7 @@ module.exports.orderGet_Cook = function orderGet_Cook(cook_id,status=null,done) 
                         for (const row of rows) {
                             let order_id=row.order_id;
                             /** @type {schemes.DishTuple} */
-                            let dish = {dish_id: row.dish_id, quantity: row.quantity};
+                            let dish = { dish_id: row.dish_id, quantity: row.quantity, rated: row.rated};
                             if (order_id in orderByID)
                                 orderByID[order_id].dishes.push(dish);
                             else {

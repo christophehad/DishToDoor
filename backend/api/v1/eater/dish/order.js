@@ -96,7 +96,7 @@ exports.getOrdersAll = function getOrdersAll(eater_id,done) {
                 async.eachOf(order.dishes,(dishtuple,index2,inner_callback2) => {
                     database.cookDishInfo(dishtuple.dish_id, (err,cookdish) => {
                         if (err) return inner_callback2(err);
-                        dishes.push(apiConfig.orderDishAPI(dishtuple.dish_id,cookdish.name,dishtuple.quantity,cookdish.price,cookdish.dish_pic));
+                        dishes.push(apiConfig.orderDishAPI(dishtuple.dish_id,cookdish.name,dishtuple.quantity,cookdish.price,cookdish.dish_pic,dishtuple.rated));
                         inner_callback2();
                     })
                 }, (err) => {
@@ -113,11 +113,12 @@ exports.getOrdersAll = function getOrdersAll(eater_id,done) {
     })
 }
 
-exports.rateDish = function(eater_id,dish_id,rating,done) {
-    if (!dish_id || !rating) return done(null,false,'missing_fields');
+exports.rateDish = function(eater_id,dish_id,order_id,rating,done) {
+    if (!dish_id || !rating || !order_id) return done(null,false,'missing_fields');
     if (rating < 0 || rating > 5) return done(null,false,'wrong_rating');
-    database.cookDishRate(eater_id,dish_id,rating, (err,success) => {
+    database.cookDishRate(eater_id,dish_id,order_id,rating, (err,success) => {
         if (err) return done(err);
+        if (!success) return done(null,false,'already_rated');
         return done(null,true);
     })
 }

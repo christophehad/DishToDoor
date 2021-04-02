@@ -273,6 +273,7 @@ CREATE TABLE `eater_dish_order` (
   `dish_id` int(11) NOT NULL,
   `eater_id` int(11) NOT NULL,
   `quantity` int(255) NOT NULL,
+  `rated` tinyint(1) NOT NULL DEFAULT 0,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
