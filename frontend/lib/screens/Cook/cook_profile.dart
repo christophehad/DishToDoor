@@ -462,8 +462,34 @@ class _ProfileCookState2 extends State<ProfileCook2> {
               ),
             ),
           ),
+          Card(
+            color: Colors.white,
+            margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
+            child: ListTile(
+              leading: Icon(
+                Icons.timer,
+                color: Colors.teal,
+              ),
+              title: Text(
+                "Open: " +
+                    cookProfileInformation.cookProfile.opening.hour.toString() +
+                    ":" +
+                    cookProfileInformation.cookProfile.opening.minute
+                        .toString() +
+                    ' - ' +
+                    cookProfileInformation.cookProfile.closing.hour.toString() +
+                    ":" +
+                    cookProfileInformation.cookProfile.closing.minute
+                        .toString(),
+                style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.teal,
+                ),
+              ),
+            ),
+          ),
           SizedBox(
-            height: MediaQuery.of(context).size.height / 10,
+            height: 20,
           ),
           Card(
             color: Colors.white,

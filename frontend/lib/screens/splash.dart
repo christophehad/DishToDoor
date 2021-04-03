@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:dishtodoor/screens/Cook/ImageUpload/cookKitchenUpload.dart';
 import 'package:dishtodoor/screens/auth/login.dart';
 import 'package:dishtodoor/screens/page_navigator_cook.dart';
 import 'package:dishtodoor/screens/page_navigator_eater.dart';
+import 'package:dishtodoor/screens/Cook/ImageUpload/waitingPage.dart';
 import 'package:flutter/material.dart';
 import 'package:dishtodoor/config/config.dart';
 import 'dart:async';
@@ -98,21 +100,22 @@ class _SplashScreenState extends State<SplashScreen>
         print("Received: " + decoded.toString());
         bool success = decoded['success'];
         if (success) {
-          // //_registerSuccessfulAlert();
-          // //add cook info
-          // //add cook location only if hasn't been previously stored
-          // bool locAvailable = await storage.containsKey(key: 'location');
-          // if (locAvailable == false) {
-          //   cookLocation.sendLoc().then((value) async {
-          //     await storage.write(
-          //         key: 'location',
-          //         value: (cookLocation.cookLocation.latitude.toString() +
-          //             ',' +
-          //             cookLocation.cookLocation.longitude.toString()));
-          //   });
-          // }
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => PageNavigatorCook()));
+          //check if cook is verified
+          if (decoded['is_verified']) {
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => PageNavigatorCook()));
+          } else {
+            //route to a page where cook upload pictures
+            if (await storage.containsKey(key: 'kitchenPics') == false ||
+                await storage.read(key: 'kitchenPics') == 'false') {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => SingleImageUpload()));
+            } else {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => WaitingPage()));
+            }
+          }
+
           print("Successful!");
         } else {
           print("Error: " + decoded['error']);

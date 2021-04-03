@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
 
 import 'package:dishtodoor/screens/page_navigator_cook.dart';
+import 'package:dishtodoor/screens/Cook/ImageUpload/waitingPage.dart';
+import 'package:dishtodoor/screens/Cook/ImageUpload/cookKitchenUpload.dart';
 
 //TODO safe storage for cook
 class CookLoginEmail extends StatefulWidget {
@@ -87,31 +89,51 @@ class _CookLoginEmail extends State<CookLoginEmail> {
             print("Received: " + decoded.toString());
             bool success = decoded['success'];
             if (success) {
-              //_registerSuccessfulAlert();
-              //add cook info
-              if (await storage.containsKey(key: 'email') == false) {
-                print("storing");
-                await storage.write(key: 'token', value: decoded['token']);
-                await storage.write(key: 'email', value: email.text);
-                await storage.write(key: 'pass', value: password.text);
-                await storage.write(key: 'type', value: 'cook');
-              }
-              //add cook location only if hasn't been previously stored
-              bool locAvailable = await storage.containsKey(key: 'location');
-              if (locAvailable == false) {
-                cookLocation.sendLoc().then((value) async {
-                  await storage.write(
-                      key: 'location',
-                      value: (cookLocation.cookLocation.latitude.toString() +
-                          ',' +
-                          cookLocation.cookLocation.longitude.toString()));
-                });
-              }
-              // if(gotLocation == false){
+              if (decoded['is_verified']) {
+                //add cook info
+                if (await storage.containsKey(key: 'email') == false) {
+                  print("storing");
+                  await storage.write(key: 'token', value: decoded['token']);
+                  await storage.write(key: 'email', value: email.text);
+                  await storage.write(key: 'pass', value: password.text);
+                  await storage.write(key: 'type', value: 'cook');
+                  await storage.write(key: 'kitchen_pic', value: 'true');
+                }
+                //add cook location only if hasn't been previously stored
+                bool locAvailable = await storage.containsKey(key: 'location');
 
-              // }
-              Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (_) => PageNavigatorCook()));
+                if (locAvailable == false) {
+                  print("loc not available");
+                  cookLocation.sendLoc().then((val) async {
+                    await storage.write(
+                        key: 'location',
+                        value: (cookLocation.cookLocation.latitude.toString() +
+                            ',' +
+                            cookLocation.cookLocation.longitude.toString()));
+                  });
+                }
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => PageNavigatorCook()));
+              } else {
+                if (await storage.containsKey(key: 'email') == false) {
+                  print("storing");
+                  await storage.write(key: 'token', value: decoded['token']);
+                  await storage.write(key: 'email', value: email.text);
+                  await storage.write(key: 'pass', value: password.text);
+                  await storage.write(key: 'type', value: 'cook');
+                  await storage.write(key: 'kitchen_pic', value: 'false');
+                }
+                //route to a page where cook upload pictures
+                if (await storage.containsKey(key: 'kitchenPics') == false ||
+                    await storage.read(key: 'kitchenPics') == 'false') {
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => SingleImageUpload()));
+                } else {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => WaitingPage()));
+                }
+              }
+
               print("Successful!");
             } else {
               print("Error: " + decoded['error']);

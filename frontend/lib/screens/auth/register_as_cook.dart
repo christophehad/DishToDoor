@@ -164,6 +164,10 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
               'password': password.text,
               'first_name': fname.text,
               'last_name': lname.text,
+              'experience': experience.text,
+              'certified': dropDownValueCert,
+              'training': dropDownValueTrain,
+              'inspection': dropDownValueInspect,
 
               //MODIFY by adding relevant COOK parts
             }),
@@ -175,6 +179,19 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
             print("Received: " + decoded.toString());
             bool success = decoded['success'];
             if (success) {
+              //add cook location only if hasn't been previously stored
+              bool locAvailable = await storage.containsKey(key: 'location');
+
+              if (locAvailable == false) {
+                print("loc not available");
+                cookLocation.sendLoc().then((val) async {
+                  await storage.write(
+                      key: 'location',
+                      value: (cookLocation.cookLocation.latitude.toString() +
+                          ',' +
+                          cookLocation.cookLocation.longitude.toString()));
+                });
+              }
               _registerSuccessfulAlert();
               print("Successful!");
             } else {
