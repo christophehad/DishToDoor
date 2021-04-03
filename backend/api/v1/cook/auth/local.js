@@ -72,7 +72,8 @@ passport.use('cook-register-email-phone', new LocalStrategy(
                 return done(null, false, { message: 'email_used' });
             else {
                 let f_name = req.body.first_name, l_name = req.body.last_name, phone = req.body.phone;
-                if (!f_name || !l_name || !phone)
+                let exp=req.body.experience, cert=req.body.certified, train=req.body.training, inspection=req.body.inspection;
+                if (!f_name || !l_name || !phone || !exp || (cert === undefined) || (train === undefined) || (inspection === undefined))
                     return done(null, false, {message: 'missing_credentials'});
                 database.cookPhoneExists(phone, (err, phoneUsed) => {
                     if (err) return done(err);
@@ -82,7 +83,8 @@ passport.use('cook-register-email-phone', new LocalStrategy(
                         // since email and phone are not used, we can create the Cook account
                         // using bcrypt to hash the password
                         bcrypt.hash(password, BCRYPT_SALT_ROUNDS).then(async hashedPassword => {
-                            database.cookRegister(email, phone, hashedPassword, f_name, l_name, false, (err, id) => {
+                            cert=cert==true; train=train==true; inspection=inspection==true;
+                            database.cookRegister(email, phone, hashedPassword, f_name, l_name, false, exp, cert, train, inspection, (err, id) => {
                                 if (err) return done(err);
                                 return done(null, id);
                             });
