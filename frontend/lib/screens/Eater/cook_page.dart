@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:maps_launcher/maps_launcher.dart';
-import 'package:dishtodoor/screens/Map/cookClass.dart';
+import 'package:dishtodoor/screens/Eater/Map/cookClass.dart';
 import 'package:dishtodoor/screens/Eater/Checkout_Processs/bloc/cart_items.dart';
 import 'package:dishtodoor/screens/Eater/Checkout_Processs/pages/checkout_screen.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 
 class CookPageEater extends StatefulWidget {
   final CookMap cook;
@@ -36,7 +37,7 @@ class _CookPageEaterState extends State<CookPageEater> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     dish.avgRating != 0.0
-                        ? Icon(Icons.star, color: Colors.yellow)
+                        ? Icon(Icons.star, color: Colors.amberAccent)
                         : Text(""),
                     dish.avgRating != 0.0
                         ? Text(dish.avgRating.toStringAsFixed(1))
@@ -50,7 +51,10 @@ class _CookPageEaterState extends State<CookPageEater> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    child: const Text("Add to cart"),
+                    child: Text(
+                      "Add to cart",
+                      style: TextStyle(color: blue),
+                    ),
                     onPressed: () {
                       bloc.addToCart(CartTuple(
                           dish: dish,
@@ -60,7 +64,10 @@ class _CookPageEaterState extends State<CookPageEater> {
                     },
                   ),
                   TextButton(
-                    child: const Text("Buy now"),
+                    child: Text(
+                      "Buy now",
+                      style: TextStyle(color: blue),
+                    ),
                     onPressed: () {
                       bloc.addToCart(CartTuple(
                           dish: dish,
@@ -240,7 +247,7 @@ class _CookPageEaterState extends State<CookPageEater> {
           picture(context),
           scrollableList(context),
           Positioned(
-            top: 45,
+            top: 50,
             left: 5,
             child: IconButton(
               color: Colors.white,
@@ -251,7 +258,7 @@ class _CookPageEaterState extends State<CookPageEater> {
             ),
           ),
           Positioned(
-            top: 45,
+            top: 50,
             right: 15,
             child: IconButton(
               color: Colors.white,

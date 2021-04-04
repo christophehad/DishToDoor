@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 
-import 'package:dishtodoor/app_properties.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 import 'package:dishtodoor/screens/auth/login.dart';
 import 'package:dishtodoor/config/config.dart';
 
@@ -142,7 +142,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
                       fontStyle: FontStyle.normal,
                       fontSize: 20.0))),
           decoration: BoxDecoration(
-              gradient: mainButton,
+              color: blue,
               boxShadow: [
                 BoxShadow(
                   color: Color.fromRGBO(0, 0, 0, 0.16),
@@ -219,10 +219,10 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           icon: Icon(Icons.arrow_downward),
           iconSize: 24,
           elevation: 16,
-          style: TextStyle(color: Colors.deepPurple),
+          style: TextStyle(color: darkBlue),
           underline: Container(
             height: 2,
-            color: Colors.deepPurpleAccent,
+            color: darkBlue,
           ),
           onChanged: (String newValue) {
             setState(() {
@@ -247,10 +247,10 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           icon: Icon(Icons.arrow_downward),
           iconSize: 24,
           elevation: 16,
-          style: TextStyle(color: Colors.deepPurple),
+          style: TextStyle(color: darkBlue),
           underline: Container(
             height: 2,
-            color: Colors.deepPurpleAccent,
+            color: darkBlue,
           ),
           onChanged: (String newValue) {
             setState(() {
@@ -275,10 +275,10 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           icon: Icon(Icons.arrow_downward),
           iconSize: 24,
           elevation: 16,
-          style: TextStyle(color: Colors.deepPurple),
+          style: TextStyle(color: darkBlue),
           underline: Container(
             height: 2,
-            color: Colors.deepPurpleAccent,
+            color: darkBlue,
           ),
           onChanged: (String newValue) {
             setState(() {
@@ -415,7 +415,7 @@ class _RegisterCookPageState extends State<RegisterCookPage> {
           ),
           Container(
             decoration: BoxDecoration(
-              color: transparentYellow,
+              color: transparentBlue,
             ),
           ),
           Padding(

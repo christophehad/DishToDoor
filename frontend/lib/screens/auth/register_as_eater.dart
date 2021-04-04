@@ -4,7 +4,7 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
-import 'package:dishtodoor/app_properties.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 import 'register_as_cook.dart';
 import 'package:dishtodoor/config/config.dart';
 
@@ -170,7 +170,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
                       fontStyle: FontStyle.normal,
                       fontSize: 20.0))),
           decoration: BoxDecoration(
-              gradient: mainButton,
+              color: blue,
               boxShadow: [
                 BoxShadow(
                   color: Color.fromRGBO(0, 0, 0, 0.16),
@@ -283,7 +283,7 @@ class _RegisterEaterPageState extends State<RegisterEaterPage> {
           ),
           Container(
             decoration: BoxDecoration(
-              color: transparentYellow,
+              color: transparentBlue,
             ),
           ),
           Padding(

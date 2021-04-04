@@ -5,6 +5,7 @@ import 'package:dishtodoor/config/config.dart';
 import 'package:dishtodoor/screens/Cook/dishClass.dart';
 import 'package:dishtodoor/screens/Cook/add_generic_dish.dart';
 import 'dart:async';
+import 'package:dishtodoor/config/appProperties.dart';
 
 class GenDishSearchBar extends StatefulWidget {
   @override
@@ -32,7 +33,6 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
         'Authorization': "Bearer " + token.toString()
       },
     );
-    String error = "";
     if (response.statusCode == 200) {
       // If the server did return a 200 CREATED response,
       // then parse the JSON
@@ -44,7 +44,6 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
       if (success) {
         setState(() {
           genDishes = GenDishList.fromJson(decoded['gen_dishes']);
-          error = "";
         });
         print(genDishes.genDishList);
         print("Successful!");
@@ -99,24 +98,25 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
 
   Widget searchField() {
     return Container(
+        padding: EdgeInsets.only(left: 5),
         child: TextField(
-      autofocus: true,
-      style: TextStyle(color: Colors.white, fontSize: 18),
-      decoration: InputDecoration(
-        hintStyle: TextStyle(color: Colors.white, fontSize: 18),
-        hintText: "Search Dishes",
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.white, width: 2),
-        ),
-        focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.white, width: 2),
-        ),
-      ),
-      onChanged: (value) {
-        query = value;
-        getGenDish();
-      },
-    ));
+          autofocus: true,
+          style: TextStyle(color: Colors.black, fontSize: 18),
+          decoration: InputDecoration(
+            hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 18),
+            hintText: "Search Dishes",
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.shade200, width: 2),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.shade500, width: 2),
+            ),
+          ),
+          onChanged: (value) {
+            query = value;
+            getGenDish();
+          },
+        ));
   }
 
   //List creation
@@ -126,6 +126,7 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
       children: <Widget>[
         InkWell(
           child: Card(
+            color: Colors.grey.shade200,
             child: ListTile(
               title: Text(genDish.name),
             ),
@@ -147,13 +148,13 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
                   ));
         },
         child: Container(
-          width: 230,
-          height: 50,
+          width: 100,
+          height: 35,
           child: Center(
-              child: new Text("Create Generic dish",
-                  style: const TextStyle(color: Colors.white, fontSize: 20.0))),
+              child: new Text("Create Dish",
+                  style: const TextStyle(color: Colors.white, fontSize: 17.0))),
           decoration: BoxDecoration(
-              color: Colors.blue,
+              color: mediumBlue,
               boxShadow: [
                 BoxShadow(
                   color: Color.fromRGBO(0, 0, 0, 0.2),
@@ -175,29 +176,42 @@ class _GenDishSearchBar extends State<GenDishSearchBar> {
       );
     }
     return Scaffold(
-      backgroundColor: Colors.blue[100],
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             IconButton(
-              color: Colors.white,
+              color: Colors.black,
               icon: Icon(Icons.arrow_back),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
             searchField(),
-            ListView(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                children: [
-                  Column(
-                      children: genDishes.genDishList.map((p) {
-                    return genDishCards(p);
-                  }).toList()),
-                ]),
-            addButton(),
+            ConstrainedBox(
+              constraints: new BoxConstraints(
+                minHeight: 100.0,
+                maxHeight: 300.0,
+              ),
+              child: ListView(
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  children: [
+                    Column(
+                        children: genDishes.genDishList.map((p) {
+                      return genDishCards(p);
+                    }).toList()),
+                  ]),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text("Can't find what you're looking for?",
+                    style:
+                        TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                addButton(),
+              ],
+            ),
           ],
         ),
       ),

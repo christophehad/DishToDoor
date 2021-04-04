@@ -2,11 +2,12 @@ import 'dart:convert';
 
 import 'package:dishtodoor/screens/Cook/ImageUpload/cookKitchenUpload.dart';
 import 'package:dishtodoor/screens/auth/login.dart';
-import 'package:dishtodoor/screens/page_navigator_cook.dart';
-import 'package:dishtodoor/screens/page_navigator_eater.dart';
+import 'package:dishtodoor/screens/PageNavigation/page_navigator_cook.dart';
+import 'package:dishtodoor/screens/PageNavigation/page_navigator_eater.dart';
 import 'package:dishtodoor/screens/Cook/ImageUpload/waitingPage.dart';
 import 'package:flutter/material.dart';
 import 'package:dishtodoor/config/config.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 
@@ -48,7 +49,6 @@ class _SplashScreenState extends State<SplashScreen>
       print("not here");
       return;
     }
-    String resT = await storage.read(key: "token");
     String resE = await storage.read(key: "email");
     String resP = await storage.read(key: "pass");
     String resType = await storage.read(key: "type");
@@ -138,7 +138,7 @@ class _SplashScreenState extends State<SplashScreen>
           image: DecorationImage(
               image: AssetImage('assets/food.jpg'), fit: BoxFit.cover)),
       child: Container(
-        decoration: BoxDecoration(color: Color.fromRGBO(70, 184, 253, 0.7)),
+        decoration: BoxDecoration(color: transparentBlue),
         child: SafeArea(
           child: new Scaffold(
             body: Column(
@@ -146,7 +146,7 @@ class _SplashScreenState extends State<SplashScreen>
                 Expanded(
                   child: Opacity(
                       opacity: opacity.value,
-                      child: new Image.asset('assets/logos/twitter.jpg')),
+                      child: new Image.asset('assets/logos/DTDLogo.png')),
                 ),
               ],
             ),

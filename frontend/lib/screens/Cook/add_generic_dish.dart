@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
-import 'package:dishtodoor/screens/Cook/add_cook_dish.dart';
+import 'package:dishtodoor/screens/PageNavigation/page_navigator_cook.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 
 class AddGenDish extends StatefulWidget {
   @override
@@ -37,16 +38,16 @@ class _AddGenDish extends State<AddGenDish> {
             print("Received: " + decoded.toString());
             bool success = decoded['success'];
             if (success) {
-              //_registerSuccessfulAlert();
-              //secure storage of token
-
               print("Successful!");
-
-              //locsharing().then((value) {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => AddCookDish() //cookList: cooks,
-                  ));
-              //});
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) => PageNavigatorCook(
+                    indexInput: 0,
+                  ),
+                ),
+                (route) => false,
+              );
             } else {
               print("Error: " + decoded['error']);
               print("Error: " + genDishName.text);
@@ -67,7 +68,7 @@ class _AddGenDish extends State<AddGenDish> {
                       fontStyle: FontStyle.normal,
                       fontSize: 20.0))),
           decoration: BoxDecoration(
-              color: Colors.blue,
+              color: mediumBlue,
               boxShadow: [
                 BoxShadow(
                   color: Color.fromRGBO(0, 0, 0, 0.16),
@@ -91,7 +92,7 @@ class _AddGenDish extends State<AddGenDish> {
               width: MediaQuery.of(context).size.width,
               padding: const EdgeInsets.only(left: 32.0, right: 12.0),
               decoration: BoxDecoration(
-                  color: Color.fromRGBO(255, 255, 255, 0.8),
+                  color: Colors.grey.shade200,
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(10),
                       bottomLeft: Radius.circular(10))),
@@ -118,10 +119,10 @@ class _AddGenDish extends State<AddGenDish> {
                         icon: Icon(Icons.arrow_downward),
                         iconSize: 24,
                         elevation: 16,
-                        style: TextStyle(color: Colors.deepPurple),
+                        style: TextStyle(color: darkBlue),
                         underline: Container(
                           height: 2,
-                          color: Colors.deepPurpleAccent,
+                          color: darkBlue,
                         ),
                         onChanged: (String newValue) {
                           setState(() {
@@ -143,31 +144,34 @@ class _AddGenDish extends State<AddGenDish> {
                 ],
               ),
             ),
-            addButton,
           ],
         ),
       )
     ]);
 
     return Scaffold(
-        backgroundColor: Colors.blue[100],
         body: Stack(children: <Widget>[
-          Padding(
-              padding: EdgeInsets.only(left: 28.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[loginForm],
-              )),
-          Positioned(
-              top: 35,
-              left: 5,
-              child: IconButton(
-                color: Colors.white,
-                icon: Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ))
-        ]));
+      Padding(
+          padding: EdgeInsets.only(left: 28.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[loginForm],
+          )),
+      Positioned(
+        top: 180,
+        left: 150,
+        child: addButton,
+      ),
+      Positioned(
+          top: 50,
+          left: 5,
+          child: IconButton(
+            color: Colors.black,
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ))
+    ]));
   }
 }

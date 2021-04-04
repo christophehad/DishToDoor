@@ -1,27 +1,25 @@
-import 'package:dishtodoor/screens/Cook/add_cook_dish.dart';
 import 'package:flutter/material.dart';
-import 'Cook/cook_profile.dart';
-import 'Cook/orderTrackingCook.dart';
-
-import 'package:dishtodoor/screens/Cook/cookAvailableMeals.dart';
+import 'package:dishtodoor/screens/Eater/Map/main_map.dart';
+import 'package:dishtodoor/screens/Eater/Order_Tracking/orderTrackingEater.dart';
+import 'package:dishtodoor/screens/Eater/Profile/profile_eater.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 //Eater Page Navigator
 
-class PageNavigatorCook extends StatefulWidget {
-  int indexInput;
-  PageNavigatorCook({Key key, this.indexInput}) : super(key: key);
+class PageNavigatorEater extends StatefulWidget {
+  int indexInput = -1;
+  PageNavigatorEater({Key key, this.indexInput}) : super(key: key);
   @override
-  _PageNavigatorCook createState() => _PageNavigatorCook();
+  _PageNavigatorEater createState() => _PageNavigatorEater();
 }
 
-class _PageNavigatorCook extends State<PageNavigatorCook> {
+class _PageNavigatorEater extends State<PageNavigatorEater> {
+  //CookList cookListLocal;
   int _currentIndex = 0; //track the index of our currently selected tab
   //list of widgets that we want to render based on the currently selected tab
   List<Widget> _children = [
-    AddCookDish(),
-    //if no cooks around, another map is displayed
-    CookManageDishes(),
-    CookTrackOrder(),
-    ProfileCook2(),
+    MainMap(),
+    EaterTrackOrder(),
+    ProfileEater(),
   ];
 
   @override
@@ -30,11 +28,12 @@ class _PageNavigatorCook extends State<PageNavigatorCook> {
     super.initState();
   }
 
-  //this function is called when an index is passed to page navigaotr
+  //this function is called when an index is passed to page navigator
   //usually from notification system
   void _indexCheck() {
     print("index:" + widget.indexInput.toString());
     if (widget.indexInput != null) {
+      print("inside index update: " + widget.indexInput.isNaN.toString());
       setState(() {
         _currentIndex = widget.indexInput;
       });
@@ -42,8 +41,6 @@ class _PageNavigatorCook extends State<PageNavigatorCook> {
     }
   }
 
-  //takes in the tapped tab’s index and calls setState on our state class.
-  //This will trigger the build method to be run again with the state that we pass in to it
   Future onTabTapped(int index) async {
     setState(() {
       _currentIndex = index;
@@ -52,22 +49,30 @@ class _PageNavigatorCook extends State<PageNavigatorCook> {
 
   @override
   Widget build(BuildContext context) {
+    if (_children.isEmpty) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
+      //  appBar: AppBar(
+      //    title: Text('My Flutter App'),
+      //  ),
       body: _children[
           _currentIndex], //widget that gets displayed, equal to the corresponding widget in our _children widget list
       bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: blue,
         type: BottomNavigationBarType.fixed,
         onTap:
             onTabTapped, //function that will take the index of the tab that is tapped and decide what to do with it
         currentIndex:
             _currentIndex, //set the currentIndex of the bottom navigation bar to the current index held in our state’s _currentIndex property.
         items: [
+          //new BottomNavigationBarItem(
+          //icon: Icon(Icons.local_restaurant), label: 'Order'),
+          new BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
           new BottomNavigationBarItem(
-              icon: Icon(Icons.local_restaurant), label: 'Meals'),
-          new BottomNavigationBarItem(
-              icon: Icon(Icons.menu_book_rounded), label: 'Menu'),
-          new BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today), label: 'Orders'),
+              icon: Icon(Icons.track_changes_outlined), label: 'Track'),
           new BottomNavigationBarItem(
               icon: Icon(Icons.person), label: 'Profile')
         ],

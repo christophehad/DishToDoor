@@ -6,7 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
 import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
-import 'package:dishtodoor/screens/page_navigator_cook.dart';
+import 'package:dishtodoor/screens/PageNavigation/page_navigator_cook.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 
 class AddCookDish extends StatefulWidget {
   @override
@@ -238,10 +239,10 @@ class _AddCookDish extends State<AddCookDish> {
               icon: Icon(Icons.arrow_downward),
               iconSize: 24,
               elevation: 16,
-              style: TextStyle(color: Colors.deepPurple),
+              style: TextStyle(color: darkBlue),
               underline: Container(
                 height: 2,
-                color: Colors.deepPurpleAccent,
+                color: darkBlue,
               ),
               onChanged: (String newValue) {
                 setState(() {
@@ -284,10 +285,10 @@ class _AddCookDish extends State<AddCookDish> {
               icon: Icon(Icons.arrow_downward),
               iconSize: 24,
               elevation: 16,
-              style: TextStyle(color: Colors.deepPurple),
+              style: TextStyle(color: darkBlue),
               underline: Container(
                 height: 2,
-                color: Colors.deepPurpleAccent,
+                color: darkBlue,
               ),
               onChanged: (String newValue) {
                 setState(() {
@@ -425,7 +426,7 @@ class _AddCookDish extends State<AddCookDish> {
               child: new Text("Add",
                   style: const TextStyle(color: Colors.white, fontSize: 20.0))),
           decoration: BoxDecoration(
-              color: Colors.blue,
+              color: mediumBlue,
               boxShadow: [
                 BoxShadow(
                   color: Color.fromRGBO(0, 0, 0, 0.2),
@@ -439,7 +440,6 @@ class _AddCookDish extends State<AddCookDish> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.blue[100],
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(left: 16.0),
