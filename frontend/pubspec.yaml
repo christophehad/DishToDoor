@@ -69,17 +69,12 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/food.jpg
-    - assets/logos/twitter.jpg
-    - assets/logos/facebook.jpg
-    - assets/logos/google.jpg
+    - assets/logos/
     - assets/background_signup_eater.jpg
     - assets/chef_cooking.jpg
     - assets/night_mode.json
     - assets/map_theme.json
-    - assets/map/destination_map_marker.png
-    - assets/map/driving_pin.png
-    - assets/map/friend1.jpg
-    - assets/map/friend2.jpg
+    - assets/map/
     - assets/home-cook2.jpg
     - assets/Trash.svg
     - assets/receipt.svg

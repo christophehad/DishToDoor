@@ -6,8 +6,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
 import 'package:dishtodoor/screens/Cook/orderClassCook.dart';
-import 'package:dishtodoor/screens/Map/cookClass.dart';
+import 'package:dishtodoor/screens/Eater/Map/cookClass.dart';
 import 'package:intl/intl.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 
 const deliverySteps = ['Pending', 'Cooking', 'Ready'];
 
@@ -109,7 +110,6 @@ class CookManageDishesState extends State<CookManageDishes> {
       );
     } else if (allDishes.dishList == null && availableDishes.dishList == null) {
       print("allDishes[i] is null");
-      //TODO: mod this
       return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -362,9 +362,7 @@ class CookManageDishesState extends State<CookManageDishes> {
             child: Text(
               "Select opening hours",
               style: TextStyle(
-                  fontSize: 25,
-                  color: Colors.blue,
-                  fontWeight: FontWeight.w700),
+                  fontSize: 25, color: blue, fontWeight: FontWeight.w700),
             ),
             onTap: () {
               _showPicker(context);

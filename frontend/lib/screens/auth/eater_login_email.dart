@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'package:dishtodoor/screens/auth/cook_login_email.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
-import 'package:dishtodoor/screens/page_navigator_eater.dart';
+import 'package:dishtodoor/screens/PageNavigation/page_navigator_eater.dart';
 import 'package:dishtodoor/config/config.dart';
 
 class EaterLoginEmail extends StatefulWidget {
@@ -124,7 +123,7 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
                       fontStyle: FontStyle.normal,
                       fontSize: 20.0))),
           decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Colors.blueAccent,
               boxShadow: [
                 BoxShadow(
                   color: Color.fromRGBO(0, 0, 0, 0.16),
@@ -148,7 +147,7 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
               width: MediaQuery.of(context).size.width,
               padding: const EdgeInsets.only(left: 32.0, right: 12.0),
               decoration: BoxDecoration(
-                  color: Color.fromRGBO(255, 255, 255, 0.8),
+                  color: Colors.grey.shade200,
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(10),
                       bottomLeft: Radius.circular(10))),
@@ -168,8 +167,7 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: TextField(
                       decoration: InputDecoration(
-                          hintText: 'Password',
-                          suffixIcon: Icon(Icons.visibility_off)),
+                          hintText: 'Password', suffixIcon: Icon(Icons.lock)),
                       controller: password,
                       style: TextStyle(fontSize: 16.0),
                       obscureText: true,
@@ -202,7 +200,7 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
         Text(
           'Login as a cook',
           style: TextStyle(
-              fontSize: 13.0, fontStyle: FontStyle.italic, color: Colors.white),
+              fontSize: 15.0, fontStyle: FontStyle.italic, color: Colors.black),
         ),
         IconButton(
           icon: Icon(Icons.room_service),
@@ -210,13 +208,12 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
             Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => CookLoginEmail()));
           },
-          color: Colors.white,
+          color: Colors.black,
         ),
       ],
     );
 
     return Scaffold(
-      backgroundColor: Colors.blue[100],
       body: SafeArea(
         child: Stack(
           children: <Widget>[
@@ -224,11 +221,11 @@ class _EaterLoginEmail extends State<EaterLoginEmail> {
                 padding: EdgeInsets.only(left: 28.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[loginForm, forgotPassword, socialRegister],
+                  children: <Widget>[loginForm, socialRegister],
                 )),
             Positioned(
                 child: IconButton(
-              color: Colors.white,
+              color: Colors.black,
               icon: Icon(Icons.arrow_back),
               onPressed: () {
                 Navigator.pop(context);

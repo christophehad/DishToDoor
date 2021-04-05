@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
 import 'package:dishtodoor/screens/Cook/orderClassCook.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 
 const deliverySteps = ['Pending', 'Cooking', 'Ready'];
 
@@ -20,6 +21,7 @@ class CookTrackOrder extends StatefulWidget {
 class CookTrackOrderState extends State<CookTrackOrder> {
   List<CookOrderList> orderList = List<CookOrderList>();
   Color doneButton = Colors.grey;
+  bool isOrderEmpty = false;
 
   @override
   void initState() {
@@ -57,12 +59,19 @@ class CookTrackOrderState extends State<CookTrackOrder> {
             orderList[1] = CookOrderList.fromJson(decoded['current_orders']);
             orderList[2] = CookOrderList.fromJson(decoded['past_orders']);
           }
+          isOrderEmpty = false;
         });
         print("Successful!");
       } else {
+        setState(() {
+          isOrderEmpty = true;
+        });
         print("Error: " + decoded['error']);
       }
     } else {
+      setState(() {
+        isOrderEmpty = true;
+      });
       print(response.statusCode);
       print("An unkown error occured");
     }
@@ -70,16 +79,13 @@ class CookTrackOrderState extends State<CookTrackOrder> {
 
   @override
   Widget build(BuildContext context) {
-    if (orderList.isEmpty) {
+    if (orderList.isEmpty && isOrderEmpty == false) {
       print("orderList is null");
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
-    } else if (orderList[0].cookOrderList == null &&
-        orderList[1].cookOrderList == null &&
-        orderList[2].cookOrderList == null) {
+    } else if (isOrderEmpty == true) {
       print("orderList[i] is null");
-      //TODO: mod this
       return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -308,8 +314,6 @@ class CookTrackOrderState extends State<CookTrackOrder> {
     return Card(
       child: Column(
         children: [
-          //TODO clickable tile to show order
-
           Card(
             elevation: 2,
             child: ExpansionTile(
@@ -378,8 +382,6 @@ class CookTrackOrderState extends State<CookTrackOrder> {
     return Card(
       child: Column(
         children: [
-          //TODO clickable tile to show order
-
           Card(
             elevation: 2,
             child: ExpansionTile(
@@ -415,8 +417,6 @@ class CookTrackOrderState extends State<CookTrackOrder> {
     return Card(
       child: Column(
         children: [
-          //TODO clickable tile to show order
-
           Card(
             elevation: 2,
             child: ExpansionTile(
@@ -476,7 +476,7 @@ class CookTrackOrderState extends State<CookTrackOrder> {
                 ],
               ),
               trailing: InkWell(
-                child: Icon(Icons.call_rounded, color: Colors.blue),
+                child: Icon(Icons.call_rounded, color: darkBlue),
                 onTap: () {
                   //call eater
                 },

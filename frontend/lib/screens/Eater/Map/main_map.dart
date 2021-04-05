@@ -7,14 +7,14 @@ import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:dishtodoor/config/config.dart';
-import 'package:dishtodoor/screens/Map/custom_info_widget.dart';
-import 'package:dishtodoor/screens/Map/cookClass.dart';
+import 'package:dishtodoor/screens/Eater/Map/custom_info_widget.dart';
+import 'package:dishtodoor/screens/Eater/Map/cookClass.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:dishtodoor/config/appProperties.dart';
 
 //GET HERE FROM EMAIL LOGIN SCREEN
 //This is an attempt at getting the current device location after asking user for permission
-//TODO: add support for ios for both API google maps and geolocator enabling
 
 class MainMap extends StatefulWidget {
   final CookList cookList;
@@ -52,8 +52,7 @@ class _MainMapState extends State<MainMap> {
   Set<PointObject> _points = {}; //markers of cooks
   StreamSubscription _mapIdleSubscription;
   InfoWidgetRoute _infoWidgetRoute;
-  BitmapDescriptor sourceIcon; //to be modified later
-  BitmapDescriptor destIcon; //to be modified later
+  BitmapDescriptor cookPin; //to be modified later
   Set<Marker> _markers = {};
   Set<Circle> _circles = {};
 
@@ -202,16 +201,9 @@ class _MainMapState extends State<MainMap> {
   }
 
 //Convert asset image to BitmapDescriptor
-//TODO modify to type of images sent by backend
-//TODO try to see if pin icon can be picture of someone cropped as circle
   void setSourceAndDestinationIcons() async {
-    sourceIcon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: 2.5),
-        'assets/map/driving_pin.png');
-
-    destIcon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: 2.5),
-        'assets/map/destination_map_marker.png');
+    cookPin = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(devicePixelRatio: 2), 'assets/map/cookPin.png');
   }
 
 //sliding up panel content -- infinite scroll
@@ -300,7 +292,10 @@ class _MainMapState extends State<MainMap> {
             ),
           ),
           TextButton(
-            child: const Text('Order Here'),
+            child: Text(
+              'Order Here',
+              style: TextStyle(color: blue),
+            ),
             onPressed: () {
               Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => CookPageEater(cook: cook)));
@@ -342,7 +337,7 @@ class _MainMapState extends State<MainMap> {
           ],
         ),
         location: i.getLocation(),
-        icon: sourceIcon, //see what to do with this
+        icon: cookPin, //see what to do with this
         cookPoint: i,
       ));
     }
@@ -366,7 +361,6 @@ class _MainMapState extends State<MainMap> {
   }
 
 //Changes map type between custom-daylight and nightmode
-//TODO add button do overwrite night_mode in settings
   changeMapMode() {
     var brightness = SchedulerBinding.instance.window.platformBrightness;
     bool darkModeOn = brightness == Brightness.dark;

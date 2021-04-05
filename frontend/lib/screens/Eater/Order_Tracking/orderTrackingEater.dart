@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
 import 'orderClass.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 
 const deliverySteps = ['Pending', 'Cooking', 'Ready'];
 
@@ -24,7 +25,7 @@ class EaterTrackOrderState extends State<EaterTrackOrder> {
   EaterOrderList done = EaterOrderList();
   EaterOrderList ongoing = EaterOrderList();
   bool isOrderEmpty = false;
-  double ratingDish = 1;
+  double ratingDish = 1.0;
 
   @override
   void initState() {
@@ -151,7 +152,7 @@ class EaterTrackOrderState extends State<EaterTrackOrder> {
     return InkWell(
       child: Icon(
         Icons.star,
-        color: dish.rated ? Colors.yellow : Colors.grey,
+        color: dish.rated ? Colors.amberAccent : Colors.grey,
       ),
       onTap: () {
         _showPicker(context, order, dish);
@@ -171,7 +172,7 @@ class EaterTrackOrderState extends State<EaterTrackOrder> {
                 trailing: InkWell(
                   child: Text(
                     "Done",
-                    style: TextStyle(color: Colors.blue),
+                    style: TextStyle(color: blue),
                   ),
                   onTap: () {
                     sendDishRating(order, dish, ratingDish);
@@ -221,18 +222,6 @@ class EaterTrackOrderState extends State<EaterTrackOrder> {
               body: Center(
                 child: Column(
                   children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        IconButton(
-                          color: Colors.black,
-                          icon: Icon(Icons.arrow_back),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
-                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -287,18 +276,6 @@ class EaterTrackOrderState extends State<EaterTrackOrder> {
             body: Center(
               child: Column(
                 children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      IconButton(
-                        color: Colors.black,
-                        icon: Icon(Icons.arrow_back),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
-                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -383,8 +360,6 @@ class EaterTrackOrderState extends State<EaterTrackOrder> {
     return Card(
       child: Column(
         children: [
-          //TODO clickable tile to show order
-
           Card(
             elevation: 2,
             child: ExpansionTile(
@@ -450,7 +425,7 @@ class EaterTrackOrderState extends State<EaterTrackOrder> {
                 ],
               ),
               trailing: InkWell(
-                child: Icon(Icons.call_rounded, color: Colors.blue),
+                child: Icon(Icons.call_rounded, color: blue),
                 onTap: () async {
                   //TODO add cook number to CookProfile - Christophe
                   //await _launchCaller(order.cook);

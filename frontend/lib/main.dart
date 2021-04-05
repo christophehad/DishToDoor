@@ -2,8 +2,8 @@ import 'package:dishtodoor/screens/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:dishtodoor/screens/page_navigator_eater.dart';
-import 'package:dishtodoor/screens/page_navigator_cook.dart';
+import 'package:dishtodoor/screens/PageNavigation/page_navigator_cook.dart';
+import 'package:dishtodoor/screens/PageNavigation/page_navigator_eater.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:dishtodoor/config/config.dart';
 import 'dart:async';
@@ -149,7 +149,6 @@ class _MyApp extends State<MyApp> {
     }
     print("SAVING TOKEN TO BACKEND");
     print("token: " + _token.toString());
-    String resT = await storage.read(key: "token");
     String resE = await storage.read(key: "email");
     String resP = await storage.read(key: "pass");
     String resType = await storage.read(key: "type");
