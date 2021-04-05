@@ -313,3 +313,34 @@ exports.order = function(order_id,eater_id,cook_id,total,general_status,prepared
   * @param {String} err
   * @param {Order} order
 */
+
+/**
+ * CookVerification
+ * @typedef {Object} CookVerification
+ * @property {CookAccount} account
+ * @property {String} experience
+ * @property {Boolean} certified_chef
+ * @property {Boolean} willing_training
+ * @property {Boolean} consent_inspection
+ * @property {String[]} kitchen_pics
+ */
+
+/**
+ * @param {CookAccount} account 
+ * @param {String[]} pics
+ * @returns {CookVerification} 
+ */
+exports.cookVerification = function(account,exp,chef,train,inspect,pics) {
+    chef = chef == true, train = train == true, inspect = inspect == true;
+    return {
+        account:account, experience:exp, certified_chef:chef, willing_training:train, consent_inspection:inspect,
+        kitchen_pics:pics
+    }
+}
+
+/**
+  * Cook Verification List Callback
+  * @callback cookGetVerificationsCallback
+  * @param {String} err
+  * @param {CookVerification[]} cooks
+*/
