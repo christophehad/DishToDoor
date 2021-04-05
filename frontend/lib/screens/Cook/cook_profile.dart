@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 
 class ProfileCook2 extends StatefulWidget {
   final String defaultLogo =
@@ -323,14 +324,16 @@ class _ProfileCookState2 extends State<ProfileCook2> {
             child: ListBody(
               children: <Widget>[
                 TextField(
-                  decoration: InputDecoration(hintText: 'First name'),
+                  decoration: InputDecoration(
+                      hintText: 'First name', fillColor: Colors.black),
                   controller: fname,
-                  style: TextStyle(fontSize: 14.0),
+                  style: TextStyle(fontSize: 14.0, color: Colors.black),
                 ),
                 TextField(
-                  decoration: InputDecoration(hintText: 'Last name'),
+                  decoration: InputDecoration(
+                      hintText: 'Last name', fillColor: Colors.black),
                   controller: lname,
-                  style: TextStyle(fontSize: 14.0),
+                  style: TextStyle(fontSize: 14.0, color: Colors.black),
                 ),
               ],
             ),
@@ -354,7 +357,6 @@ class _ProfileCookState2 extends State<ProfileCook2> {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
-      backgroundColor: Colors.teal[200],
       body: SafeArea(
           child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -377,8 +379,8 @@ class _ProfileCookState2 extends State<ProfileCook2> {
                   " " +
                   cookProfileInformation.cookProfile.lastName,
               style: TextStyle(
-                  fontSize: 40.0,
-                  color: Colors.white,
+                  fontSize: 35.0,
+                  color: Colors.black,
                   fontWeight: FontWeight.bold),
             ),
             onTap: () async {
@@ -391,44 +393,44 @@ class _ProfileCookState2 extends State<ProfileCook2> {
             height: 20,
             width: 200,
             child: Divider(
-              color: Colors.teal.shade700,
+              color: Colors.grey.shade700,
             ),
           ),
           Card(
-              color: Colors.white,
+              color: Colors.grey.shade200,
               margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
               child: ListTile(
                   leading: Icon(
                     Icons.phone,
-                    color: Colors.teal,
+                    color: darkBlue,
                   ),
                   title: Text(cookProfileInformation.phone,
                       //add phone number
                       style: TextStyle(
                         fontSize: 20.0,
-                        color: Colors.teal,
+                        color: Colors.black,
                       )))),
           Card(
-              color: Colors.white,
+              color: Colors.grey.shade200,
               margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
               child: ListTile(
                   leading: Icon(
                     Icons.email,
-                    color: Colors.teal,
+                    color: darkBlue,
                   ),
                   title: Text(cookProfileInformation.email,
                       //add email
                       style: TextStyle(
                         fontSize: 20.0,
-                        color: Colors.teal,
+                        color: Colors.black,
                       )))),
           Card(
-              color: Colors.white,
+              color: Colors.grey.shade200,
               margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
               child: ListTile(
                   leading: Icon(
                     Icons.location_city,
-                    color: Colors.teal,
+                    color: darkBlue,
                   ),
                   onTap: () {
                     _changeLocationAlert();
@@ -437,15 +439,15 @@ class _ProfileCookState2 extends State<ProfileCook2> {
                       //add location
                       style: TextStyle(
                         fontSize: 20.0,
-                        color: Colors.teal,
+                        color: Colors.black,
                       )))),
           Card(
-            color: Colors.white,
+            color: Colors.grey.shade200,
             margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
             child: ListTile(
               leading: Icon(
                 Icons.check,
-                color: Colors.teal,
+                color: darkBlue,
               ),
               title: Text(
                 "Cook since " +
@@ -457,37 +459,65 @@ class _ProfileCookState2 extends State<ProfileCook2> {
                 //add verified since
                 style: TextStyle(
                   fontSize: 20.0,
-                  color: Colors.teal,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ),
+          Card(
+            color: Colors.grey.shade200,
+            margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
+            child: ListTile(
+              leading: Icon(
+                Icons.timer,
+                color: darkBlue,
+              ),
+              title: Text(
+                "Open: " +
+                    cookProfileInformation.cookProfile.opening.hour.toString() +
+                    ":" +
+                    cookProfileInformation.cookProfile.opening.minute
+                        .toString() +
+                    ' - ' +
+                    cookProfileInformation.cookProfile.closing.hour.toString() +
+                    ":" +
+                    cookProfileInformation.cookProfile.closing.minute
+                        .toString(),
+                style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.black,
                 ),
               ),
             ),
           ),
           SizedBox(
-            height: MediaQuery.of(context).size.height / 10,
+            height: 20,
           ),
           Card(
-            color: Colors.white,
+            color: Colors.grey.shade200,
             margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
             child: ListTile(
               leading: Icon(
                 Icons.logout,
-                color: Colors.teal,
+                color: darkBlue,
               ),
-              onTap: () {
-                storage.deleteAll();
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => Login(),
-                  ),
-                  (route) => false,
-                );
+              onTap: () async {
+                await logoutNotif();
+                await storage.deleteAll().then((value) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => Login(),
+                    ),
+                    (route) => false,
+                  );
+                });
               },
               title: Text(
                 "Logout",
                 style: TextStyle(
                   fontSize: 20.0,
-                  color: Colors.teal,
+                  color: Colors.black,
                 ),
               ),
             ),

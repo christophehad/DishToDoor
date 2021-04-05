@@ -21,38 +21,37 @@ class _CheckoutState extends State<Checkout> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          StreamBuilder(
-            stream: bloc.getStream,
-            initialData: bloc.cartItems,
-            builder: (context, snapshot) {
-              final List<CartTuple> cartList = snapshot.data;
-              SizeConfig().init(context);
-              return Column(
-                children: <Widget>[
-                  /// The [checkoutListBuilder] has to be fixed
-                  /// in an expanded widget to ensure it
-                  /// doesn't occupy the whole screen and leaves
-                  /// room for the the RaisedButton
-                  Expanded(child: checkoutListBuilder(snapshot)),
-                  checkoutTab(context, cartList),
-                ],
-              );
-            },
-          ),
-          Positioned(
-            top: 45,
-            left: 5,
-            child: IconButton(
+      body: SafeArea(
+        child: Stack(
+          children: [
+            StreamBuilder(
+              stream: bloc.getStream,
+              initialData: bloc.cartItems,
+              builder: (context, snapshot) {
+                final List<CartTuple> cartList = snapshot.data;
+                SizeConfig().init(context);
+                return Column(
+                  children: <Widget>[
+                    /// The [checkoutListBuilder] has to be fixed
+                    /// in an expanded widget to ensure it
+                    /// doesn't occupy the whole screen and leaves
+                    /// room for the the RaisedButton
+                    SizedBox(height: 35),
+                    Expanded(child: checkoutListBuilder(snapshot)),
+                    checkoutTab(context, cartList),
+                  ],
+                );
+              },
+            ),
+            IconButton(
               color: Colors.black,
               icon: Icon(Icons.arrow_back),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -97,7 +96,10 @@ class _CheckoutState extends State<Checkout> {
                     color: Color(0xFFF5F6F9),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: SvgPicture.asset("assets/receipt.svg"),
+                  child: SvgPicture.asset(
+                    "assets/receipt.svg",
+                    fit: BoxFit.fill,
+                  ),
                 ),
                 Spacer(),
                 FlatButton(
@@ -213,7 +215,6 @@ class _CheckoutState extends State<Checkout> {
     }
   }
 
-//TODO refactor alerts into one .dart file in config
 //Error Alert
   Future<void> _registerErrorAlert(String e, BuildContext context) async {
     String _errorDisp = "";

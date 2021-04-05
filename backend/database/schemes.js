@@ -108,15 +108,17 @@ exports.dishRating = function(eater,rating,date) {
  * @property {Number} lon
  * @property {String} opening_time
  * @property {String} closing_time
+ * @property {Boolean} share_phone
+ * @property {String} phone
 */
 
 /**
  * @returns {CookProfile}
  */
-exports.cookProfile = function(cook_id,f_name,l_name,logo,lat,lon,open,close) {
+exports.cookProfile = function(cook_id,f_name,l_name,logo,lat,lon,open,close,share_phone,phone) {
     return {
         cook_id:cook_id, first_name:f_name, last_name:l_name, logo:logo, lat:lat, lon:lon,
-        opening_time:open, closing_time: close
+        opening_time:open, closing_time: close, share_phone:share_phone, phone:phone
     }
 }
 

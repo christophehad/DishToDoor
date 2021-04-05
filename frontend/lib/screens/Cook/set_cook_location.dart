@@ -15,14 +15,16 @@ class CookLoc {
     Location loc = Location();
     var _loc = await loc.getLocation();
     this.cookLocation = LatLng(_loc.latitude, _loc.longitude);
+    print(_loc.latitude.toString() + ", " + _loc.longitude.toString());
     return this.cookLocation;
   }
 
-  Future<bool> sendLoc() async {
+  Future<void> sendLoc() async {
     print("in sendLoc");
     _getLoc().then((value) async {
       print("sending call to backend");
       String token = await storage.read(key: 'token');
+      print(value.latitude.toString() + ", " + value.longitude.toString());
       final requestBody = jsonEncode({
         'lat': value.latitude,
         'lon': value.longitude,
@@ -45,11 +47,9 @@ class CookLoc {
         } else {
           print("Error: " + decoded['error']);
         }
-        return success;
       } else {
         print(response.statusCode);
         print("An unkown error occured");
-        return false;
       }
     });
   }

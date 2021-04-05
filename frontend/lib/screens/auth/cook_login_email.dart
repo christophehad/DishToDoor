@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
 
-import 'package:dishtodoor/screens/page_navigator_cook.dart';
+import 'package:dishtodoor/screens/PageNavigation/page_navigator_cook.dart';
+import 'package:dishtodoor/screens/Cook/ImageUpload/waitingPage.dart';
+import 'package:dishtodoor/screens/Cook/ImageUpload/cookKitchenUpload.dart';
 
-//TODO safe storage for cook
 class CookLoginEmail extends StatefulWidget {
   @override
   _CookLoginEmail createState() => _CookLoginEmail();
@@ -50,7 +51,7 @@ class _CookLoginEmail extends State<CookLoginEmail> {
             IconButton(
               icon: Icon(Icons.done_rounded),
               onPressed: () {
-                if (e == "no_eater_email") {
+                if (e == "no_cook_email") {
                   Navigator.of(context).pop();
                   Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => RegisterCookPage()));
@@ -87,31 +88,51 @@ class _CookLoginEmail extends State<CookLoginEmail> {
             print("Received: " + decoded.toString());
             bool success = decoded['success'];
             if (success) {
-              //_registerSuccessfulAlert();
-              //add cook info
-              if (await storage.containsKey(key: 'email') == false) {
-                print("storing");
-                await storage.write(key: 'token', value: decoded['token']);
-                await storage.write(key: 'email', value: email.text);
-                await storage.write(key: 'pass', value: password.text);
-                await storage.write(key: 'type', value: 'cook');
-              }
-              //add cook location only if hasn't been previously stored
-              bool locAvailable = await storage.containsKey(key: 'location');
-              if (locAvailable == false) {
-                cookLocation.sendLoc().then((value) async {
-                  await storage.write(
-                      key: 'location',
-                      value: (cookLocation.cookLocation.latitude.toString() +
-                          ',' +
-                          cookLocation.cookLocation.longitude.toString()));
-                });
-              }
-              // if(gotLocation == false){
+              if (decoded['is_verified']) {
+                //add cook info
+                if (await storage.containsKey(key: 'email') == false) {
+                  print("storing");
+                  await storage.write(key: 'token', value: decoded['token']);
+                  await storage.write(key: 'email', value: email.text);
+                  await storage.write(key: 'pass', value: password.text);
+                  await storage.write(key: 'type', value: 'cook');
+                  await storage.write(key: 'kitchen_pic', value: 'true');
+                }
+                //add cook location only if hasn't been previously stored
+                bool locAvailable = await storage.containsKey(key: 'location');
 
-              // }
-              Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (_) => PageNavigatorCook()));
+                if (locAvailable == false) {
+                  print("loc not available");
+                  cookLocation.sendLoc().then((val) async {
+                    await storage.write(
+                        key: 'location',
+                        value: (cookLocation.cookLocation.latitude.toString() +
+                            ',' +
+                            cookLocation.cookLocation.longitude.toString()));
+                  });
+                }
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => PageNavigatorCook()));
+              } else {
+                if (await storage.containsKey(key: 'email') == false) {
+                  print("storing");
+                  await storage.write(key: 'token', value: decoded['token']);
+                  await storage.write(key: 'email', value: email.text);
+                  await storage.write(key: 'pass', value: password.text);
+                  await storage.write(key: 'type', value: 'cook');
+                  await storage.write(key: 'kitchen_pic', value: 'false');
+                }
+                //route to a page where cook upload pictures
+                if (await storage.containsKey(key: 'kitchenPics') == false ||
+                    await storage.read(key: 'kitchenPics') == 'false') {
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => SingleImageUpload()));
+                } else {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => WaitingPage()));
+                }
+              }
+
               print("Successful!");
             } else {
               print("Error: " + decoded['error']);
@@ -132,7 +153,7 @@ class _CookLoginEmail extends State<CookLoginEmail> {
                       fontStyle: FontStyle.normal,
                       fontSize: 20.0))),
           decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Colors.blueAccent,
               boxShadow: [
                 BoxShadow(
                   color: Color.fromRGBO(0, 0, 0, 0.16),
@@ -156,7 +177,7 @@ class _CookLoginEmail extends State<CookLoginEmail> {
               width: MediaQuery.of(context).size.width,
               padding: const EdgeInsets.only(left: 32.0, right: 12.0),
               decoration: BoxDecoration(
-                  color: Color.fromRGBO(255, 255, 255, 0.8),
+                  color: Colors.grey.shade200,
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(10),
                       bottomLeft: Radius.circular(10))),
@@ -167,7 +188,9 @@ class _CookLoginEmail extends State<CookLoginEmail> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: TextField(
                       decoration: InputDecoration(
-                          hintText: 'Email', suffixIcon: Icon(Icons.email)),
+                        hintText: 'Email',
+                        suffixIcon: Icon(Icons.email),
+                      ),
                       controller: email,
                       style: TextStyle(fontSize: 16.0),
                     ),
@@ -176,8 +199,7 @@ class _CookLoginEmail extends State<CookLoginEmail> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: TextField(
                       decoration: InputDecoration(
-                          hintText: 'Password',
-                          suffixIcon: Icon(Icons.visibility_off)),
+                          hintText: 'Password', suffixIcon: Icon(Icons.lock)),
                       controller: password,
                       style: TextStyle(fontSize: 16.0),
                       obscureText: true,
@@ -205,7 +227,6 @@ class _CookLoginEmail extends State<CookLoginEmail> {
         ]));
 
     return Scaffold(
-      backgroundColor: Colors.blue[100],
       body: SafeArea(
         child: Stack(
           children: <Widget>[
@@ -213,15 +234,25 @@ class _CookLoginEmail extends State<CookLoginEmail> {
                 padding: EdgeInsets.only(left: 28.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[loginForm, forgotPassword],
+                  children: <Widget>[loginForm],
                 )),
+            Row(
+              children: [
+                IconButton(
+                  color: Colors.black,
+                  icon: Icon(Icons.arrow_back),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
             Positioned(
-              child: IconButton(
-                color: Colors.white,
-                icon: Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+              top: 12,
+              left: 140,
+              child: Text(
+                "Login as Cook",
+                style: TextStyle(fontSize: 20),
               ),
             ),
           ],

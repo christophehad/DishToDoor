@@ -34,7 +34,7 @@ class _Login extends State<Login> {
     Widget logo = Align(
         alignment: Alignment.center,
         child:
-            Image.asset("assets/logos/twitter.jpg", height: 150, width: 150));
+            Image.asset("assets/logos/DTDLogo.png", height: 150, width: 150));
 
     Widget otpButton = Positioned(
       left: MediaQuery.of(context).size.width / 4,
@@ -53,7 +53,7 @@ class _Login extends State<Login> {
               child: new Text("Send OTP",
                   style: const TextStyle(color: Colors.white, fontSize: 20.0))),
           decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Colors.blueAccent,
               boxShadow: [
                 BoxShadow(
                   color: Color.fromRGBO(0, 0, 0, 0.2),
@@ -78,7 +78,7 @@ class _Login extends State<Login> {
                   padding: const EdgeInsets.only(
                       left: 32.0, right: 12.0, bottom: 30.0),
                   decoration: BoxDecoration(
-                      color: Color.fromRGBO(255, 255, 255, 0.8),
+                      color: Colors.grey.shade200,
                       borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(10),
                           bottomLeft: Radius.circular(10))),
@@ -104,7 +104,7 @@ class _Login extends State<Login> {
               minWidth: MediaQuery.of(context).size.width,
               height: 50,
               child: RaisedButton(
-                  color: Colors.blue,
+                  color: Colors.blueAccent,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0)),
                   onPressed: () => Navigator.of(context).push(
@@ -113,85 +113,6 @@ class _Login extends State<Login> {
                       style: TextStyle(fontSize: 20, color: Colors.white))))),
       SizedBox(height: 20)
     ]);
-
-    Widget divider = Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: <Widget>[
-          SizedBox(
-            width: 20,
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Divider(
-                thickness: 1,
-              ),
-            ),
-          ),
-          Text('OR'),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Divider(
-                thickness: 1,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 20,
-          ),
-        ],
-      ),
-    );
-
-    Widget signInWithText = Align(
-      alignment: Alignment.topCenter,
-      child: Text('Sign in with'),
-    );
-
-    Widget socialBtnRow = Padding(
-      padding: EdgeInsets.symmetric(vertical: 30.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Container(
-            height: 60.0,
-            width: 60.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  offset: Offset(0, 2),
-                  blurRadius: 6.0,
-                ),
-              ],
-              image: DecorationImage(
-                  image: AssetImage('assets/logos/facebook.jpg')),
-            ),
-          ),
-          Container(
-            height: 60.0,
-            width: 60.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  offset: Offset(0, 2),
-                  blurRadius: 6.0,
-                ),
-              ],
-              image:
-                  DecorationImage(image: AssetImage('assets/logos/google.jpg')),
-            ),
-          )
-        ],
-      ),
-    );
 
     Widget signupBtn = Align(
         alignment: Alignment.center,
@@ -224,7 +145,6 @@ class _Login extends State<Login> {
         ));
 
     return Scaffold(
-      backgroundColor: Colors.blue[100],
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(left: 20.0),
@@ -232,11 +152,13 @@ class _Login extends State<Login> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               loginText,
+              SizedBox(height: 10),
               logo,
+              SizedBox(height: 10),
               phoneNumber,
               emailLogin,
               SizedBox(
-                height: MediaQuery.of(context).size.height / 4,
+                height: 100,
               ),
               signupBtn
             ],

@@ -131,4 +131,17 @@ router.post('/profile/name/set',(req,res,next) => {
     })
 })
 
+router.post('/profile/phone/share', (req,res,next) => {
+    if (DEBUG) console.log(req.body);
+
+    let cook_id = req.user, shared=req.body.shared;
+    if (shared === undefined) return res.json(failureJSON('missing_fields'));
+
+    shared = shared == true;
+    profile.changePhoneShare(cook_id,shared, (err,success) => {
+        if (err) return next(err);
+        res.json(successJSON());
+    })
+})
+
 module.exports = router;

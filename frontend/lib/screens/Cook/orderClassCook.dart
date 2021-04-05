@@ -1,22 +1,4 @@
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-
 //TODO change default values
-
-// class CookOrderList {
-//   final List<CookOrderList> statusList;
-
-//   CookOrderList({
-//     this.statusList,
-//   });
-
-//   factory CookOrderList.fromJson(List<dynamic> json) {
-//     List<CookOrderList> orderPerStatus = new List<CookOrderList>();
-//     orderPerStatus =
-//         json.map<CookOrderList>((i) => CookOrderList.fromJson(i)).toList();
-
-//     return new CookOrderList(statusList: orderPerStatus);
-//   }
-// }
 
 //definition of a list of CookOrder for convenience and automation
 class CookOrderList {

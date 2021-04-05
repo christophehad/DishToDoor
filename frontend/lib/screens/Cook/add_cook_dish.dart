@@ -5,6 +5,9 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
 import 'package:http_parser/http_parser.dart';
+import 'dart:convert';
+import 'package:dishtodoor/screens/PageNavigation/page_navigator_cook.dart';
+import 'package:dishtodoor/config/appProperties.dart';
 
 class AddCookDish extends StatefulWidget {
   @override
@@ -22,7 +25,6 @@ class _AddCookDish extends State<AddCookDish> {
   String dropDownValueServings = '1-2 persons';
 
   File _image;
-  String _imageString;
   final picker = ImagePicker();
 
   Future getImageCamera() async {
@@ -54,112 +56,169 @@ class _AddCookDish extends State<AddCookDish> {
     });
   }
 
+  void _showPicker(context) async {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext bc) {
+          return SafeArea(
+            child: Container(
+              child: new Wrap(
+                children: <Widget>[
+                  new ListTile(
+                      leading: new Icon(Icons.photo_library),
+                      title: new Text('Photo Library'),
+                      onTap: () {
+                        getImageGallery();
+                        Navigator.of(context).pop();
+                      }),
+                  new ListTile(
+                    leading: new Icon(Icons.photo_camera),
+                    title: new Text('Camera'),
+                    onTap: () {
+                      getImageCamera();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  Widget profilePic() {
+    if (_image != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(50),
+        child: Image.file(_image, width: 100, height: 100, fit: BoxFit.fill),
+      );
+    } else {
+      return Container(
+        decoration: BoxDecoration(
+            color: Colors.grey[200], borderRadius: BorderRadius.circular(50)),
+        width: 100,
+        height: 100,
+        child: Icon(
+          Icons.camera_alt,
+          color: Colors.grey[800],
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget addMealText = Column(children: <Widget>[
-      SizedBox(height: 60),
-      Padding(
-          padding: EdgeInsets.only(left: 10),
-          child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Add Meal',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 30.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              )))
-    ]);
-
-    Widget mealName =
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-      Column(children: <Widget>[
-        Center(
-          //if no image, display 'No image selected'
-          child: _image == null
-              ? Text('No image selected')
-              : Image.file(_image, height: 150, width: 150),
-        ),
-        RaisedButton(
-          color: Colors.blueAccent,
-          onPressed: getImageGallery,
-          child: Text("Pick from Gallery"),
-        ),
-        RaisedButton(
-          color: Colors.blue,
-          onPressed: getImageCamera,
-          child: Text("Pick from Camera"),
-        ),
-      ]),
-      Column(children: <Widget>[
-        Column(children: <Widget>[
-          SizedBox(height: 30),
-          Container(
-            width: 200,
-            child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Base dish',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )),
-          ),
-          Container(
-              width: 200,
-              child: TextField(
-                style: TextStyle(color: Colors.grey, fontSize: 18),
-                decoration: InputDecoration(
-                  hintText: genDishName,
-                  suffixIcon: Icon(Icons.search),
-                ),
-                onTap: () async {
-                  final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => GenDishSearchBar()));
-                  if (result != null) {
-                    setState(() {
-                      genDishName = result.substring(0, result.indexOf('.'));
-                      genDishId = result.substring(result.indexOf('.') + 1);
-                    });
-                  }
-                },
-              ))
-        ]),
-        Column(children: <Widget>[
-          SizedBox(height: 10),
-          Container(
-              width: 200,
-              child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Custom name',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ))),
-          Container(
-            width: 200,
-            child: TextField(
-              decoration: InputDecoration(hintText: '(Optional)'),
-              controller: customName,
-              style: TextStyle(color: Colors.grey, fontSize: 18),
+    Widget addMealText() {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            'Add Meal',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 30.0,
+              fontWeight: FontWeight.bold,
             ),
-          )
-        ]),
-      ])
-    ]);
+          ),
+        ],
+      );
+    }
 
-    Widget dropDownMenu_Cat = Padding(
-        padding: EdgeInsets.only(left: 10),
-        child: Column(children: <Widget>[
+    Widget mealName() {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Center(
+            child: GestureDetector(
+              onTap: () {
+                _showPicker(context);
+              },
+              child: CircleAvatar(
+                radius: 50,
+                backgroundColor: Color(0xffFDCF09),
+                child: profilePic(),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: MediaQuery.of(context).size.width / 6,
+          ),
+          Column(
+            children: <Widget>[
+              Column(children: <Widget>[
+                SizedBox(height: 30),
+                Container(
+                  width: 200,
+                  child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Base dish',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )),
+                ),
+                Container(
+                    width: 200,
+                    child: TextField(
+                      style: TextStyle(color: Colors.grey, fontSize: 18),
+                      decoration: InputDecoration(
+                        hintText: genDishName,
+                        suffixIcon: Icon(Icons.search),
+                      ),
+                      onTap: () async {
+                        final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => GenDishSearchBar()));
+                        if (result != null) {
+                          setState(() {
+                            genDishName =
+                                result.substring(0, result.indexOf('.'));
+                            genDishId =
+                                result.substring(result.indexOf('.') + 1);
+                          });
+                        }
+                      },
+                    ))
+              ]),
+              Column(
+                children: <Widget>[
+                  SizedBox(height: 10),
+                  Container(
+                      width: 200,
+                      child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Custom name',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ))),
+                  Container(
+                    width: 200,
+                    child: TextField(
+                      decoration: InputDecoration(hintText: '(Optional)'),
+                      controller: customName,
+                      style: TextStyle(color: Colors.grey, fontSize: 18),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          )
+        ],
+      );
+    }
+
+    Widget dropDownMenuCat() {
+      return Column(
+        children: <Widget>[
           Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -172,37 +231,40 @@ class _AddCookDish extends State<AddCookDish> {
                 ),
               )),
           Container(
-              alignment: Alignment.centerLeft,
-              child: DropdownButton<String>(
-                value: dropDownValueCat,
-                dropdownColor: Colors.grey[200],
-                isDense: true,
-                icon: Icon(Icons.arrow_downward),
-                iconSize: 24,
-                elevation: 16,
-                style: TextStyle(color: Colors.deepPurple),
-                underline: Container(
-                  height: 2,
-                  color: Colors.deepPurpleAccent,
-                ),
-                onChanged: (String newValue) {
-                  setState(() {
-                    dropDownValueCat = newValue;
-                  });
-                },
-                items: <String>['Platter', 'Salad', 'Sandwich', 'Dessert']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ))
-        ]));
+            alignment: Alignment.centerLeft,
+            child: DropdownButton<String>(
+              value: dropDownValueCat,
+              dropdownColor: Colors.grey[200],
+              isDense: true,
+              icon: Icon(Icons.arrow_downward),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: darkBlue),
+              underline: Container(
+                height: 2,
+                color: darkBlue,
+              ),
+              onChanged: (String newValue) {
+                setState(() {
+                  dropDownValueCat = newValue;
+                });
+              },
+              items: <String>['Platter', 'Salad', 'Sandwich', 'Dessert']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      );
+    }
 
-    Widget dropDownMenu_Servings = Padding(
-        padding: EdgeInsets.only(left: 10),
-        child: Column(children: <Widget>[
+    Widget dropDownMenuServings() {
+      return Column(
+        children: <Widget>[
           Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -215,41 +277,44 @@ class _AddCookDish extends State<AddCookDish> {
                 ),
               )),
           Container(
-              alignment: Alignment.centerLeft,
-              child: DropdownButton<String>(
-                value: dropDownValueServings,
-                dropdownColor: Colors.grey[200],
-                isDense: true,
-                icon: Icon(Icons.arrow_downward),
-                iconSize: 24,
-                elevation: 16,
-                style: TextStyle(color: Colors.deepPurple),
-                underline: Container(
-                  height: 2,
-                  color: Colors.deepPurpleAccent,
-                ),
-                onChanged: (String newValue) {
-                  setState(() {
-                    dropDownValueServings = newValue;
-                  });
-                },
-                items: <String>[
-                  '1-2 persons',
-                  '4 persons',
-                  '8 persons',
-                  '10 persons'
-                ].map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ))
-        ]));
+            alignment: Alignment.centerLeft,
+            child: DropdownButton<String>(
+              value: dropDownValueServings,
+              dropdownColor: Colors.grey[200],
+              isDense: true,
+              icon: Icon(Icons.arrow_downward),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: darkBlue),
+              underline: Container(
+                height: 2,
+                color: darkBlue,
+              ),
+              onChanged: (String newValue) {
+                setState(() {
+                  dropDownValueServings = newValue;
+                });
+              },
+              items: <String>[
+                '1-2 persons',
+                '4 persons',
+                '8 persons',
+                '10 persons'
+              ].map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      );
+    }
 
-    Widget enterPrice = Padding(
-        padding: const EdgeInsets.only(left: 10, right: 10),
-        child: Column(children: <Widget>[
+    Widget enterPrice() {
+      return Column(
+        children: <Widget>[
           Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -262,19 +327,23 @@ class _AddCookDish extends State<AddCookDish> {
                 ),
               )),
           Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                  width: 150,
-                  child: TextField(
-                    decoration: InputDecoration(hintText: 'Enter your price'),
-                    controller: price,
-                    style: TextStyle(fontSize: 16.0),
-                  ))),
-        ]));
+            alignment: Alignment.centerLeft,
+            child: Container(
+              width: 150,
+              child: TextField(
+                decoration: InputDecoration(hintText: 'Enter your price'),
+                controller: price,
+                style: TextStyle(fontSize: 16.0),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
-    Widget description = Padding(
-        padding: EdgeInsets.only(left: 10, right: 10),
-        child: Column(children: <Widget>[
+    Widget description() {
+      return Column(
+        children: <Widget>[
           Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -295,29 +364,13 @@ class _AddCookDish extends State<AddCookDish> {
             controller: descriptionText,
             style: TextStyle(fontSize: 16.0),
           ),
-        ]));
+        ],
+      );
+    }
 
-    Widget addButton = Positioned(
-      left: MediaQuery.of(context).size.width / 4,
-      bottom: 0,
+    Widget addButton = Center(
       child: InkWell(
         onTap: () async {
-          // final http.Response response = await http.post(
-          //   baseURL + '/cook/api/cook-dish/add',
-          //   headers: <String, String>{
-          //     'Content-Type': 'multipart/form-data',
-          //     'Authorization': "Bearer " + globals.token
-          //   },
-          //   body: jsonEncode(<String, String>{
-          //     'custom_name': customName.text,
-          //     'gendish_id': genDishId,
-          //     'price': price.text,
-          //     'category': dropDownValueCat,
-          //     'description': descriptionText.text,
-          //     'dish_pic': _imageString,
-          //     //MODIFY by adding relevant COOK parts
-          //   }),
-          // );
           String token = await storage.read(key: 'token');
           var request = http.MultipartRequest(
             'POST',
@@ -347,30 +400,22 @@ class _AddCookDish extends State<AddCookDish> {
             //dynamic decoded = jsonDecode(response.body);
             print("Received: " + responseString);
             print(_image.path);
-            bool success = responseString['success'];
+            String jsonsDataString = responseString.toString();
+            final jsonData = jsonDecode(jsonsDataString);
+            bool success = jsonData['success'];
             if (success) {
-              //_registerSuccessfulAlert();
               print("Successful!");
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => PageNavigatorCook(
+                            indexInput: 0,
+                          )));
             } else {
-              //handle errors
-              print("Error: " + responseString['error']);
-              //_registerErrorAlert(decoded['error']);
+              print("Error: ");
             }
           } else {
-            // If the server did not return a 201 CREATED response,
-            // then throw an exception.
             print("An unkown error occured");
-            // print(customName.text +
-            //     " " +
-            //     genDishId +
-            //     " " +
-            //     price.text +
-            //     " " +
-            //     dropDownValueCat +
-            //     " " +
-            //     descriptionText.text +
-            //     " " +
-            //     _imageString);
             print(_image.path);
           }
         },
@@ -381,7 +426,7 @@ class _AddCookDish extends State<AddCookDish> {
               child: new Text("Add",
                   style: const TextStyle(color: Colors.white, fontSize: 20.0))),
           decoration: BoxDecoration(
-              color: Colors.blue,
+              color: mediumBlue,
               boxShadow: [
                 BoxShadow(
                   color: Color.fromRGBO(0, 0, 0, 0.2),
@@ -395,33 +440,28 @@ class _AddCookDish extends State<AddCookDish> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.blue[100],
-      body: Stack(children: <Widget>[
-        Column(children: <Widget>[
-          Spacer(flex: 1),
-          addMealText,
-          mealName,
-          Spacer(),
-          dropDownMenu_Cat,
-          Spacer(),
-          dropDownMenu_Servings,
-          Spacer(),
-          enterPrice,
-          Spacer(),
-          description,
-          Spacer(),
-          addButton,
-          Spacer(),
-          // RaisedButton(
-          //     color: Colors.lightGreenAccent,
-          //     onPressed: getImage,
-          //     child: Text("PICK FROM CAMERA")),
-        ]),
-      ]),
-      // floatingActionButton: FloatingActionButton(
-      //     onPressed: getImage,
-      //     tooltip: 'Pick Image',
-      //     child: Icon(Icons.add_a_photo)),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: Column(children: <Widget>[
+            Spacer(flex: 2),
+            addMealText(),
+            Spacer(flex: 1),
+            mealName(),
+            Spacer(),
+            dropDownMenuCat(),
+            Spacer(),
+            dropDownMenuServings(),
+            Spacer(),
+            enterPrice(),
+            Spacer(),
+            description(),
+            Spacer(),
+            addButton,
+            Spacer(),
+          ]),
+        ),
+      ),
     );
   }
 }

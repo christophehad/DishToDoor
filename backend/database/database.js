@@ -186,7 +186,7 @@ module.exports.cookRegisterEmail = function cookRegisterEmail(email,pass,fname,l
     })
 }
 // returns the cook ID
-module.exports.cookRegister = function cookRegister(email,phone,pass,fname,lname,isVerified=false, done) {
+module.exports.cookRegister = function cookRegister(email,phone,pass,fname,lname,isVerified=false,exp,cert,train,inspect,done) {
     // create account
     con.query('INSERT into user_account (email,phone,type,password) values (?,?,?,?)',[email,phone,'COOK',pass], (err,result) => {
         if (err) return done(err);
@@ -196,7 +196,7 @@ module.exports.cookRegister = function cookRegister(email,phone,pass,fname,lname
         con.query('INSERT into user_profile (id,type,first_name,last_name) values (?,?,?,?)',[id,'COOK',fname,lname], (err,result) => {
             if (err) return done(err);
             // create specific cook profile
-            con.query('INSERT into cook (cook_id,is_verified) values (?,?)',[id,isVerified],(err,result) => {
+            con.query('INSERT into cook (cook_id,is_verified,experience,certified_chef,willing_training,consent_inspection) values (?,?,?,?,?,?)',[id,isVerified,exp,cert,train,inspect],(err,result) => {
                 if (err) return done(err);
                 return done(null,id);
             })
@@ -307,18 +307,37 @@ module.exports.adminLogin = function adminLogin(email,done) {
 }
 
 // internal function for checking if account exists; returns 1 if exists
-function accountExists(id,type,done) {
-    con.query('SELECT * FROM user_account WHERE id = ? AND type = ?',[id,type], (err,rows) => {
+function changeBlockStatus(user_id,blocked,done) {
+    con.query('UPDATE user_account SET blocked = ? WHERE id = ?',[blocked,user_id], (err,result) => {
         if (err) return done(err);
-        return done(null,rows.length > 0);
+        return done(null,true);
     })
 }
 
-// returns 1 if cook account exists
+// returns true
+module.exports.blockAccount = function(user_id,done) {
+    return changeBlockStatus(user_id,1,done);
+}
+
+// returns true
+module.exports.unblockAccount = function(user_id,done) {
+    return changeBlockStatus(user_id,0,done);
+}
+
+// internal function for checking if account exists and allowed to function; returns 1 if exists
+function accountExists(id,type,done) {
+    con.query('SELECT * FROM user_account WHERE id = ? AND type = ?',[id,type], (err,rows) => {
+        if (err) return done(err);
+        if (rows.length == 0) return done(null,false);
+        return done(null,rows[0].blocked == 0);
+    })
+}
+
+// returns 1 if cook account exists and allowed to function
 module.exports.cookAccountExists = function cookAccountExists(id,done) {
     return accountExists(id,'COOK',done);
 }
-// returns 1 if eater account exists
+// returns 1 if eater account exists and allowed to function
 module.exports.eaterAccountExists = function eaterAccountExists(id,done) {
     return accountExists(id,'EATER',done);
 }
@@ -369,6 +388,27 @@ module.exports.cookGetPic = function cookGetPic(id, done) {
     })
 }
 
+// returns false if unsuccessful (cloud or database)
+module.exports.cookUploadKitchenPic = function (id, local_pic_name, local_pic_path, done) {
+    cloudStorage.uploadCookKitchenPic(local_pic_name, local_pic_path).then(cloud_url => {
+        con.query('INSERT into cook_kitchen_pics (cook_id,kitchen_pic) values (?,?)', [id,cloud_url], (err, result) => {
+            if (err) return done(err);
+            return done(null, result.affectedRows > 0);
+        })
+    }).catch(err => { return done(null, false); })
+}
+// returns a list of the urls of the kitchen pics
+module.exports.cookGetKitchenPics = function (id, done) {
+    con.query('SELECT kitchen_pic FROM cook_kitchen_pics WHERE cook_id = ?', [id], (err, rows) => {
+        if (err) return done(err);
+        let kitchen_pics = [];
+        for (const row of rows) {
+            kitchen_pics.push(row.kitchen_pic);
+        }
+        return done(null, kitchen_pics);
+    })
+}
+
 // return true if successful
 module.exports.cookSetOpenCloseTimes = function cookSetOpenCloseTimes(id,opening_time,closing_time,done) {
     con.query('UPDATE cook SET opening_time = ?, closing_time = ? WHERE cook_id = ?',[opening_time,closing_time,id], (err,result) => {
@@ -394,14 +434,34 @@ module.exports.userUpdateNames = function (user_id,f_name,l_name,done) {
     })
 }
 
+function cookUpdateSharePhone(cook_id, shared, done) {
+    con.query('UPDATE cook SET share_phone = ? WHERE cook_id = ?',[shared,cook_id], (err, result) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
+}
+
+// returns true
+module.exports.cookSharePhone = function(cook_id,done) {
+    return cookUpdateSharePhone(cook_id,1,done);
+}
+
+// returns true
+module.exports.cookUnsharePhone = function(cook_id,done) {
+    return cookUpdateSharePhone(cook_id,0,done);
+}
+
 /**
  * @param {schemes.cookProfileCallback} done 
  */
 var cookGetProfile = module.exports.cookGetProfile = function(cook_id,done) {
-    con.query('SELECT cook.*,user_profile.* FROM cook,user_profile WHERE cook_id = ? AND id = cook_id',[cook_id], (err,rows) => {
+    con.query('SELECT cook.*,user_profile.*, user_account.phone FROM cook,user_profile,user_account WHERE cook_id = ? AND user_profile.id = cook_id AND user_account.id = cook_id',[cook_id], (err,rows) => {
         if (err) return done(err);
         let row = rows[0];
-        let cookProfile = schemes.cookProfile(row.cook_id,row.first_name,row.last_name,row.cook_logo,row.lat,row.lon,row.opening_time,row.closing_time);
+        let shared = row.share_phone == 1;
+        let phone = shared?row.phone : null;
+        let cookProfile = schemes.cookProfile(row.cook_id,row.first_name,row.last_name,row.cook_logo,row.lat,row.lon,row.opening_time,row.closing_time,
+                                                shared,phone);
         return done(null,cookProfile);
     })
 }

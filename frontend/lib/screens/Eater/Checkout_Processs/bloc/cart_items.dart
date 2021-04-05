@@ -1,7 +1,7 @@
 /// The [dart:async] is neccessary for using streams
 import 'dart:async';
 
-import 'package:dishtodoor/screens/Map/cookClass.dart';
+import 'package:dishtodoor/screens/Eater/Map/cookClass.dart';
 
 class CartTuple {
   final CookDish dish;

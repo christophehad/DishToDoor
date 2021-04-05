@@ -26,3 +26,7 @@ exports.uploadCookDishPic = function uploadCookDishPic(destName,picPath) {
 exports.uploadCookProfilePic = function uploadCookProfilePic(destName,picPath) {
     return uploadFile('cookprofile_pics/',destName,picPath);
 }
+// returns a promise of the upload
+exports.uploadCookKitchenPic = function (destName,picPath) {
+    return uploadFile('cookkitchen_pics/',destName,picPath);
+}

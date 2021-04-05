@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 25, 2021 at 07:01 PM
+-- Generation Time: Apr 2, 2021 at 05:01 PM
 -- Server version: 10.4.17-MariaDB
 -- PHP Version: 8.0.0
 
@@ -55,6 +55,11 @@ CREATE TABLE `cook` (
   `delivery_radius` int(255) DEFAULT NULL,
   `lat` decimal(10, 8) DEFAULT NULL,
   `lon` decimal(11, 8) DEFAULT NULL,
+  `share_phone` tinyint(1) NOT NULL DEFAULT 1,
+  `experience` varchar(2083) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `certified_chef` tinyint(1) NOT NULL DEFAULT 0,
+  `willing_training` tinyint(1) NOT NULL DEFAULT 0,
+  `consent_inspection` tinyint(1) NOT NULL DEFAULT 0,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -103,6 +108,7 @@ CREATE TABLE `cook_donations` (
 --
 
 CREATE TABLE `cook_kitchen_pics` (
+  `pic_id` int(11) NOT NULL,
   `cook_id` int(11) NOT NULL,
   `kitchen_pic` varchar(2083) NOT NULL,
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
@@ -338,6 +344,21 @@ CREATE TABLE `generic_dishes` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `generic_dishes_requests`
+--
+
+CREATE TABLE `generic_dishes_requests` (
+  `request_id` int(11) NOT NULL,
+  `cook_id` int(11) NOT NULL,
+  `gendish_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `category` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `mean_price` int(11) NOT NULL DEFAULT 0,
+  `_added` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `generic_dish_ingredients`
 --
 
@@ -391,6 +412,7 @@ CREATE TABLE `user_account` (
   `email` varchar(320) COLLATE utf8_unicode_ci DEFAULT NULL,
   `phone` varchar(16) COLLATE utf8_unicode_ci DEFAULT NULL,
   `type` enum('COOK','EATER','ADMIN') COLLATE utf8_unicode_ci NOT NULL,
+  `blocked` tinyint(1) NOT NULL DEFAULT 0,
   `password` binary(60) NOT NULL COMMENT 'length for bcrypt hash',
   `_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -469,7 +491,8 @@ ALTER TABLE `cook_donations`
 -- Indexes for table `cook_kitchen_pics`
 --
 ALTER TABLE `cook_kitchen_pics`
-  ADD PRIMARY KEY (`cook_id`);
+  ADD PRIMARY KEY (`pic_id`),
+  ADD KEY (`cook_id`);
 
 --
 -- Indexes for table `cook_promocodes`
@@ -591,6 +614,13 @@ ALTER TABLE `generic_dishes`
   ADD PRIMARY KEY (`gendish_id`);
 
 --
+-- Indexes for table `generic_dishes_requests`
+--
+ALTER TABLE `generic_dishes_requests`
+  ADD PRIMARY KEY (`request_id`),
+  ADD KEY (`cook_id`);
+
+--
 -- Indexes for table `generic_dish_ingredients`
 --
 ALTER TABLE `generic_dish_ingredients`
@@ -635,6 +665,12 @@ ALTER TABLE `user_profile`
 --
 
 --
+-- AUTO_INCREMENT for table `cook_kitchen_pics`
+--
+ALTER TABLE `cook_kitchen_pics`
+  MODIFY `pic_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `cook_review_pics`
 --
 ALTER TABLE `cook_review_pics`
@@ -675,6 +711,12 @@ ALTER TABLE `feast_suggested_cooks`
 --
 ALTER TABLE `generic_dishes`
   MODIFY `gendish_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `generic_dishes_requests`
+--
+ALTER TABLE `generic_dishes_requests`
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `ingredients`
@@ -833,6 +875,12 @@ ALTER TABLE `feast_suggested_cooks`
   ADD CONSTRAINT `feast_suggested_cooks_ibfk_1` FOREIGN KEY (`feast_id`) REFERENCES `eater_gendish_feast` (`feast_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `feast_suggested_cooks_ibfk_2` FOREIGN KEY (`gendish_id`) REFERENCES `generic_dishes` (`gendish_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `feast_suggested_cooks_ibfk_3` FOREIGN KEY (`cook_id`) REFERENCES `cook` (`cook_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `generic_dishes_requests`
+--
+ALTER TABLE `generic_dishes_requests`
+  ADD CONSTRAINT `generic_dishes_requests_ibfk_1` FOREIGN KEY (`cook_id`) REFERENCES `cook` (`cook_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `generic_dish_ingredients`

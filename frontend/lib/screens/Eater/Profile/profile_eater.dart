@@ -5,6 +5,7 @@ import 'package:dishtodoor/config/config.dart';
 import 'package:dishtodoor/screens/auth/login.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:dishtodoor/config/appProperties.dart';
 
 class ProfileEater extends StatefulWidget {
   ProfileEater({Key key}) : super(key: key);
@@ -163,7 +164,6 @@ class _ProfileEaterState extends State<ProfileEater> {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
-      backgroundColor: Colors.teal[200],
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -174,8 +174,8 @@ class _ProfileEaterState extends State<ProfileEater> {
                     " " +
                     profileEaterInformation.eaterProfile.lastName,
                 style: TextStyle(
-                    fontSize: 40.0,
-                    color: Colors.white,
+                    fontSize: 35.0,
+                    color: Colors.black,
                     fontWeight: FontWeight.bold),
               ),
               onTap: () async {
@@ -188,44 +188,44 @@ class _ProfileEaterState extends State<ProfileEater> {
               height: 20,
               width: 200,
               child: Divider(
-                color: Colors.teal.shade700,
+                color: Colors.grey.shade700,
               ),
             ),
             Card(
-                color: Colors.white,
+                color: Colors.grey.shade200,
                 margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
                 child: ListTile(
                     leading: Icon(
                       Icons.phone,
-                      color: Colors.teal,
+                      color: darkBlue,
                     ),
                     title: Text(profileEaterInformation.phone,
                         //add phone number
                         style: TextStyle(
                           fontSize: 20.0,
-                          color: Colors.teal,
+                          color: Colors.black,
                         )))),
             Card(
-                color: Colors.white,
+                color: Colors.grey.shade200,
                 margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
                 child: ListTile(
                     leading: Icon(
                       Icons.email,
-                      color: Colors.teal,
+                      color: darkBlue,
                     ),
                     title: Text(profileEaterInformation.email,
                         //add email
                         style: TextStyle(
                           fontSize: 20.0,
-                          color: Colors.teal,
+                          color: Colors.black,
                         )))),
             Card(
-              color: Colors.white,
+              color: Colors.grey.shade200,
               margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
               child: ListTile(
                 leading: Icon(
                   Icons.check,
-                  color: Colors.teal,
+                  color: darkBlue,
                 ),
                 title: Text(
                   "User since " +
@@ -237,7 +237,7 @@ class _ProfileEaterState extends State<ProfileEater> {
                   //add verified since
                   style: TextStyle(
                     fontSize: 20.0,
-                    color: Colors.teal,
+                    color: Colors.black,
                   ),
                 ),
               ),
@@ -246,28 +246,30 @@ class _ProfileEaterState extends State<ProfileEater> {
               height: MediaQuery.of(context).size.height / 10,
             ),
             Card(
-              color: Colors.white,
+              color: Colors.grey.shade200,
               margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
               child: ListTile(
                 leading: Icon(
                   Icons.logout,
-                  color: Colors.teal,
+                  color: darkBlue,
                 ),
-                onTap: () {
-                  storage.deleteAll();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (BuildContext context) => Login(),
-                    ),
-                    (route) => false,
-                  );
+                onTap: () async {
+                  await logoutNotif();
+                  await storage.deleteAll().then((value) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => Login(),
+                      ),
+                      (route) => false,
+                    );
+                  });
                 },
                 title: Text(
                   "Logout",
                   style: TextStyle(
                     fontSize: 20.0,
-                    color: Colors.teal,
+                    color: Colors.black,
                   ),
                 ),
               ),
