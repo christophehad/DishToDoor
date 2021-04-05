@@ -72,7 +72,8 @@ router.get('/orders/get',(req,res,next) => {
             for (const orderwrapper of orderwrappers) {
                 let cookProfile = cookProfileAPI(
                     orderwrapper.cook.first_name, orderwrapper.cook.last_name, orderwrapper.cook.logo,
-                    orderwrapper.cook.lat, orderwrapper.cook.lon, orderwrapper.cook.opening_time, orderwrapper.cook.closing_time
+                    orderwrapper.cook.lat, orderwrapper.cook.lon, orderwrapper.cook.opening_time, orderwrapper.cook.closing_time,
+                    orderwrapper.cook.share_phone, orderwrapper.cook.phone
                 );
                 let curOrder = eaterOrderAPI(
                     orderwrapper.order.order_id, cookProfile, orderwrapper.order.total_price,

@@ -132,6 +132,8 @@ module.exports.cookMap = function cookMap(f_name,l_name,logo,lat,lon,distance,op
  * @property {Number} lon
  * @property {String} opening_time
  * @property {String} closing_time
+ * @property {Boolean} share_phone
+ * @property {String} phone
 */
 
 /**
@@ -139,11 +141,11 @@ module.exports.cookMap = function cookMap(f_name,l_name,logo,lat,lon,distance,op
  * @param {String} close
  * @returns {CookProfileAPI}
  */
-var cookProfileAPI = module.exports.cookProfileAPI = function (f_name,l_name,logo,lat,lon,open,close) {
+var cookProfileAPI = module.exports.cookProfileAPI = function (f_name,l_name,logo,lat,lon,open,close,share=false,phone) {
     let open_with_date = addDateISO(open), close_with_date = addDateISO(close);
     return {
         first_name:f_name, last_name:l_name, logo:logo, lat:lat, lon:lon, opening_time:open_with_date,
-        closing_time:close_with_date
+        closing_time:close_with_date, share_phone:share, phone:phone
     }
 }
 
@@ -165,7 +167,8 @@ module.exports.cookAccountAPI = function (cook) {
     let date_api = datetimeAPI(cook.date_added);
     let is_verified_api = cook.is_verified == true;
     let cookprofile = cookProfileAPI(cook.profile.first_name,cook.profile.last_name,cook.profile.logo,
-                                        cook.profile.lat,cook.profile.lon,cook.profile.opening_time,cook.profile.closing_time);
+                                        cook.profile.lat,cook.profile.lon,cook.profile.opening_time,cook.profile.closing_time,
+                                        cook.profile.share_phone, cook.profile.phone);
     return {
         email:cook.email,phone:cook.phone,is_verified:is_verified_api,date_added:date_api,profile:cookprofile
     }

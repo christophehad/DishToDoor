@@ -415,14 +415,34 @@ module.exports.userUpdateNames = function (user_id,f_name,l_name,done) {
     })
 }
 
+function cookUpdateSharePhone(cook_id, shared, done) {
+    con.query('UPDATE cook SET share_phone = ? WHERE cook_id = ?',[shared,cook_id], (err, result) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
+}
+
+// returns true
+module.exports.cookSharePhone = function(cook_id,done) {
+    return cookUpdateSharePhone(cook_id,1,done);
+}
+
+// returns true
+module.exports.cookUnsharePhone = function(cook_id,done) {
+    return cookUpdateSharePhone(cook_id,0,done);
+}
+
 /**
  * @param {schemes.cookProfileCallback} done 
  */
 var cookGetProfile = module.exports.cookGetProfile = function(cook_id,done) {
-    con.query('SELECT cook.*,user_profile.* FROM cook,user_profile WHERE cook_id = ? AND id = cook_id',[cook_id], (err,rows) => {
+    con.query('SELECT cook.*,user_profile.*, user_account.phone FROM cook,user_profile,user_account WHERE cook_id = ? AND user_profile.id = cook_id AND user_account.id = cook_id',[cook_id], (err,rows) => {
         if (err) return done(err);
         let row = rows[0];
-        let cookProfile = schemes.cookProfile(row.cook_id,row.first_name,row.last_name,row.cook_logo,row.lat,row.lon,row.opening_time,row.closing_time);
+        let shared = row.share_phone == 1;
+        let phone = shared?row.phone : null;
+        let cookProfile = schemes.cookProfile(row.cook_id,row.first_name,row.last_name,row.cook_logo,row.lat,row.lon,row.opening_time,row.closing_time,
+                                                shared,phone);
         return done(null,cookProfile);
     })
 }

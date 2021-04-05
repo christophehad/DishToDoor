@@ -60,3 +60,19 @@ exports.getAccount = function(cook_id,done) {
 }
 
 exports.updateName = account.updateName;
+
+// pass shared as boolean
+exports.changePhoneShare = function (cook_id,shared,done) {
+    if (shared) {
+        database.cookSharePhone(cook_id, (err, shared) => {
+            if (err) return done(err);
+            return done(null, true);
+        });
+    }
+    else {
+        database.cookUnsharePhone(cook_id, (err, unshared) => {
+            if (err) return done(err);
+            return done(null, true);
+        });
+    }
+}
