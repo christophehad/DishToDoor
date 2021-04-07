@@ -475,12 +475,6 @@ class CookTrackOrderState extends State<CookTrackOrder> {
                   ),
                 ],
               ),
-              trailing: InkWell(
-                child: Icon(Icons.call_rounded, color: darkBlue),
-                onTap: () {
-                  //call eater
-                },
-              ),
               children: [
                 Container(
                   margin: const EdgeInsets.all(8),
