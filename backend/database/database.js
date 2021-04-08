@@ -379,7 +379,7 @@ module.exports.cookUploadKitchenPic = function (id, local_pic_name, local_pic_pa
     }).catch(err => { return done(null, false); })
 }
 // returns a list of the urls of the kitchen pics
-module.exports.cookGetKitchenPics = function (id, done) {
+var cookGetKitchenPics = module.exports.cookGetKitchenPics = function (id, done) {
     con.query('SELECT kitchen_pic FROM cook_kitchen_pics WHERE cook_id = ?', [id], (err, rows) => {
         if (err) return done(err);
         let kitchen_pics = [];
@@ -450,7 +450,7 @@ var cookGetProfile = module.exports.cookGetProfile = function(cook_id,done) {
 /**
  * @param {schemes.cookAccountCallback} done 
  */
-module.exports.cookGetAccount = function(cook_id,done) {
+var cookGetAccount = module.exports.cookGetAccount = function(cook_id,done) {
     con.query('SELECT user_account.*, cook.is_verified FROM user_account,cook WHERE cook_id = ? AND id = cook_id',[cook_id], (err,rows) => {
         if (err) return done(err);
         let row = rows[0];
@@ -915,6 +915,41 @@ module.exports.orderComplete = function(order_id,done) {
     orderSetStatus(order_id,schemes.OrderStatus.completed,done);
 }
 
+
+/* Admin Panel Functions */
+
+/**
+ * @param {schemes.cookGetVerificationsCallback} done 
+ */
+module.exports.getCookVerifications = function (done) {
+    con.query('SELECT cook.* FROM cook WHERE cook.is_verified = 0', (err,rows) => {
+        if (err) return done(err);
+        let cooks = [];
+        async.eachOf(rows, function(row,index,inner_callback) {
+            let cook_id = row.cook_id;
+            cookGetKitchenPics(cook_id, (err,pics) => {
+                cookGetAccount(cook_id, (err, account) => {
+                    if (err) return inner_callback(err);
+                    cooks.push(schemes.cookVerification(
+                        account, row.experience, row.certified_chef, row.willing_training, row.consent_inspection,
+                        pics
+                    ));
+                    inner_callback();
+                })
+            })
+        }, function (err) {
+            if (err) return done(err);
+            return done(null,cooks);
+        })
+    })
+}
+
+module.exports.verifyCook = function (cook_id,done) {
+    con.query('UPDATE cook SET is_verified = 1 WHERE cook_id = ?',[cook_id], (err, result) => {
+        if (err) return done(err);
+        return done(null,true);
+    })
+}
 
 
 module.exports.uploadCookDishPic = cloudStorage.uploadCookDishPic;
