@@ -18,6 +18,7 @@ class CookList {
   }
 }
 
+//list of dishes
 class DishList {
   List<CookDish> dishList = List<CookDish>();
 
@@ -32,11 +33,6 @@ class DishList {
     return new DishList(dishList: dishes);
   }
 }
-
-// DateTime dateFormatting(String s) {
-//   final formatter = DateFormat.Hms();
-//   return formatter.parse(s);
-// }
 
 //definition of cooks and construction from Json
 class CookMap {

@@ -1,10 +1,10 @@
-import 'package:dishtodoor/screens/Cook/add_cook_dish.dart';
+import 'package:dishtodoor/screens/Cook/GenericDishes/add_cook_dish.dart';
 import 'package:flutter/material.dart';
-import 'package:dishtodoor/screens/Cook/cook_profile.dart';
-import 'package:dishtodoor/screens/Cook/orderTrackingCook.dart';
+import 'package:dishtodoor/screens/Cook/Profile/cook_profile.dart';
+import 'package:dishtodoor/screens/Cook/OrderTracking/orderTrackingCook.dart';
 import 'package:dishtodoor/config/appProperties.dart';
 
-import 'package:dishtodoor/screens/Cook/cookAvailableMeals.dart';
+import 'package:dishtodoor/screens/Cook/Menu/cookAvailableMeals.dart';
 //Eater Page Navigator
 
 class PageNavigatorCook extends StatefulWidget {

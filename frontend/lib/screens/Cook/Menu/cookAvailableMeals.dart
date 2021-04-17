@@ -5,7 +5,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
-import 'package:dishtodoor/screens/Cook/orderClassCook.dart';
+import 'package:dishtodoor/screens/Cook/OrderTracking/orderClassCook.dart';
 import 'package:dishtodoor/screens/Eater/Map/cookClass.dart';
 import 'package:intl/intl.dart';
 import 'package:dishtodoor/config/appProperties.dart';

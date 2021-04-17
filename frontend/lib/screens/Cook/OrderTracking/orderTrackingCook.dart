@@ -6,8 +6,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
-import 'package:dishtodoor/screens/Cook/orderClassCook.dart';
-import 'package:dishtodoor/config/appProperties.dart';
+import 'package:dishtodoor/screens/Cook/OrderTracking/orderClassCook.dart';
 
 const deliverySteps = ['Pending', 'Cooking', 'Ready'];
 
@@ -34,8 +33,6 @@ class CookTrackOrderState extends State<CookTrackOrder> {
 //fetching order details
   Future<void> orderFetching() async {
     String token = await storage.read(key: 'token');
-    print("token: " + token);
-    print("trying comm");
     final http.Response response = await http.get(
       baseURL + '/cook/api/orders/get',
       headers: <String, String>{
