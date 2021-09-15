@@ -105,7 +105,6 @@ dist
 
 # Certificate and Sensitive Key files
 cert
-
 google-services.json
 
 # VSCode folder
