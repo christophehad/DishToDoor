@@ -72,6 +72,8 @@ class CookProfile {
   final double lon;
   final DateTime opening;
   final DateTime closing;
+  final bool sharePhone;
+  final String phone;
 
   LatLng getLocation() {
     return LatLng(lat, lon);
@@ -84,7 +86,9 @@ class CookProfile {
       this.lat,
       this.lon,
       this.opening,
-      this.closing});
+      this.closing,
+      this.phone,
+      this.sharePhone});
 
   factory CookProfile.fromJson(Map<String, dynamic> json) {
     String defaultLogo =
@@ -103,6 +107,8 @@ class CookProfile {
       lon: json['lon'],
       opening: DateTime.parse(json['opening_time']),
       closing: DateTime.parse(json['closing_time']),
+      phone: json['phone'] ?? "",
+      sharePhone: json['share_phone'] ?? true,
     );
   }
 }

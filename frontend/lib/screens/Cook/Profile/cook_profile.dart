@@ -368,7 +368,7 @@ class _ProfileCookState2 extends State<ProfileCook2> {
               },
               child: CircleAvatar(
                 radius: 50,
-                backgroundColor: Color(0xffFDCF09),
+                backgroundColor: blue,
                 child: profilePic(),
               ),
             ),

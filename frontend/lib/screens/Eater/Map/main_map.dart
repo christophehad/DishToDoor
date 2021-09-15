@@ -1,4 +1,4 @@
-import 'package:dishtodoor/screens/Eater/cook_page.dart';
+import 'package:dishtodoor/screens/Eater/Map/cook_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -34,9 +34,6 @@ class PointObject {
 }
 
 class _MainMapState extends State<MainMap> {
-  //cook classes
-  //CookList cooks;
-
   PanelController _pc = new PanelController();
   final double _initFabHeight = 120.0;
   // ignore: unused_field
@@ -71,6 +68,7 @@ class _MainMapState extends State<MainMap> {
 
 //for Map building
   Future<void> getLoc() async {
+    //checking if location services are enabled, else enable them
     _serviceEnabled = await _location.serviceEnabled();
     if (!_serviceEnabled) {
       _serviceEnabled = await _location.requestService();
@@ -80,6 +78,8 @@ class _MainMapState extends State<MainMap> {
       }
     }
 
+    //checking if permission to access location services is granted
+    //else request permission
     _permissionGranted = await _location.hasPermission();
     if (_permissionGranted == PermissionStatus.denied) {
       _permissionGranted = await _location.requestPermission();
@@ -88,26 +88,26 @@ class _MainMapState extends State<MainMap> {
         return;
       }
     }
+    //storing current user location in state variable
     var _loc = await _location.getLocation();
-    print("location: " +
-        _loc.latitude.toString() +
-        "," +
-        _loc.longitude.toString());
     setState(() {
       _finaluserlocation = LatLng(_loc.latitude, _loc.longitude);
     });
   }
 
   Future locsharing() async {
-    print("trying comm");
+    //getting the unique user token
     String token = await storage.read(key: 'token');
-    print(await storage.containsKey(key: 'token'));
+    //sending an http get request to the "eater dishes around" API
+    //and storing the result in response
     final http.Response response = await http.get(
+      //including user location in request
       baseURL +
           '/eater/api/dish/around?lat=' +
           _finaluserlocation.latitude.toString() +
           '&lon=' +
           _finaluserlocation.longitude.toString(),
+      //including user token in header
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': "Bearer " + token.toString(),
@@ -122,13 +122,12 @@ class _MainMapState extends State<MainMap> {
       print("success: " + success.toString());
       print(decoded['cooks']);
       if (success) {
+        //convert the returned JSON object to a list of cooks
+        //using a factory method inside the class CookList
         setState(() {
           cooks = CookList.fromJson(decoded['cooks']);
         });
         isOrderEmpty = false;
-        debugPrint("debug print: " + cooks.cooksList.toString(),
-            wrapWidth: 1024);
-        print("Successful!");
       } else {
         //handle errors
         setState(() {

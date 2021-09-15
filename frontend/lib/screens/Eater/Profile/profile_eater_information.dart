@@ -1,4 +1,4 @@
-import 'package:dishtodoor/screens/Cook/orderClassCook.dart';
+import 'package:dishtodoor/screens/Cook/OrderTracking/orderClassCook.dart';
 
 class ProfileEaterInformation {
   final String email;

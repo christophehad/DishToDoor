@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:dishtodoor/config/config.dart';
-import 'package:dishtodoor/screens/Cook/dishClass.dart';
-import 'package:dishtodoor/screens/Cook/add_generic_dish.dart';
+import 'package:dishtodoor/screens/Cook/GenericDishes/dishClass.dart';
+import 'package:dishtodoor/screens/Cook/GenericDishes/add_generic_dish.dart';
 import 'dart:async';
 import 'package:dishtodoor/config/appProperties.dart';
 

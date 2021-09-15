@@ -428,7 +428,7 @@ class EaterTrackOrderState extends State<EaterTrackOrder> {
                 child: Icon(Icons.call_rounded, color: blue),
                 onTap: () async {
                   //TODO add cook number to CookProfile - Christophe
-                  //await _launchCaller(order.cook);
+                  await _launchCaller(order.cook.phone);
                 },
               ),
               children: [

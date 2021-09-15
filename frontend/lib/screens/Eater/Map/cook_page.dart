@@ -4,6 +4,7 @@ import 'package:dishtodoor/screens/Eater/Map/cookClass.dart';
 import 'package:dishtodoor/screens/Eater/Checkout_Processs/bloc/cart_items.dart';
 import 'package:dishtodoor/screens/Eater/Checkout_Processs/pages/checkout_screen.dart';
 import 'package:dishtodoor/config/appProperties.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CookPageEater extends StatefulWidget {
   final CookMap cook;
@@ -18,6 +19,15 @@ class _CookPageEaterState extends State<CookPageEater> {
   @override
   void initState() {
     super.initState();
+  }
+
+  Future<void> _launchCaller(String number) async {
+    String url = "tel:" + number;
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
   //List creation -- cooks cards
@@ -199,9 +209,20 @@ class _CookPageEaterState extends State<CookPageEater> {
               ),
               Align(
                 alignment: Alignment.topLeft,
-                child: Text(
-                  widget.cook.firstName + "'s Kitchen",
-                  style: TextStyle(fontSize: 20.0),
+                child: Row(
+                  children: <Widget>[
+                    Text(
+                      widget.cook.firstName + "'s Kitchen",
+                      style: TextStyle(fontSize: 20.0),
+                    ),
+                    //   InkWell(
+                    //   child: Icon(Icons.call_rounded, color: blue),
+                    //   onTap: () async {
+                    //     //TODO add cook number to CookProfile - Christophe
+                    //     //await _launchCaller(widget.cook.);
+                    //   },
+                    // ),
+                  ],
                 ),
               ),
               Align(
